@@ -46,7 +46,7 @@ youtube_username: donaldkim
 
 # About Section
 # about_title: About Me
-about_profile_image: donaldkim_web.JPG
+about_profile_image: images/profile.jpg 
 about_content: | # this will include new lines to allow paragraphs
   Data Engineering | Data Analytics | Bible | Theology
   

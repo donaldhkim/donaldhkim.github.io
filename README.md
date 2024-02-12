@@ -1,2 +1,0 @@
-# donaldhkim.github.io
-Portfolio

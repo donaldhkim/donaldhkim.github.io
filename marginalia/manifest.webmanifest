@@ -1,0 +1,12 @@
+{
+  "name": "Marginalia — PDF Style Annotator",
+  "short_name": "Marginalia",
+  "description": "Read PDFs and keep page-by-page notes on the style of the writing.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#faf7f2",
+  "theme_color": "#a84f2e",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

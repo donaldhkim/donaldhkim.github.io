@@ -24,11 +24,41 @@
     --ok: #3d7a45;
     --ok-soft: #e4efe2;
     --card: #fffdf9;
+    --hover: #ffffff;
+    --hover-2: #e7e0d3;
     --shadow: 0 1px 2px rgba(52,42,28,.06), 0 4px 16px rgba(52,42,28,.07);
     --shadow-lg: 0 2px 6px rgba(52,42,28,.08), 0 12px 40px rgba(52,42,28,.14);
+    --sel: rgba(168,79,46,.32);
+    --hit: rgba(240,190,70,.5);
     --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
+  body.dark {
+    --paper: #201c17;
+    --paper-2: #2a251e;
+    --pane: #15120e;
+    --ink: #ede5d7;
+    --ink-2: #b9ad9b;
+    --ink-3: #8a8071;
+    --line: #3b3529;
+    --line-2: #4c4536;
+    --accent: #c96a41;
+    --accent-soft: #41291d;
+    --accent-ink: #e59b76;
+    --ok: #8dc593;
+    --ok-soft: #243528;
+    --card: #292420;
+    --hover: #322c25;
+    --hover-2: #3a342b;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 4px 16px rgba(0,0,0,.3);
+    --shadow-lg: 0 2px 6px rgba(0,0,0,.45), 0 12px 40px rgba(0,0,0,.5);
+    --sel: rgba(229,155,118,.4);
+    --hit: rgba(240,190,70,.4);
+  }
+  body.dark .page-shell canvas { filter: brightness(.88); }
+  body.dark .btn.connected { border-color: #3f5c42; }
+  body.dark .note-card .del:hover { color: #e08a7a; background: #472a24; }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
@@ -37,6 +67,7 @@
     color: var(--ink);
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
+    transition: background .25s, color .25s;
   }
   button { font-family: inherit; cursor: pointer; }
 
@@ -45,7 +76,7 @@
     height: 58px;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     padding: 0 20px;
     background: var(--paper);
     border-bottom: 1px solid var(--line);
@@ -67,7 +98,7 @@
   .doc-meta { min-width: 0; flex: 1; display: flex; align-items: center; gap: 10px; }
   .doc-name {
     font-size: 13px; color: var(--ink-2);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px;
   }
   .doc-name b { color: var(--ink); font-weight: 600; }
   .saved-dot { font-size: 11px; color: var(--ink-3); white-space: nowrap; transition: color .3s; }
@@ -86,7 +117,7 @@
     padding: 7px 11px; font-size: 14px; color: var(--ink-2); line-height: 1;
     transition: background .15s, color .15s;
   }
-  .ctl-group button:hover { background: #e7e0d3; color: var(--ink); }
+  .ctl-group button:hover { background: var(--hover-2); color: var(--ink); }
   .ctl-group .readout {
     font-size: 12px; color: var(--ink-2);
     padding: 0 8px; min-width: 52px; text-align: center;
@@ -95,6 +126,12 @@
     align-self: stretch; display: flex; align-items: center; justify-content: center;
     background: var(--card);
   }
+  .search-group input {
+    border: none; outline: none; background: transparent;
+    font-size: 12px; color: var(--ink);
+    padding: 7px 10px; width: 130px; font-family: inherit;
+  }
+  .search-group input::placeholder { color: var(--ink-3); }
   .btn {
     border: 1px solid var(--line);
     background: var(--card); color: var(--ink);
@@ -104,14 +141,15 @@
     transition: border-color .15s, background .15s, transform .05s;
     white-space: nowrap;
   }
-  .btn:hover { border-color: var(--line-2); background: #fff; }
+  .btn:hover { border-color: var(--line-2); background: var(--hover); }
   .btn:active { transform: translateY(1px); }
   .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .btn.primary:hover { background: var(--accent-ink); border-color: var(--accent-ink); }
+  .btn.primary:hover { background: var(--accent-ink); border-color: var(--accent-ink); color: #fff; }
   .btn.connected { background: var(--ok-soft); border-color: #bcd3b8; color: var(--ok); }
   .btn.attention { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-soft); }
   .btn svg { width: 14px; height: 14px; flex-shrink: 0; }
-  .btn .lbl { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+  .btn .lbl { max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
+  .btn.icon { padding: 8px 11px; font-size: 14px; line-height: 1; }
 
   .menu-wrap { position: relative; }
   .menu {
@@ -134,6 +172,36 @@
   .menu .hint { font-size: 11px; color: var(--ink-3); margin-left: auto; }
   .menu hr { border: none; border-top: 1px solid var(--line); margin: 5px 4px; }
 
+  /* ---------- Search panel ---------- */
+  .search-panel {
+    position: fixed; top: 64px; right: 20px;
+    width: 280px; max-height: 55vh;
+    display: none; flex-direction: column;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    z-index: 60; overflow: hidden;
+  }
+  .search-panel.open { display: flex; }
+  .sp-head {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; padding: 10px 12px; gap: 8px;
+    border-bottom: 1px solid var(--line); color: var(--ink-2);
+  }
+  .sp-head button { border: none; background: none; color: var(--ink-3); font-size: 13px; padding: 2px 6px; border-radius: 6px; }
+  .sp-head button:hover { color: var(--ink); background: var(--paper-2); }
+  .sp-body { overflow-y: auto; padding: 6px; }
+  .sp-row {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; border: none; background: none;
+    font-size: 13px; color: var(--ink);
+    padding: 8px 10px; border-radius: 8px; text-align: left;
+  }
+  .sp-row:hover { background: var(--paper-2); }
+  .sp-count { color: var(--ink-3); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .sp-empty { padding: 14px; font-size: 12px; color: var(--ink-3); font-style: italic; }
+
   /* ---------- Layout ---------- */
   .workspace { display: flex; height: calc(100% - 58px); position: relative; }
   .pdf-pane {
@@ -152,22 +220,50 @@
   .page-shell canvas { display: block; width: 100%; height: 100%; }
   .page-shell .page-num {
     position: absolute; bottom: 8px; right: 10px;
-    font-size: 10px; color: var(--ink-3);
+    font-size: 10px; color: #8d8578;
     background: rgba(250,247,242,.9);
     padding: 2px 7px; border-radius: 20px; pointer-events: none;
+    z-index: 3;
   }
   .page-shell.has-note::after {
     content: "";
     position: absolute; top: 0; left: 0;
     width: 4px; height: 100%;
     background: var(--accent); opacity: .85;
+    z-index: 3; pointer-events: none;
   }
   .page-loading {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    color: var(--ink-3); font-size: 12px;
+    color: #8d8578; font-size: 12px;
     letter-spacing: .06em; text-transform: uppercase;
   }
+
+  /* pdf.js text layer (invisible text over the canvas → selectable) */
+  .textLayer {
+    position: absolute; inset: 0; overflow: hidden;
+    line-height: 1; text-align: initial;
+    transform-origin: 0 0; z-index: 2;
+    caret-color: CanvasText;
+  }
+  .textLayer span, .textLayer br {
+    color: transparent; position: absolute;
+    white-space: pre; cursor: text;
+    transform-origin: 0% 0%;
+  }
+  .textLayer ::selection { background: var(--sel); }
+  .textLayer span.search-hit { background: var(--hit); border-radius: 2px; }
+
+  .quote-btn {
+    position: fixed; display: none; z-index: 150;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 100px;
+    font-size: 12px; font-weight: 600;
+    padding: 8px 15px;
+    box-shadow: var(--shadow-lg);
+    align-items: center; gap: 6px;
+  }
+  .quote-btn:hover { background: var(--accent-ink); }
 
   .divider {
     width: 7px; cursor: col-resize;
@@ -222,7 +318,7 @@
   .editor-card textarea {
     border: none; outline: none; resize: none; background: transparent;
     font-family: var(--serif); font-size: 15.5px; line-height: 1.65; color: var(--ink);
-    padding: 16px 18px 8px; height: 200px;
+    padding: 16px 18px 8px; height: 190px;
   }
   .editor-card textarea::placeholder { color: var(--ink-3); font-style: italic; }
   .editor-foot {
@@ -238,12 +334,24 @@
 
   .notes-list-head {
     display: flex; align-items: baseline; justify-content: space-between;
-    padding: 22px 24px 8px; flex-shrink: 0;
+    padding: 20px 24px 8px; flex-shrink: 0;
   }
   .notes-list-head h3 {
     font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
     color: var(--ink-2); font-weight: 600;
   }
+  .tag-bar {
+    display: none; flex-wrap: wrap; gap: 6px;
+    padding: 0 24px 8px; flex-shrink: 0;
+  }
+  .tag {
+    border: 1px solid var(--line);
+    background: var(--paper-2); color: var(--ink-2);
+    font-size: 11px; padding: 3px 10px; border-radius: 100px;
+    transition: all .15s;
+  }
+  .tag:hover { border-color: var(--accent); color: var(--accent-ink); }
+  .tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
   .notes-list { overflow-y: auto; padding: 2px 24px 40px; flex: 1; }
   .note-card {
     background: var(--card);
@@ -273,6 +381,7 @@
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
     overflow: hidden; white-space: pre-line;
   }
+  .note-card .nt { color: var(--accent-ink); font-weight: 600; }
   .empty-notes {
     text-align: center; color: var(--ink-3); font-size: 13px;
     padding: 34px 20px; font-style: italic; font-family: var(--serif);
@@ -405,11 +514,16 @@
     <span class="offline-pill" id="offlinePill">Offline — changes save locally</span>
   </div>
   <div class="controls">
+    <button class="btn icon" id="themeBtn" title="Toggle light / dark mode">☾</button>
     <button class="btn" id="folderBtn" style="display:none">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5a1 1 0 011-1h3l1.5 2h6a1 1 0 011 1v6a1 1 0 01-1 1h-10.5a1 1 0 01-1-1v-8z"/></svg>
       <span class="lbl" id="folderLabel">Connect sync folder</span>
     </button>
     <span id="docControls" style="display:none; align-items:center; gap:8px;">
+      <span class="ctl-group search-group" style="display:inline-flex" title="Search the PDF text">
+        <input id="searchInput" placeholder="Search text…">
+        <button id="searchGo" title="Search (Enter)">⌕</button>
+      </span>
       <span class="ctl-group" style="display:inline-flex" title="Page navigation">
         <button id="prevPg" title="Previous page (←)">‹</button>
         <span class="readout" id="pageReadout">–</span>
@@ -458,15 +572,16 @@
       </div>
     </div>
     <div class="editor-card">
-      <textarea id="noteInput" placeholder="What do you notice about the writing on this page? Sentence length, word choice, cadence, metaphor…" spellcheck="true"></textarea>
+      <textarea id="noteInput" placeholder="What do you notice about the writing on this page? Add #tags (e.g. #quote-as-closer) to build your thread index…" spellcheck="true"></textarea>
       <div class="editor-foot">
         <span class="wc" id="wordCount">0 words</span>
         <button id="clearNote">Clear page note</button>
       </div>
     </div>
     <div class="notes-list-head">
-      <h3>All notes</h3>
+      <h3 id="notesListTitle">All notes</h3>
     </div>
+    <div class="tag-bar" id="tagBar"></div>
     <div class="notes-list" id="notesList">
       <div class="empty-notes">Your notes will collect here as you read.</div>
     </div>
@@ -503,6 +618,8 @@
   </div>
 </main>
 
+<div class="search-panel" id="searchPanel"></div>
+<button class="quote-btn" id="quoteBtn">❝ Add to note</button>
 <div class="drag-overlay" id="dragOverlay"><span>Drop PDF to open</span></div>
 <div class="toast" id="toast"></div>
 
@@ -530,8 +647,13 @@
   let saveTimer = null;
   let folderSaveTimer = null;
   let suppressScrollSpy = false;
-  let origBytes = null;        // copy of the open PDF's bytes (for "copy into folder")
-  let pdfFromFolder = false;   // was the open PDF opened from the sync folder?
+  let origBytes = null;
+  let pdfFromFolder = false;
+  let activeTag = null;        // thread-index filter
+  let searchText = null;       // per-page extracted text cache
+  let searchIndexing = false;
+  let currentQuery = null;     // lowercased active search query
+  let quotePending = null;     // { text, page }
 
   // folder sync state
   const supportsFS = "showDirectoryPicker" in window;
@@ -573,6 +695,24 @@
   function esc(s) {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
+
+  // ---------- theme ----------
+  function applyTheme(t) {
+    document.body.classList.toggle("dark", t === "dark");
+    $("themeBtn").textContent = t === "dark" ? "☀" : "☾";
+    $("themeBtn").title = t === "dark" ? "Switch to light mode" : "Switch to dark mode";
+  }
+  (function initTheme() {
+    let t = null;
+    try { t = localStorage.getItem("marginalia-theme"); } catch (e) {}
+    if (!t) t = (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+    applyTheme(t);
+  })();
+  $("themeBtn").addEventListener("click", () => {
+    const t = document.body.classList.contains("dark") ? "light" : "dark";
+    applyTheme(t);
+    try { localStorage.setItem("marginalia-theme", t); } catch (e) {}
+  });
 
   // ---------- tiny IndexedDB key-value store (persists the folder handle) ----------
   function idbOpen() {
@@ -648,7 +788,6 @@
       updateFolderUi();
       scanLibrary();
       showToast("Connected “" + h.name + "” — notes will sync there");
-      // if a doc is open, adopt any notes file already in the folder, then save
       if (pdfDoc) {
         const fileData = await readNotesFile();
         if (fileData) applyNotesData(fileData, "sync folder");
@@ -806,7 +945,6 @@
     folderSaveTimer = setTimeout(async () => {
       const ok = await writeNotesFile();
       flashSaved(ok);
-      if (ok) scanLibrary._dirty = true;
     }, 800);
   }
   function normalizeNotes(raw) {
@@ -852,6 +990,12 @@
       pdfScroll.innerHTML = "";
       notes = {};
       currentPage = 1;
+      activeTag = null;
+      searchText = null;
+      currentQuery = null;
+      $("searchPanel").classList.remove("open");
+      $("searchInput").value = "";
+      hideQuoteBtn();
 
       pdfDoc = doc;
       numPages = doc.numPages;
@@ -948,6 +1092,23 @@
       const loading = shell.querySelector(".page-loading");
       if (loading) loading.remove();
       shell.insertBefore(canvas, shell.firstChild);
+
+      // selectable text layer over the canvas
+      try {
+        const tc = await page.getTextContent();
+        const tl = document.createElement("div");
+        tl.className = "textLayer";
+        tl.style.width = Math.round(vp.width) + "px";
+        tl.style.height = Math.round(vp.height) + "px";
+        tl.style.setProperty("--scale-factor", vp.scale);
+        shell.appendChild(tl);
+        const tlTask = pdfjsLib.renderTextLayer({
+          textContentSource: tc, textContent: tc,
+          container: tl, viewport: vp, textDivs: []
+        });
+        if (tlTask && tlTask.promise) await tlTask.promise;
+        if (currentQuery) highlightShell(shell);
+      } catch (e) { /* text layer is optional — scanned PDFs may lack text */ }
     } catch (err) {
       if (err && err.name === "RenderingCancelledException") return;
       console.error("render page " + n, err);
@@ -995,6 +1156,7 @@
 
   let spyTimer = null;
   pdfPane.addEventListener("scroll", () => {
+    hideQuoteBtn();
     if (suppressScrollSpy || !pdfDoc) return;
     clearTimeout(spyTimer);
     spyTimer = setTimeout(() => {
@@ -1005,6 +1167,129 @@
       });
       if (best !== currentPage) setCurrentPage(best, false);
     }, 120);
+  });
+
+  // ---------- select-to-quote ----------
+  function hideQuoteBtn() {
+    $("quoteBtn").style.display = "none";
+    quotePending = null;
+  }
+  pdfPane.addEventListener("mouseup", () => setTimeout(maybeShowQuoteBtn, 10));
+  function maybeShowQuoteBtn() {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) { hideQuoteBtn(); return; }
+    const text = sel.toString().replace(/\s+/g, " ").trim();
+    if (!text || text.length < 2) { hideQuoteBtn(); return; }
+    let node = sel.anchorNode;
+    if (node && node.nodeType === 3) node = node.parentElement;
+    const shell = node && node.closest ? node.closest(".page-shell") : null;
+    if (!shell) { hideQuoteBtn(); return; }
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    const btn = $("quoteBtn");
+    quotePending = { text, page: parseInt(shell.dataset.page, 10) };
+    btn.style.display = "inline-flex";
+    btn.style.left = Math.min(window.innerWidth - 170, Math.max(8, rect.left + rect.width / 2 - 65)) + "px";
+    btn.style.top = Math.max(8, rect.top - 42) + "px";
+  }
+  document.addEventListener("mousedown", (e) => {
+    if (e.target && e.target.closest && e.target.closest("#quoteBtn")) return;
+    if (!e.target.closest || !e.target.closest(".textLayer")) hideQuoteBtn();
+  });
+  $("quoteBtn").addEventListener("click", () => {
+    if (!quotePending) return;
+    const { text, page } = quotePending;
+    setCurrentPage(page, false);
+    const v = noteInput.value;
+    noteInput.value = v + (v && !v.endsWith("\n") ? "\n" : "") + "“" + text + "”\n";
+    updateWordCount();
+    commitEditor();
+    try { window.getSelection().removeAllRanges(); } catch (e) {}
+    hideQuoteBtn();
+    showToast("Quote added to page " + page + " note");
+  });
+
+  // ---------- search ----------
+  async function buildSearchIndex() {
+    if (searchIndexing) return;
+    searchIndexing = true;
+    const idx = [];
+    try {
+      for (let i = 1; i <= numPages; i++) {
+        const p = await pdfDoc.getPage(i);
+        const tc = await p.getTextContent();
+        idx[i] = tc.items.map(it => it.str).join(" ");
+        if (i % 60 === 0) showToast("Indexing text… page " + i + " / " + numPages);
+      }
+      searchText = idx;
+    } finally { searchIndexing = false; }
+  }
+  async function runSearch() {
+    const q = $("searchInput").value.trim();
+    if (!q || !pdfDoc) return;
+    if (!searchText) {
+      showToast("Indexing document text (first search only)…");
+      await buildSearchIndex();
+      if (!searchText) return;
+    }
+    const ql = q.toLowerCase();
+    const hits = [];
+    for (let i = 1; i <= numPages; i++) {
+      const t = (searchText[i] || "").toLowerCase();
+      let c = 0, idx = 0;
+      while ((idx = t.indexOf(ql, idx)) !== -1) { c++; idx += ql.length; }
+      if (c) hits.push([i, c]);
+    }
+    currentQuery = ql;
+    renderSearchPanel(q, hits);
+    document.querySelectorAll(".page-shell").forEach(highlightShell);
+  }
+  function highlightShell(shell) {
+    shell.querySelectorAll(".textLayer span").forEach(sp => {
+      sp.classList.toggle("search-hit",
+        !!currentQuery && sp.textContent.toLowerCase().indexOf(currentQuery) !== -1);
+    });
+  }
+  function clearHighlights() {
+    currentQuery = null;
+    document.querySelectorAll(".search-hit").forEach(s => s.classList.remove("search-hit"));
+  }
+  function renderSearchPanel(q, hits) {
+    const panel = $("searchPanel");
+    const total = hits.reduce((a, h) => a + h[1], 0);
+    panel.innerHTML =
+      '<div class="sp-head"><span>“' + esc(q) + '” — ' + total + " hit" + (total === 1 ? "" : "s") +
+      " on " + hits.length + " page" + (hits.length === 1 ? "" : "s") +
+      '</span><button id="spClose" title="Close">✕</button></div>';
+    const body = document.createElement("div");
+    body.className = "sp-body";
+    if (!hits.length) {
+      body.innerHTML = '<div class="sp-empty">No matches. (Exact phrases only; note that phrases split across lines may be missed in highlighting but are counted here.)</div>';
+    }
+    for (const [p, c] of hits) {
+      const row = document.createElement("button");
+      row.className = "sp-row";
+      row.innerHTML = "<span>Page " + p + "</span><span class='sp-count'>" + c + "</span>";
+      row.addEventListener("click", () => {
+        setCurrentPage(p, true);
+        setTimeout(() => { const sh = shellFor(p); if (sh) highlightShell(sh); }, 400);
+      });
+      body.appendChild(row);
+    }
+    panel.appendChild(body);
+    panel.classList.add("open");
+    $("spClose").addEventListener("click", () => {
+      panel.classList.remove("open");
+      clearHighlights();
+    });
+  }
+  $("searchGo").addEventListener("click", runSearch);
+  $("searchInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); runSearch(); }
+    if (e.key === "Escape") {
+      $("searchPanel").classList.remove("open");
+      clearHighlights();
+      e.target.blur();
+    }
   });
 
   // ---------- notes ----------
@@ -1048,12 +1333,54 @@
     saveTimer = setTimeout(commitEditor, 500);
   });
 
+  // ---------- tags / thread index ----------
+  function renderTags() {
+    const counts = {};
+    for (const t of Object.values(notes)) {
+      for (const m of t.matchAll(/#([A-Za-z0-9_-]+)/g)) {
+        const k = m[1].toLowerCase();
+        counts[k] = (counts[k] || 0) + 1;
+      }
+    }
+    if (activeTag && !counts[activeTag]) activeTag = null;
+    const bar = $("tagBar");
+    const keys = Object.keys(counts).sort();
+    if (!keys.length) {
+      bar.style.display = "none";
+      bar.innerHTML = "";
+      $("notesListTitle").textContent = "All notes";
+      return;
+    }
+    bar.style.display = "flex";
+    bar.innerHTML = "";
+    for (const k of keys) {
+      const b = document.createElement("button");
+      b.className = "tag" + (k === activeTag ? " active" : "");
+      b.textContent = "#" + k + " · " + counts[k];
+      b.title = k === activeTag ? "Click to show all notes" : "Show only notes tagged #" + k;
+      b.addEventListener("click", () => {
+        activeTag = activeTag === k ? null : k;
+        renderNotesList();
+      });
+      bar.appendChild(b);
+    }
+    $("notesListTitle").textContent = activeTag ? "Thread: #" + activeTag : "All notes";
+  }
+
   function renderNotesList() {
-    const pages = Object.keys(notes).map(Number).sort((a, b) => a - b);
-    $("noteCount").textContent = pages.length
-      ? pages.length + " page" + (pages.length === 1 ? "" : "s") + " noted" : "";
+    renderTags();
+    let pages = Object.keys(notes).map(Number).sort((a, b) => a - b);
+    if (activeTag) {
+      const re = new RegExp("#" + activeTag + "(?![A-Za-z0-9_-])", "i");
+      pages = pages.filter(p => re.test(notes[p]));
+    }
+    const allCount = Object.keys(notes).length;
+    $("noteCount").textContent = allCount
+      ? allCount + " page" + (allCount === 1 ? "" : "s") + " noted" : "";
     if (!pages.length) {
-      notesList.innerHTML = '<div class="empty-notes">Your notes will collect here as you read.</div>';
+      notesList.innerHTML = '<div class="empty-notes">' +
+        (activeTag ? "No notes in this thread yet." : "Your notes will collect here as you read.") +
+        "</div>";
       return;
     }
     notesList.innerHTML = "";
@@ -1061,10 +1388,11 @@
       const card = document.createElement("div");
       card.className = "note-card" + (p === currentPage ? " current" : "");
       card.dataset.page = p;
+      const bodyHtml = esc(notes[p]).replace(/#([A-Za-z0-9_-]+)/g, '<span class="nt">#$1</span>');
       card.innerHTML =
         '<div class="nc-head"><span class="pg">Page ' + p + '</span>' +
         '<button class="del" title="Delete note">✕</button></div>' +
-        "<p>" + esc(notes[p]) + "</p>";
+        "<p>" + bodyHtml + "</p>";
       card.addEventListener("click", (e) => {
         if (e.target.closest(".del")) {
           delete notes[p];

@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -317,9 +317,13 @@
   }
   .editor-card textarea {
     border: none; outline: none; resize: none; background: transparent;
-    font-family: var(--serif); font-size: 15.5px; line-height: 1.65; color: var(--ink);
+    font-family: var(--serif); font-size: var(--note-size, 15.5px); line-height: 1.65; color: var(--ink);
     padding: 16px 18px 8px; height: 190px;
   }
+  /* focus mode: just the PDF and the note editor */
+  body.focus .chips, body.focus .notes-list, body.focus .notes-list-head, body.focus .tag-bar { display: none; }
+  body.focus .editor-card { flex: 1; margin-bottom: 24px; }
+  body.focus .editor-card textarea { flex: 1; height: auto; }
   .editor-card textarea::placeholder { color: var(--ink-3); font-style: italic; }
   .editor-foot {
     display: flex; align-items: center; justify-content: space-between;
@@ -515,6 +519,7 @@
   </div>
   <div class="controls">
     <button class="btn icon" id="themeBtn" title="Toggle light / dark mode">☾</button>
+    <button class="btn icon" id="focusBtn" title="Focus mode — just the PDF and your note">⛶</button>
     <button class="btn" id="folderBtn" style="display:none">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5a1 1 0 011-1h3l1.5 2h6a1 1 0 011 1v6a1 1 0 01-1 1h-10.5a1 1 0 01-1-1v-8z"/></svg>
       <span class="lbl" id="folderLabel">Connect sync folder</span>
@@ -541,6 +546,7 @@
         </button>
         <span class="menu" id="exportMenu">
           <button id="expMd">Markdown notes <span class="hint">.md</span></button>
+          <button id="expPdf">Styled document <span class="hint">print / PDF</span></button>
           <button id="expJson">Annotation file <span class="hint">.json</span></button>
           <hr>
           <button id="impJson">Import annotations… <span class="hint">.json</span></button>
@@ -574,7 +580,11 @@
     <div class="editor-card">
       <textarea id="noteInput" placeholder="What do you notice about the writing on this page? Add #tags (e.g. #quote-as-closer) to build your thread index…" spellcheck="true"></textarea>
       <div class="editor-foot">
-        <span class="wc" id="wordCount">0 words</span>
+        <span style="display:flex; align-items:center; gap:10px;">
+          <span class="wc" id="wordCount">0 words</span>
+          <button id="fontMinus" title="Smaller note text">A−</button>
+          <button id="fontPlus" title="Larger note text">A+</button>
+        </span>
         <button id="clearNote">Clear page note</button>
       </div>
     </div>
@@ -712,6 +722,26 @@
     const t = document.body.classList.contains("dark") ? "light" : "dark";
     applyTheme(t);
     try { localStorage.setItem("marginalia-theme", t); } catch (e) {}
+  });
+
+  // ---------- reading comforts ----------
+  (function initComforts() {
+    let s = 15.5;
+    try { s = parseFloat(localStorage.getItem("marginalia-note-size")) || 15.5; } catch (e) {}
+    document.body.style.setProperty("--note-size", s + "px");
+  })();
+  function nudgeFont(d) {
+    const cur = parseFloat(document.body.style.getPropertyValue("--note-size")) || 15.5;
+    const next = Math.min(22, Math.max(12, cur + d));
+    document.body.style.setProperty("--note-size", next + "px");
+    try { localStorage.setItem("marginalia-note-size", next); } catch (e) {}
+  }
+  $("fontMinus").addEventListener("click", () => nudgeFont(-1));
+  $("fontPlus").addEventListener("click", () => nudgeFont(1));
+  $("focusBtn").addEventListener("click", () => {
+    const on = document.body.classList.toggle("focus");
+    $("focusBtn").title = on ? "Exit focus mode" : "Focus mode — just the PDF and your note";
+    if (on) noteInput.focus();
   });
 
   // ---------- tiny IndexedDB key-value store (persists the folder handle) ----------
@@ -1035,6 +1065,14 @@
       const n = Object.keys(notes).length;
       if (n) showToast("Restored " + n + " saved note" + (n === 1 ? "" : "s") +
         (fileData ? " from your sync folder" : ""));
+
+      // resume where you left off
+      let lp = 0;
+      try { lp = parseInt(localStorage.getItem(docKey + "::lp"), 10) || 0; } catch (e) {}
+      if (lp > 1 && lp <= numPages) {
+        setCurrentPage(lp, true);
+        showToast("Resumed at page " + lp);
+      }
     } catch (err) {
       console.error(err);
       showToast("Couldn't open that file — is it a valid PDF?");
@@ -1143,6 +1181,7 @@
     }
     commitEditor();
     currentPage = n;
+    try { if (docKey) localStorage.setItem(docKey + "::lp", n); } catch (e) {}
     noteInput.value = notes[n] || "";
     updateWordCount();
     updatePageUi();
@@ -1441,16 +1480,104 @@
   });
   document.addEventListener("click", () => exportMenu.classList.remove("open"));
 
+  function collectExport() {
+    const pages = Object.keys(notes).map(Number).sort((a, b) => a - b);
+    const threads = {};
+    const tagged = new Set();
+    for (const p of pages) {
+      const tags = [...new Set([...notes[p].matchAll(/#([A-Za-z0-9_-]+)/g)].map(m => m[1].toLowerCase()))];
+      if (tags.length) tagged.add(p);
+      for (const t of tags) (threads[t] = threads[t] || []).push(p);
+    }
+    return { pages, threads, untagged: pages.filter(p => !tagged.has(p)) };
+  }
+  // lines captured with select-to-quote (they start with a curly quote) become blockquotes
+  function mdNote(text) {
+    return text.trim().split("\n").map(l =>
+      l.trim().charAt(0) === "“" ? "> " + l.trim() : l
+    ).join("\n");
+  }
+
   $("expMd").addEventListener("click", () => {
     commitEditor();
-    const pages = Object.keys(notes).map(Number).sort((a, b) => a - b);
+    const { pages, threads, untagged } = collectExport();
     let md = "# Writing style notes — " + baseName() + "\n\n";
     md += "*" + pages.length + " annotated page" + (pages.length === 1 ? "" : "s") +
-          " · exported " + new Date().toLocaleString() + " · made with Marginalia*\n\n---\n\n";
+          " · exported " + new Date().toLocaleString() + " · made with Marginalia*\n\n";
     if (!pages.length) md += "_No notes yet._\n";
-    for (const p of pages) md += "## Page " + p + "\n\n" + notes[p].trim() + "\n\n";
+    const tagKeys = Object.keys(threads).sort();
+    if (tagKeys.length) {
+      md += "## Threads\n\n";
+      for (const t of tagKeys) {
+        md += "### #" + t + " — " + threads[t].length + " page" + (threads[t].length === 1 ? "" : "s") + "\n\n";
+        for (const p of threads[t]) md += "**Page " + p + "**\n\n" + mdNote(notes[p]) + "\n\n";
+      }
+    }
+    if (untagged.length) {
+      if (tagKeys.length) md += "## Other notes\n\n";
+      for (const p of untagged) md += "### Page " + p + "\n\n" + mdNote(notes[p]) + "\n\n";
+    }
     download(baseName() + " — style notes.md", md, "text/markdown");
-    showToast("Markdown exported");
+    showToast("Markdown exported" + (tagKeys.length ? " (grouped by thread)" : ""));
+  });
+
+  $("expPdf").addEventListener("click", () => {
+    commitEditor();
+    const { pages, threads, untagged } = collectExport();
+    if (!pages.length) { showToast("No notes to export yet"); return; }
+    const noteHtml = (text) => {
+      const parts = [];
+      let quote = [];
+      const flush = () => {
+        if (quote.length) { parts.push("<blockquote>" + quote.join("<br>") + "</blockquote>"); quote = []; }
+      };
+      for (const raw of text.trim().split("\n")) {
+        const l = raw.trim();
+        if (!l) { flush(); continue; }
+        const safe = esc(l).replace(/#([A-Za-z0-9_-]+)/g, '<span class="t">#$1</span>');
+        if (l.charAt(0) === "“") quote.push(safe);
+        else { flush(); parts.push("<p>" + safe + "</p>"); }
+      }
+      flush();
+      return parts.join("");
+    };
+    let body = "";
+    const tagKeys = Object.keys(threads).sort();
+    if (tagKeys.length) {
+      body += "<h2>Threads</h2>";
+      for (const t of tagKeys) {
+        body += '<h3><span class="pill">#' + t + "</span> &nbsp;" + threads[t].length +
+                " page" + (threads[t].length === 1 ? "" : "s") + "</h3>";
+        for (const p of threads[t]) body += '<div class="note"><div class="pg">Page ' + p + "</div>" + noteHtml(notes[p]) + "</div>";
+      }
+    }
+    if (untagged.length) {
+      body += tagKeys.length ? "<h2>Other notes</h2>" : "<h2>Notes</h2>";
+      for (const p of untagged) body += '<div class="note"><div class="pg">Page ' + p + "</div>" + noteHtml(notes[p]) + "</div>";
+    }
+    const htmlDoc = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>" + esc(baseName()) +
+      " — style notes</title><style>" + [
+        "body{font-family:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;color:#221e18;max-width:680px;margin:40px auto;padding:0 24px;line-height:1.6;}",
+        "h1{font-size:28px;margin:0 0 4px;}",
+        ".meta{font-size:12px;color:#8d8578;font-style:italic;margin-bottom:28px;border-bottom:1px solid #ddd5c7;padding-bottom:16px;}",
+        "h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#7c3517;margin:34px 0 12px;}",
+        "h3{font-size:15px;margin:22px 0 6px;}",
+        ".pill{background:#f4e3da;color:#7c3517;border-radius:100px;padding:2px 10px;font-size:13px;}",
+        ".note{margin:0 0 18px;}",
+        ".pg{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8d8578;margin-bottom:4px;}",
+        ".note p{margin:0 0 6px;font-size:14.5px;}",
+        "blockquote{margin:6px 0 10px;padding:8px 14px;border-left:3px solid #a84f2e;background:#faf7f2;font-size:13.5px;font-style:italic;color:#5c554a;}",
+        ".t{color:#7c3517;font-weight:700;}",
+        "@media print{body{margin:12mm auto;}h2,h3{break-after:avoid;}.note{break-inside:avoid;}}"
+      ].join("") + "</style></head><body><h1>Writing style notes — " + esc(baseName()) +
+      "</h1><div class='meta'>" + pages.length + " annotated page" + (pages.length === 1 ? "" : "s") +
+      " · exported " + new Date().toLocaleDateString() + " · made with Marginalia</div>" + body +
+      "<script>window.onload=function(){setTimeout(function(){window.print()},300)};<\/script></body></html>";
+    const w = window.open("", "_blank");
+    if (!w) { showToast("Pop-up blocked — allow pop-ups for this site, then try again"); return; }
+    w.document.write(htmlDoc);
+    w.document.close();
+    showToast("Print dialog opening — choose “Save as PDF”");
   });
 
   $("expJson").addEventListener("click", () => {

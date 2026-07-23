@@ -173,11 +173,47 @@ main{max-width:1180px;margin:0 auto;padding:0 1.25rem 5rem}
 .srch-link{margin-left:auto;font-family:'Courier Prime',monospace;font-size:.62rem;letter-spacing:.08em;color:var(--ink-soft);text-decoration:none;border-bottom:1px dotted var(--rule);align-self:center}
 .srch-link:hover{color:var(--oxblood);border-color:var(--oxblood)}
 
+/* ---------- verso: the note side of the card ---------- */
+.note-toggle{
+  font-family:'Courier Prime',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  background:none;border:none;border-bottom:1px dotted var(--rule);
+  color:var(--ink-soft);cursor:pointer;padding:0 0 1px;align-self:center;
+}
+.note-toggle:hover{color:var(--oxblood);border-color:var(--oxblood)}
+.note-toggle:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.note-toggle.has{color:var(--oxblood);font-weight:700;border-bottom-style:solid}
+.verso{
+  margin-top:.55rem;padding-top:.7rem;
+  border-top:1px dashed var(--rule);
+  display:none;flex-direction:column;gap:.45rem;
+}
+.verso.open{display:flex}
+.verso-label{
+  font-family:'Courier Prime',monospace;font-size:.58rem;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-soft);display:flex;justify-content:space-between;align-items:baseline;gap:.5rem;
+}
+.saved{color:var(--ok);opacity:0;transition:opacity .3s}
+.saved.show{opacity:1}
+.verso textarea{
+  width:100%;min-height:92px;resize:vertical;
+  font-family:'Courier Prime',monospace;font-size:.79rem;line-height:1.62;
+  color:var(--ink);background:transparent;
+  border:none;border-radius:0;padding:0;
+  background-image:repeating-linear-gradient(180deg,transparent 0 20px,rgba(120,105,80,.22) 20px 21px);
+  background-attachment:local;
+}
+.verso textarea:focus{outline:none;background-image:repeating-linear-gradient(180deg,transparent 0 20px,rgba(92,31,27,.3) 20px 21px)}
+.verso textarea::placeholder{color:#a89d8b;font-style:italic}
+.card.noted{border-left-style:double;border-left-width:7px}
+
 .empty{color:#a99e8d;font-style:italic;padding:2.5rem 0;text-align:center}
 footer{border-top:1px solid rgba(203,191,164,.22);margin-top:3.5rem;padding:2rem 1.25rem 3rem;max-width:1180px;margin-left:auto;margin-right:auto}
 footer p{color:#8d8474;font-size:.86rem;max-width:62ch;font-weight:300}
-footer .reset{margin-top:1.1rem;background:none;border:1px solid rgba(203,191,164,.35);color:#a99e8d;font-family:'Courier Prime',monospace;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;padding:.5rem .8rem;cursor:pointer;border-radius:2px}
+.foot-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.1rem}
+footer .reset{background:none;border:1px solid rgba(203,191,164,.35);color:#a99e8d;font-family:'Courier Prime',monospace;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;padding:.5rem .8rem;cursor:pointer;border-radius:2px}
 footer .reset:hover{border-color:var(--buy);color:#d98a7a}
+footer .reset.keep:hover{border-color:var(--brass);color:#e8c98a}
+footer .reset:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -200,6 +236,7 @@ footer .reset:hover{border-color:var(--buy);color:#d98a7a}
       <div class="tally-item t-buy"><b id="n-B">0</b>To purchase</div>
       <div class="tally-item t-free"><b id="n-F">0</b>Free online</div>
       <div class="tally-item"><b id="n-U">0</b>Unsearched</div>
+      <div class="tally-item"><b id="n-N">0</b>With notes</div>
     </div>
     <div class="progress-wrap"><div class="progress-bar" id="bar"></div></div>
   </div>
@@ -212,13 +249,17 @@ footer .reset:hover{border-color:var(--buy);color:#d98a7a}
   <button class="chip" data-f="rebirth" aria-pressed="false">Rebirth</button>
   <button class="chip" data-f="star" aria-pressed="false">★ Buy list</button>
   <button class="chip" data-f="todo" aria-pressed="false">Unsearched</button>
+  <button class="chip" data-f="noted" aria-pressed="false">Noted</button>
 </div>
 
 <main id="app"></main>
 
 <footer>
-  <p>Status is saved in this browser only — no account, no server. The completed ledger is evidence for a collection-development conversation: a concrete list of what the program's own director could not obtain locally.</p>
-  <button class="reset" id="reset">Clear all statuses</button>
+  <p>Statuses and notes are saved in this browser only — no account, no server. Export regularly: browser storage is convenience, not an archive, and your notes belong in the manuscript folder alongside the memos.</p>
+  <div class="foot-actions">
+    <button class="reset keep" id="export">Export notes (.md)</button>
+    <button class="reset" id="reset">Clear all statuses and notes</button>
+  </div>
 </footer>
 
 <script>
@@ -331,10 +372,12 @@ const DATA=[
 ]}
 ];
 
-const KEY="dhk-catalog-v1";
-let store={};
+const KEY="dhk-catalog-v1",NKEY="dhk-catalog-notes-v1";
+let store={},notes={};
 try{store=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){store={}}
+try{notes=JSON.parse(localStorage.getItem(NKEY))||{}}catch(e){notes={}}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}};
+const saveNotes=()=>{try{localStorage.setItem(NKEY,JSON.stringify(notes))}catch(e){}};
 const id=(s,i)=>s+"::"+i;
 let filter="all",query="";
 
@@ -349,6 +392,7 @@ function build(){
       if(filter==="rebirth"&&sec.s!=="rebirth"&&it.x!=="Both books"&&!(sec.s==="free"&&it.x==="Rebirth"))return false;
       if(filter==="star"&&!it.star)return false;
       if(filter==="todo"&&store[it._id])return false;
+      if(filter==="noted"&&!(notes[it._id]||"").trim())return false;
       if(query){
         const hay=(it.a+" "+it.t+" "+(it.n||"")).toLowerCase();
         if(!hay.includes(query))return false;
@@ -372,9 +416,12 @@ function build(){
 
 function cardEl(it){
   const st=store[it._id]||"";
+  const noteText=notes[it._id]||"";
+  const hasNote=!!noteText.trim();
   const el=document.createElement("article");
-  el.className="card"+(st?" s-"+st:"");
+  el.className="card"+(st?" s-"+st:"")+(hasNote?" noted":"");
   const q=encodeURIComponent(it.a.split(",")[0]+" "+it.t.split(/[:·—]/)[0]);
+  const nid="n-"+it._id.replace(/[^a-z0-9]/gi,"-");
   el.innerHTML=`
     <div class="card-top">
       <span class="pri ${it.p}">${it.p}</span>
@@ -386,22 +433,61 @@ function cardEl(it){
     ${it.x?`<div class="xref">⇄ ${it.x}</div>`:""}
     <div class="actions">
       ${["T","I","B","F"].map(k=>`<button class="st ${k}" data-k="${k}" data-id="${it._id}" aria-pressed="${st===k}" title="${{T:"On the shelf at TKU",I:"Request via interlibrary loan",B:"Purchase",F:"Free online"}[k]}" aria-label="${{T:"On the shelf",I:"Interlibrary loan",B:"Purchase",F:"Free online"}[k]}">${k}</button>`).join("")}
+      <button class="note-toggle${hasNote?" has":""}" aria-expanded="false" aria-controls="${nid}">${hasNote?"notes ●":"notes +"}</button>
       <a class="srch-link" href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener">look up ↗</a>
+    </div>
+    <div class="verso" id="${nid}">
+      <div class="verso-label"><span>Reading note</span><span class="saved">saved</span></div>
+      <textarea placeholder="Argument in your own words · load-bearing evidence · your response, with page numbers">${noteText.replace(/</g,"&lt;")}</textarea>
     </div>`;
+
   el.querySelectorAll(".st").forEach(b=>b.addEventListener("click",()=>{
     const k=b.dataset.k,i=b.dataset.id;
     if(store[i]===k)delete store[i];else store[i]=k;
     save();build();
   }));
+
+  const toggle=el.querySelector(".note-toggle"),
+        verso=el.querySelector(".verso"),
+        ta=el.querySelector("textarea"),
+        flag=el.querySelector(".saved");
+  toggle.addEventListener("click",()=>{
+    const open=verso.classList.toggle("open");
+    toggle.setAttribute("aria-expanded",open);
+    if(open)ta.focus();
+  });
+  if(hasNote){verso.classList.add("open");toggle.setAttribute("aria-expanded","true");}
+
+  let timer;
+  ta.addEventListener("input",()=>{
+    clearTimeout(timer);
+    timer=setTimeout(()=>{
+      const v=ta.value;
+      if(v.trim())notes[it._id]=v;else delete notes[it._id];
+      saveNotes();
+      flag.classList.add("show");
+      setTimeout(()=>flag.classList.remove("show"),1100);
+      const has=!!v.trim();
+      toggle.classList.toggle("has",has);
+      toggle.textContent=has?"notes ●":"notes +";
+      el.classList.toggle("noted",has);
+      tally();
+    },500);
+  });
   return el;
 }
 
 function tally(){
-  const c={T:0,I:0,B:0,F:0};let total=0;
-  DATA.forEach(sec=>sec.items.forEach((it,i)=>{total++;const v=store[id(sec.s,i)];if(v)c[v]++}));
+  const c={T:0,I:0,B:0,F:0};let total=0,noted=0;
+  DATA.forEach(sec=>sec.items.forEach((it,i)=>{
+    total++;const k=id(sec.s,i);
+    const v=store[k];if(v)c[v]++;
+    if((notes[k]||"").trim())noted++;
+  }));
   const done=c.T+c.I+c.B+c.F;
   ["T","I","B","F"].forEach(k=>document.getElementById("n-"+k).textContent=c[k]);
   document.getElementById("n-U").textContent=total-done;
+  document.getElementById("n-N").textContent=noted;
   document.getElementById("bar").style.width=(total?done/total*100:0)+"%";
 }
 
@@ -411,9 +497,34 @@ document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
   c.setAttribute("aria-pressed","true");filter=c.dataset.f;build();
 }));
 document.getElementById("reset").addEventListener("click",()=>{
-  if(confirm("Clear every status? This cannot be undone."))
-  {store={};save();build();}
+  if(confirm("Clear every status and every note? This cannot be undone. Export first if you want a copy."))
+  {store={};notes={};save();saveNotes();build();}
 });
+
+document.getElementById("export").addEventListener("click",()=>{
+  const LB={T:"On the shelf",I:"Interlibrary loan",B:"Purchase",F:"Free online"};
+  let md="# Acquisition Catalog — reading notes\n\nExported "+new Date().toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"})+"\n";
+  let any=false;
+  DATA.forEach(sec=>{
+    const rows=sec.items.map((it,i)=>({it,k:id(sec.s,i)})).filter(r=>(notes[r.k]||"").trim()||store[r.k]);
+    if(!rows.length)return;
+    md+="\n## "+sec.sec+"\n";
+    rows.forEach(({it,k})=>{
+      any=true;
+      md+="\n### "+it.a+", *"+it.t+"*\n";
+      md+="- Priority: "+it.p+(store[k]?" · Status: "+LB[store[k]]:"")+(it.star?" · ★ buy":"")+"\n";
+      const n=(notes[k]||"").trim();
+      if(n)md+="\n"+n+"\n";
+    });
+  });
+  if(!any)md+="\nNo statuses or notes recorded yet.\n";
+  const blob=new Blob([md],{type:"text/markdown"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="acquisition-notes-"+new Date().toISOString().slice(0,10)+".md";
+  a.click();URL.revokeObjectURL(a.href);
+});
+
 build();
 </script>
 </body>

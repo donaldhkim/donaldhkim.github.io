@@ -1,1 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logbook — Progress & Reflections</title>
+<meta name="theme-color" content="#a84f2e">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --paper: #faf7f2;
+    --paper-2: #f3efe7;
+    --ink: #221e18;
+    --ink-2: #5c554a;
+    --ink-3: #8d8578;
+    --line: #ddd5c7;
+    --line-2: #cfc6b5;
+    --accent: #a84f2e;
+    --accent-soft: #f4e3da;
+    --accent-ink: #7c3517;
+    --ok: #3d7a45;
+    --ok-soft: #e4efe2;
+    --card: #fffdf9;
+    --hover: #ffffff;
+    --shadow: 0 1px 2px rgba(52,42,28,.06), 0 4px 16px rgba(52,42,28,.07);
+    --shadow-lg: 0 2px 6px rgba(52,42,28,.08), 0 12px 40px rgba(52,42,28,.14);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  body.dark {
+    --paper: #201c17;
+    --paper-2: #2a251e;
+    --ink: #ede5d7;
+    --ink-2: #b9ad9b;
+    --ink-3: #8a8071;
+    --line: #3b3529;
+    --line-2: #4c4536;
+    --accent: #c96a41;
+    --accent-soft: #41291d;
+    --accent-ink: #e59b76;
+    --ok: #8dc593;
+    --ok-soft: #243528;
+    --card: #292420;
+    --hover: #322c25;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 4px 16px rgba(0,0,0,.3);
+    --shadow-lg: 0 2px 6px rgba(0,0,0,.45), 0 12px 40px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { height: 100%; }
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100%;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s, color .25s;
+  }
+  button { font-family: inherit; cursor: pointer; }
+  input, textarea, select { font-family: inherit; color: var(--ink); }
 
+  .topbar {
+    height: 58px;
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 20px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; user-select: none; flex-shrink: 0; }
+  .brand .mark {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--accent); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--serif); font-size: 17px; font-style: italic;
+    transform: translateY(4px);
+  }
+  .brand h1 { font-family: var(--serif); font-weight: 600; font-size: 19px; }
+  .brand .tag { font-size: 11px; color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; }
+  .top-mid { min-width: 0; flex: 1; display: flex; align-items: center; gap: 10px; }
+  .saved-dot { font-size: 11px; color: var(--ink-3); transition: color .3s; white-space: nowrap; }
+  .saved-dot.flash { color: var(--accent); }
+  .saved-dot.synced { color: var(--ok); }
+  .offline-pill {
+    font-size: 11px; color: var(--ink-2);
+    background: var(--paper-2); border: 1px solid var(--line);
+    padding: 3px 10px; border-radius: 100px; display: none;
+  }
+  .offline-pill.on { display: inline-block; }
+
+  .btn {
+    border: 1px solid var(--line);
+    background: var(--card); color: var(--ink);
+    font-size: 13px; font-weight: 500;
+    padding: 8px 14px; border-radius: 9px;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: border-color .15s, background .15s, transform .05s;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--line-2); background: var(--hover); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent-ink); border-color: var(--accent-ink); color: #fff; }
+  .btn.danger { color: #a33; }
+  body.dark .btn.danger { color: #e08a7a; }
+  .btn.connected { background: var(--ok-soft); border-color: #bcd3b8; color: var(--ok); }
+  body.dark .btn.connected { border-color: #3f5c42; }
+  .btn.attention { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-soft); }
+  .btn.icon { padding: 8px 11px; font-size: 14px; line-height: 1; }
+  .btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .btn .lbl { max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
+  .proj-sel {
+    border: 1px solid var(--line); background: var(--card);
+    font-size: 13px; font-weight: 500;
+    padding: 8px 10px; border-radius: 9px;
+    max-width: 180px; outline: none; cursor: pointer;
+  }
+
+  .menu-wrap { position: relative; }
+  .menu {
+    position: absolute; top: calc(100% + 6px); right: 0;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; box-shadow: var(--shadow-lg);
+    padding: 6px; min-width: 230px; display: none; z-index: 50;
+  }
+  .menu.open { display: block; }
+  .menu button {
+    display: flex; width: 100%; align-items: center; gap: 10px;
+    border: none; background: transparent; text-align: left;
+    font-size: 13px; color: var(--ink);
+    padding: 9px 10px; border-radius: 8px;
+  }
+  .menu button:hover { background: var(--paper-2); }
+  .menu .hint { font-size: 11px; color: var(--ink-3); margin-left: auto; }
+  .menu hr { border: none; border-top: 1px solid var(--line); margin: 5px 4px; }
+
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 26px 22px 80px; }
+
+  /* ---------- setup ---------- */
+  .setup {
+    max-width: 480px; margin: 40px auto;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 16px; box-shadow: var(--shadow);
+    padding: 30px;
+  }
+  .setup h2 { font-family: var(--serif); font-size: 26px; font-weight: 600; margin-bottom: 6px; }
+  .setup .sub { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-bottom: 22px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; margin-bottom: 6px; }
+  .field input {
+    width: 100%; border: 1px solid var(--line);
+    background: var(--paper); border-radius: 9px;
+    padding: 10px 12px; font-size: 14px; outline: none;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .field .opt { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--ink-3); }
+  .setup-actions { display: flex; gap: 10px; justify-content: space-between; align-items: center; margin-top: 20px; }
+
+  /* ---------- dashboard ---------- */
+  .eyebrow { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); font-weight: 600; }
+  .dash-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .dash-head h2 { font-family: var(--serif); font-size: 28px; font-weight: 600; }
+  .dash-head .range { font-size: 12.5px; color: var(--ink-3); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .stat {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: var(--shadow);
+    padding: 14px 16px;
+  }
+  .stat .k { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+  .stat .v { font-family: var(--serif); font-size: 26px; font-weight: 600; margin-top: 3px; }
+  .stat .s { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
+
+  .bar-row {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: var(--shadow);
+    padding: 12px 16px; margin-bottom: 10px;
+  }
+  .bar-row .bar-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); margin-bottom: 7px; gap: 10px; }
+  .bar-row .bar-head b { color: var(--ink); }
+  .bar { height: 8px; background: var(--paper-2); border-radius: 100px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--accent); border-radius: 100px; transition: width .4s; }
+  .bar.ok i { background: var(--ok); }
+  .bar.mini { height: 6px; margin: 6px 0 4px; }
+
+  .cols { display: block; }
+  @media (min-width: 1000px) {
+    .cols { display: grid; grid-template-columns: 5fr 6fr; gap: 24px; align-items: start; }
+  }
+
+  .panel {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: var(--shadow);
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .panel h3 { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; margin-bottom: 12px; }
+
+  /* goals */
+  .goal2 { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .goal2:last-of-type { border-bottom: none; }
+  .goal2 .g-top { display: flex; align-items: baseline; gap: 10px; }
+  .goal2 .g-title { flex: 1; font-size: 14px; }
+  .goal2.done .g-title { color: var(--ink-3); text-decoration: line-through; }
+  .goal2 .g-pct { font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .goal2 .g-pct.done { color: var(--ok); }
+  .goal2 .g-detail { font-size: 11.5px; color: var(--ink-3); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .goal2 .g-detail input[type="range"] { flex: 1; max-width: 160px; accent-color: var(--accent); }
+  .goal2 .g-del { border: none; background: none; color: var(--ink-3); font-size: 12px; padding: 2px 6px; border-radius: 6px; opacity: .5; }
+  .goal2 .g-del:hover { color: #a33; background: #f7e5e0; opacity: 1; }
+  body.dark .goal2 .g-del:hover { color: #e08a7a; background: #472a24; }
+  .goal2 .g-type {
+    font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--accent-ink); background: var(--accent-soft);
+    padding: 1px 8px; border-radius: 100px;
+  }
+  .goal-add { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .goal-add input[type="text"] {
+    flex: 2 1 160px; border: 1px solid var(--line); background: var(--paper);
+    border-radius: 9px; padding: 9px 12px; font-size: 13px; outline: none;
+  }
+  .goal-add input[type="number"] {
+    flex: 0 1 90px; border: 1px solid var(--line); background: var(--paper);
+    border-radius: 9px; padding: 9px 10px; font-size: 13px; outline: none;
+  }
+  .goal-add select {
+    flex: 0 1 130px; border: 1px solid var(--line); background: var(--paper);
+    border-radius: 9px; padding: 9px 8px; font-size: 13px; outline: none;
+  }
+  .goal-add input:focus, .goal-add select:focus { border-color: var(--accent); }
+  .goals-empty { font-size: 13px; color: var(--ink-3); font-style: italic; font-family: var(--serif); }
+
+  /* quire */
+  .quire-row { display: flex; align-items: center; gap: 5px; margin-bottom: 6px; }
+  .q-sig {
+    width: 42px; flex-shrink: 0;
+    font-family: var(--serif); font-size: 11px; color: var(--ink-3);
+    text-align: right; padding-right: 6px;
+    font-variant-numeric: normal;
+  }
+  .leaf {
+    width: 25px; height: 33px;
+    border: 1px solid var(--line);
+    border-radius: 2px 5px 5px 2px;
+    background: var(--card);
+    cursor: pointer; position: relative;
+    transition: border-color .15s, transform .1s;
+  }
+  .leaf:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .leaf.future { opacity: .22; pointer-events: none; }
+  .leaf.logged {
+    background-image: repeating-linear-gradient(
+      to bottom, transparent 0 6px, var(--line-2) 6px 7px);
+    background-position: 0 5px;
+  }
+  .leaf.hit { border-color: var(--ok); }
+  .leaf.hit::after {
+    content: "";
+    position: absolute; left: 4px; right: 4px; bottom: 4px; height: 3px;
+    background: var(--ok); border-radius: 2px;
+  }
+  .leaf.today { border-color: var(--accent); border-width: 2px; }
+  .leaf.sel { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .quire-legend { font-size: 11px; color: var(--ink-3); margin-top: 10px; line-height: 1.6; }
+
+  /* ---------- editor ---------- */
+  .ed-head { display: flex; align-items: baseline; gap: 12px; margin: 4px 0 10px; flex-wrap: wrap; }
+  .ed-head h2 { font-family: var(--serif); font-size: 24px; font-weight: 600; }
+  .ed-head .date { font-size: 13px; color: var(--ink-3); }
+  .ed-head .back {
+    border: 1px solid var(--accent); background: var(--accent-soft);
+    color: var(--accent-ink); font-size: 12px;
+    padding: 4px 12px; border-radius: 100px; display: none;
+  }
+  .ed-head .back.show { display: inline-block; }
+  .editor {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: var(--shadow);
+    overflow: hidden; margin-bottom: 22px;
+  }
+  .editor .lab {
+    font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent-ink); font-weight: 600;
+    padding: 14px 18px 0;
+  }
+  .editor textarea {
+    width: 100%; border: none; outline: none; resize: vertical; background: transparent;
+    font-family: var(--serif); font-size: 15px; line-height: 1.6;
+    padding: 8px 18px 14px; min-height: 80px;
+  }
+  .editor textarea::placeholder { color: var(--ink-3); font-style: italic; }
+  .editor .split { border-top: 1px solid var(--line); }
+  .count-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 18px; border-top: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+  .count-row label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+  .count-row input {
+    width: 110px; border: 1px solid var(--line); background: var(--card);
+    border-radius: 9px; padding: 8px 10px; font-size: 14px; outline: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .count-row input:focus { border-color: var(--accent); }
+  .count-row .hint { font-size: 11px; color: var(--ink-3); }
+
+  /* ---------- timeline ---------- */
+  .tl-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+  .tl-head h3 { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+  .tl-head button { border: none; background: none; font-size: 12px; color: var(--accent-ink); padding: 2px 6px; border-radius: 6px; }
+  .tl-head button:hover { background: var(--accent-soft); }
+  .day-card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 13px 16px; margin-bottom: 10px;
+    cursor: pointer; transition: border-color .15s, box-shadow .15s;
+  }
+  .day-card:hover { border-color: var(--line-2); box-shadow: var(--shadow); }
+  .day-card.sel { border-color: var(--accent); }
+  .day-card .dc-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+  .day-card .dn {
+    font-size: 11px; font-weight: 600; color: var(--accent-ink);
+    background: var(--accent-soft); padding: 2px 9px; border-radius: 100px;
+  }
+  .day-card .dd { font-size: 12px; color: var(--ink-3); }
+  .day-card .cnt { font-size: 11px; color: var(--ok); font-weight: 600; margin-left: auto; }
+  .day-card p {
+    font-family: var(--serif); font-size: 13.5px; line-height: 1.55; color: var(--ink-2);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    white-space: pre-line;
+  }
+  .day-card p.refl { font-style: italic; color: var(--ink-3); margin-top: 4px; }
+  .day-card.ghost { background: transparent; border-style: dashed; }
+  .day-card.ghost p { font-style: italic; color: var(--ink-3); }
+  .gap-note { text-align: center; font-size: 12px; color: var(--ink-3); font-style: italic; margin: 8px 0 12px; }
+
+  .toast {
+    position: fixed; bottom: 26px; left: 50%;
+    transform: translate(-50%, 20px);
+    background: var(--ink); color: var(--paper);
+    font-size: 13px; padding: 10px 20px; border-radius: 100px;
+    box-shadow: var(--shadow-lg);
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s, transform .25s;
+    z-index: 200; max-width: 80vw; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  input[type="file"] { display: none; }
+  ::-webkit-scrollbar { width: 12px; }
+  ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 10px; border: 3px solid transparent; background-clip: content-box; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="mark">m</span>
+    <h1>Logbook</h1>
+    <span class="tag">Progress</span>
+  </div>
+  <div class="top-mid">
+    <select class="proj-sel" id="projSel" title="Switch project"></select>
+    <span class="saved-dot" id="savedDot"></span>
+    <span class="offline-pill" id="offlinePill">Offline — changes save locally</span>
+  </div>
+  <div class="controls" style="display:flex; align-items:center; gap:8px;">
+    <button class="btn icon" id="themeBtn" title="Toggle light / dark mode">☾</button>
+    <button class="btn" id="folderBtn" style="display:none">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5a1 1 0 011-1h3l1.5 2h6a1 1 0 011 1v6a1 1 0 01-1 1h-10.5a1 1 0 01-1-1v-8z"/></svg>
+      <span class="lbl" id="folderLabel">Connect sync folder</span>
+    </button>
+    <span class="menu-wrap">
+      <button class="btn" id="exportBtn">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 5l3-3 3 3M2.5 10v3a1 1 0 001 1h9a1 1 0 001-1v-3"/></svg>
+        Menu
+      </button>
+      <span class="menu" id="exportMenu">
+        <button id="expMd">Export this project <span class="hint">.md</span></button>
+        <button id="expJson">Backup all projects <span class="hint">.json</span></button>
+        <button id="impJson">Import backup… <span class="hint">.json</span></button>
+        <hr>
+        <button id="newProjBtn">New project…</button>
+        <button id="settingsBtn">Project settings…</button>
+      </span>
+    </span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- setup / settings -->
+  <div class="setup" id="setupCard" style="display:none">
+    <h2 id="setupTitle">New project</h2>
+    <div class="sub">Give it a name and a start date. Days number themselves from the start; the quire fills as you log.</div>
+    <div class="field">
+      <label>Project name</label>
+      <input id="setName" placeholder="e.g. The book" maxlength="80">
+    </div>
+    <div class="field">
+      <label>Start date</label>
+      <input id="setStart" type="date">
+    </div>
+    <div class="field">
+      <label>Target end date <span class="opt">(optional — enables the time tracker)</span></label>
+      <input id="setEnd" type="date">
+    </div>
+    <div class="field">
+      <label>Unit of output <span class="opt">(what your daily number counts)</span></label>
+      <input id="setUnit" placeholder="words" maxlength="20">
+    </div>
+    <div class="setup-actions">
+      <button class="btn primary" id="setupSave">Save</button>
+      <span style="display:flex; gap:8px;">
+        <button class="btn" id="setupCancel" style="display:none">Cancel</button>
+        <button class="btn danger" id="delProj" style="display:none">Delete project</button>
+      </span>
+    </div>
+  </div>
+
+  <!-- dashboard -->
+  <div id="dash" style="display:none">
+    <div class="eyebrow">Dashboard</div>
+    <div class="dash-head">
+      <h2 id="projName"></h2>
+      <span class="range" id="projRange"></span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="k">Day</div><div class="v" id="statDay">–</div><div class="s" id="statDaySub"></div></div>
+      <div class="stat"><div class="k">Streak</div><div class="v" id="statStreak">–</div><div class="s" id="statStreakSub"></div></div>
+      <div class="stat"><div class="k">Consistency</div><div class="v" id="statCons">–</div><div class="s" id="statConsSub"></div></div>
+      <div class="stat"><div class="k" id="statWordsLab">Words</div><div class="v" id="statWords">–</div><div class="s" id="statWordsSub"></div></div>
+      <div class="stat"><div class="k">Goals</div><div class="v" id="statGoals">–</div><div class="s" id="statGoalsSub"></div></div>
+    </div>
+
+    <div class="bar-row" id="timeBarRow" style="display:none">
+      <div class="bar-head"><span><b>Time elapsed</b></span><span id="barTimeLbl"></span></div>
+      <div class="bar"><i id="barTime" style="width:0%"></i></div>
+    </div>
+
+    <div class="cols">
+      <div class="col-left">
+        <div class="panel">
+          <h3>Goals</h3>
+          <div id="goalsList"><div class="goals-empty">No goals yet — add the first one below.</div></div>
+          <div class="goal-add">
+            <input type="text" id="goalInput" placeholder="Goal title" maxlength="120">
+            <select id="goalType">
+              <option value="perday">per day</option>
+              <option value="cumulative">cumulative</option>
+              <option value="daycount">days logged</option>
+              <option value="manual">manual %</option>
+            </select>
+            <input type="number" id="goalTarget" placeholder="target" min="1">
+            <button class="btn" id="goalAdd">Add</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>The gathering</h3>
+          <div id="quire"></div>
+          <div class="quire-legend" id="quireLegend">
+            Each row is a week's gathering, each cell a day's leaf. Ruled lines = logged;
+            a green rule = daily target met. Click any leaf to open that day.
+          </div>
+        </div>
+      </div>
+
+      <div class="col-right">
+        <div class="ed-head">
+          <h2 id="editorTitle">Today</h2>
+          <span class="date" id="editorDate"></span>
+          <button class="back" id="backToday">← back to today</button>
+        </div>
+        <div class="editor">
+          <div class="lab">What I did</div>
+          <textarea id="didInput" placeholder="What did you work on, read, annotate, write…?"></textarea>
+          <div class="count-row">
+            <label id="countLab">Words today</label>
+            <input id="countInput" type="number" min="0" step="1" placeholder="0">
+            <span class="hint" id="countHint"></span>
+          </div>
+          <div class="lab" style="padding-top:12px">Reflections</div>
+          <textarea id="refInput" placeholder="How is it going? What's working, what's hard, what did you notice…"></textarea>
+        </div>
+
+        <div class="tl-head">
+          <h3>Journal</h3>
+          <button id="showAllBtn" style="display:none">Show all days</button>
+        </div>
+        <div id="timeline"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="jsonInput" accept="application/json,.json">
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- state ----------
+  const LS_KEY = "logbook::data";
+  const FILE_NAME = "logbook.json";
+  let state = { projects: [], activeId: null };
+  let selectedDate = null;
+  let showAllDays = false;
+  let setupMode = "create"; // create | edit
+  let saveTimer = null, folderSaveTimer = null;
+
+  const supportsFS = "showDirectoryPicker" in window;
+  let dirHandle = null;
+  let folderState = "none";
+
+  const $ = (id) => document.getElementById(id);
+  const toast = $("toast");
+  const active = () => state.projects.find(p => p.id === state.activeId) || null;
+
+  // ---------- helpers ----------
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove("show"), 2600);
+  }
+  function flashSaved(synced) {
+    const d = $("savedDot");
+    d.textContent = synced ? "Synced ✓" : "Saved locally";
+    d.classList.toggle("synced", !!synced);
+    d.classList.add("flash");
+    clearTimeout(flashSaved._t);
+    flashSaved._t = setTimeout(() => d.classList.remove("flash"), 1200);
+  }
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function iso(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function fromISO(s) { const p = s.split("-").map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+  function todayISO() { return iso(new Date()); }
+  function daysBetween(a, b) { return Math.round((fromISO(b) - fromISO(a)) / 86400000); }
+  function addDays(s, n) { const d = fromISO(s); d.setDate(d.getDate() + n); return iso(d); }
+  function fmtLong(s) {
+    return fromISO(s).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  }
+  function fmtShort(s) {
+    return fromISO(s).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  }
+  function dayNum(p, s) { return daysBetween(p.start, s) + 1; }
+  function entryOf(p, s) { return p.entries[s] || null; }
+  function hasEntry(p, s) {
+    const e = p.entries[s];
+    return !!(e && ((e.did && e.did.trim()) || (e.reflect && e.reflect.trim()) || (+e.count > 0)));
+  }
+  function countOf(p, s) { const e = p.entries[s]; return e ? (+e.count || 0) : 0; }
+  function loggedDates(p) { return Object.keys(p.entries).filter(d => hasEntry(p, d)).sort(); }
+  function nfmt(n) { return (+n || 0).toLocaleString(); }
+  function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+  function rom(n) {
+    const t = [[100,"c"],[90,"xc"],[50,"l"],[40,"xl"],[10,"x"],[9,"ix"],[5,"v"],[4,"iv"],[1,"i"]];
+    let r = "";
+    for (const [v, s] of t) while (n >= v) { r += s; n -= v; }
+    return r;
+  }
+  function perdayTarget(p) {
+    const g = p.goals.find(g => g.type === "perday" && +g.target > 0);
+    return g ? +g.target : null;
+  }
+  function download(filename, text, mime) {
+    const blob = new Blob([text], { type: mime || "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+  }
+
+  // ---------- theme (shared with Marginalia) ----------
+  function applyTheme(t) {
+    document.body.classList.toggle("dark", t === "dark");
+    $("themeBtn").textContent = t === "dark" ? "☀" : "☾";
+  }
+  (function initTheme() {
+    let t = null;
+    try { t = localStorage.getItem("marginalia-theme"); } catch (e) {}
+    if (!t) t = (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+    applyTheme(t);
+  })();
+  $("themeBtn").addEventListener("click", () => {
+    const t = document.body.classList.contains("dark") ? "light" : "dark";
+    applyTheme(t);
+    try { localStorage.setItem("marginalia-theme", t); } catch (e) {}
+  });
+
+  // ---------- IndexedDB (same DB + key as Marginalia → shared folder) ----------
+  function idbOpen() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open("marginalia-db", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("kv");
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+  }
+  async function idbGet(k) {
+    const db = await idbOpen();
+    return new Promise((res, rej) => {
+      const t = db.transaction("kv").objectStore("kv").get(k);
+      t.onsuccess = () => res(t.result);
+      t.onerror = () => rej(t.error);
+    });
+  }
+  async function idbSet(k, v) {
+    const db = await idbOpen();
+    return new Promise((res, rej) => {
+      const t = db.transaction("kv", "readwrite").objectStore("kv").put(v, k);
+      t.onsuccess = () => res();
+      t.onerror = () => rej(t.error);
+    });
+  }
+
+  // ---------- folder sync ----------
+  function updateFolderUi() {
+    const btn = $("folderBtn"), lbl = $("folderLabel");
+    if (!supportsFS) { btn.style.display = "none"; return; }
+    btn.style.display = "inline-flex";
+    btn.classList.remove("connected", "attention");
+    if (folderState === "connected") {
+      btn.classList.add("connected");
+      lbl.textContent = "✓ " + (dirHandle && dirHandle.name ? dirHandle.name : "Connected");
+      btn.title = "Logbook syncs to this folder (shared with Marginalia). Click to change.";
+    } else if (folderState === "prompt") {
+      btn.classList.add("attention");
+      lbl.textContent = "Reconnect folder";
+      btn.title = "One click to re-authorize your sync folder.";
+    } else {
+      lbl.textContent = "Connect sync folder";
+      btn.title = "Pick the same iCloud / Google Drive folder Marginalia uses";
+    }
+  }
+  async function connectFolder() {
+    try {
+      const h = await window.showDirectoryPicker({ mode: "readwrite" });
+      dirHandle = h;
+      folderState = "connected";
+      await idbSet("dirHandle", h).catch(() => {});
+      updateFolderUi();
+      showToast("Connected “" + h.name + "”");
+      const fileData = await readDataFile();
+      if (fileData) { adoptData(fileData); renderAll(); showToast("Loaded logbook from your sync folder"); }
+      else scheduleFolderSave();
+    } catch (e) {
+      if (e && e.name === "AbortError") return;
+      console.error(e);
+      showToast("Couldn't access that folder");
+    }
+  }
+  async function reconnectFolder() {
+    try {
+      const p = await dirHandle.requestPermission({ mode: "readwrite" });
+      if (p === "granted") {
+        folderState = "connected";
+        updateFolderUi();
+        showToast("Folder reconnected");
+        const fileData = await readDataFile();
+        if (fileData) { adoptData(fileData); renderAll(); }
+      }
+    } catch (e) { console.error(e); }
+  }
+  async function initFolder() {
+    if (!supportsFS) { folderState = "unsupported"; updateFolderUi(); return; }
+    try {
+      const h = await idbGet("dirHandle");
+      if (h && h.queryPermission) {
+        dirHandle = h;
+        const p = await h.queryPermission({ mode: "readwrite" });
+        folderState = p === "granted" ? "connected" : "prompt";
+      } else folderState = "none";
+    } catch (e) { folderState = "none"; }
+    updateFolderUi();
+    if (folderState === "connected") {
+      const fileData = await readDataFile();
+      if (fileData) { adoptData(fileData); renderAll(); }
+    }
+  }
+  $("folderBtn").addEventListener("click", () => {
+    if (folderState === "prompt") reconnectFolder();
+    else connectFolder();
+  });
+  async function readDataFile() {
+    if (folderState !== "connected") return null;
+    try {
+      const fh = await dirHandle.getFileHandle(FILE_NAME);
+      const f = await fh.getFile();
+      const data = JSON.parse(await f.text());
+      return (data && data.app === "marginalia-logbook") ? data : null;
+    } catch (e) { return null; }
+  }
+  async function writeDataFile() {
+    if (folderState !== "connected") return false;
+    try {
+      const fh = await dirHandle.getFileHandle(FILE_NAME, { create: true });
+      const w = await fh.createWritable();
+      await w.write(JSON.stringify(payload(), null, 2));
+      await w.close();
+      return true;
+    } catch (e) { console.warn("folder save failed", e); return false; }
+  }
+
+  // ---------- persistence / migration ----------
+  function payload() {
+    return {
+      app: "marginalia-logbook", version: 2,
+      projects: state.projects, activeId: state.activeId,
+      savedAt: new Date().toISOString()
+    };
+  }
+  function migrateGoal(g) {
+    if (g.type) return g;
+    return { id: g.id || "g" + Math.random().toString(36).slice(2), title: g.title,
+             type: "manual", progress: g.progress || 0, done: !!g.done };
+  }
+  function adoptData(data) {
+    if (!data) return;
+    if (Array.isArray(data.projects)) {
+      state.projects = data.projects.map(p => ({
+        id: p.id, name: p.name || "Project", start: p.start, end: p.end || null,
+        unit: p.unit || "words",
+        goals: (p.goals || []).map(migrateGoal),
+        entries: (p.entries && typeof p.entries === "object") ? p.entries : {}
+      })).filter(p => p.start);
+      state.activeId = data.activeId && state.projects.some(p => p.id === data.activeId)
+        ? data.activeId : (state.projects[0] ? state.projects[0].id : null);
+    } else if (data.project && data.project.start) {
+      // v1 single-project format
+      state.projects = [{
+        id: "p1", name: data.project.name || "My project",
+        start: data.project.start, end: data.project.end || null, unit: "words",
+        goals: (data.goals || []).map(migrateGoal),
+        entries: (data.entries && typeof data.entries === "object") ? data.entries : {}
+      }];
+      state.activeId = "p1";
+    }
+  }
+  function persist() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(payload())); } catch (e) {}
+    if (folderState === "connected") scheduleFolderSave();
+    else flashSaved(false);
+  }
+  function scheduleFolderSave() {
+    clearTimeout(folderSaveTimer);
+    folderSaveTimer = setTimeout(async () => {
+      const ok = await writeDataFile();
+      flashSaved(ok);
+    }, 800);
+  }
+  function restoreLocal() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) adoptData(JSON.parse(raw));
+    } catch (e) {}
+  }
+  function preload() {
+    state.projects = [
+      { id: "pw", name: "Writing", start: todayISO(), end: null, unit: "words",
+        goals: [
+          { id: "g1", title: "Write 400 words a day", type: "perday", target: 400 },
+          { id: "g2", title: "14-day on-ramp", type: "daycount", target: 14 },
+          { id: "g3", title: "Wales chapter", type: "cumulative", target: 5340 },
+          { id: "g4", title: "Full manuscript", type: "cumulative", target: 133500 }
+        ], entries: {} },
+      { id: "pk", name: "Kidd study", start: "2026-07-19", end: null, unit: "pages",
+        goals: [], entries: {} }
+    ];
+    state.activeId = "pw";
+    try { localStorage.setItem(LS_KEY, JSON.stringify(payload())); } catch (e) {}
+  }
+
+  // ---------- project switcher ----------
+  function renderProjSel() {
+    const sel = $("projSel");
+    sel.innerHTML = "";
+    for (const p of state.projects) {
+      const o = document.createElement("option");
+      o.value = p.id; o.textContent = p.name;
+      if (p.id === state.activeId) o.selected = true;
+      sel.appendChild(o);
+    }
+    const n = document.createElement("option");
+    n.value = "__new"; n.textContent = "＋ New project…";
+    sel.appendChild(n);
+  }
+  $("projSel").addEventListener("change", (e) => {
+    if (e.target.value === "__new") { openSetup("create"); renderProjSel(); return; }
+    commitEditor();
+    state.activeId = e.target.value;
+    selectedDate = null;
+    showAllDays = false;
+    persist();
+    renderAll();
+  });
+  $("newProjBtn").addEventListener("click", () => openSetup("create"));
+  $("settingsBtn").addEventListener("click", () => { if (active()) openSetup("edit"); });
+
+  // ---------- setup ----------
+  function openSetup(mode) {
+    setupMode = mode;
+    const p = active();
+    $("setupCard").style.display = "block";
+    $("dash").style.display = "none";
+    $("setupTitle").textContent = mode === "edit" ? "Project settings" : "New project";
+    $("setupSave").textContent = mode === "edit" ? "Save settings" : "Create project";
+    $("setupCancel").style.display = state.projects.length ? "inline-flex" : "none";
+    $("delProj").style.display = mode === "edit" ? "inline-flex" : "none";
+    $("setName").value = mode === "edit" && p ? p.name : "";
+    $("setStart").value = mode === "edit" && p ? p.start : todayISO();
+    $("setEnd").value = mode === "edit" && p && p.end ? p.end : "";
+    $("setUnit").value = mode === "edit" && p ? (p.unit || "words") : "words";
+  }
+  $("setupCancel").addEventListener("click", () => {
+    $("setupCard").style.display = "none";
+    $("dash").style.display = "block";
+  });
+  $("setupSave").addEventListener("click", () => {
+    const name = $("setName").value.trim() || "My project";
+    const start = $("setStart").value;
+    const end = $("setEnd").value || null;
+    const unit = $("setUnit").value.trim() || "words";
+    if (!start) { showToast("Pick a start date"); return; }
+    if (end && daysBetween(start, end) < 0) { showToast("End date is before the start date"); return; }
+    if (setupMode === "edit" && active()) {
+      Object.assign(active(), { name, start, end, unit });
+    } else {
+      const p = { id: "p" + Date.now(), name, start, end, unit, goals: [], entries: {} };
+      state.projects.push(p);
+      state.activeId = p.id;
+    }
+    selectedDate = null;
+    persist();
+    $("setupCard").style.display = "none";
+    $("dash").style.display = "block";
+    renderAll();
+  });
+  $("delProj").addEventListener("click", () => {
+    const p = active();
+    if (!p) return;
+    if (!confirm('Delete project "' + p.name + '" and all its entries? This cannot be undone.')) return;
+    state.projects = state.projects.filter(x => x.id !== p.id);
+    state.activeId = state.projects[0] ? state.projects[0].id : null;
+    selectedDate = null;
+    persist();
+    $("setupCard").style.display = "none";
+    renderAll();
+  });
+
+  function clampSelectable(p, d) {
+    if (daysBetween(p.start, d) < 0) return p.start;
+    if (daysBetween(d, todayISO()) < 0) return todayISO();
+    return d;
+  }
+
+  // ---------- goal computation ----------
+  function goalPct(g, p) {
+    const dates = loggedDates(p);
+    if (g.type === "manual") return g.done ? 100 : (g.progress || 0);
+    if (g.type === "cumulative") {
+      const sum = dates.reduce((a, d) => a + countOf(p, d), 0);
+      return g.target ? Math.min(100, Math.round((sum / g.target) * 100)) : 0;
+    }
+    if (g.type === "daycount") {
+      return g.target ? Math.min(100, Math.round((dates.length / g.target) * 100)) : 0;
+    }
+    if (g.type === "perday") {
+      const hit = dates.filter(d => countOf(p, d) >= +g.target).length;
+      return dates.length ? Math.round((hit / dates.length) * 100) : 0;
+    }
+    return 0;
+  }
+  function goalDetail(g, p) {
+    const dates = loggedDates(p);
+    if (g.type === "cumulative") {
+      const sum = dates.reduce((a, d) => a + countOf(p, d), 0);
+      return nfmt(sum) + " of " + nfmt(g.target) + " " + p.unit;
+    }
+    if (g.type === "daycount") return dates.length + " of " + g.target + " days logged";
+    if (g.type === "perday") {
+      const hit = dates.filter(d => countOf(p, d) >= +g.target).length;
+      return "hit on " + hit + " of " + dates.length + " logged days (" + nfmt(g.target) + " " + p.unit + "/day)";
+    }
+    return "";
+  }
+  function typeLabel(t) {
+    return { perday: "per day", cumulative: "cumulative", daycount: "days", manual: "manual" }[t] || t;
+  }
+
+  // ---------- dashboard ----------
+  function computeStreak(p) {
+    let s = 0, best = 0, run = 0;
+    const t = todayISO();
+    let d = hasEntry(p, t) ? t : addDays(t, -1);
+    while (daysBetween(p.start, d) >= 0 && hasEntry(p, d)) { s++; d = addDays(d, -1); }
+    const total = daysBetween(p.start, t);
+    for (let i = 0; i <= total; i++) {
+      if (hasEntry(p, addDays(p.start, i))) { run++; best = Math.max(best, run); }
+      else run = 0;
+    }
+    return { current: s, best };
+  }
+  function renderDash() {
+    const p = active();
+    const t = todayISO();
+    $("projName").textContent = p.name;
+    $("projRange").textContent = fmtShort(p.start) + (p.end ? " → " + fmtShort(p.end) : " → open-ended");
+
+    const started = daysBetween(p.start, t) >= 0;
+    const dn = started ? dayNum(p, t) : 0;
+    const totalDays = p.end ? daysBetween(p.start, p.end) + 1 : null;
+
+    $("statDay").textContent = started ? dn : "–";
+    $("statDaySub").textContent = started
+      ? (totalDays ? "of " + totalDays + " days" : "since " + fmtShort(p.start))
+      : "starts in " + (-daysBetween(p.start, t)) + " day(s)";
+
+    const { current, best } = computeStreak(p);
+    $("statStreak").textContent = current;
+    $("statStreakSub").textContent = "days · best " + best;
+
+    const elapsed = started ? dn : 0;
+    const logged = loggedDates(p).length;
+    const cons = elapsed ? Math.round((logged / elapsed) * 100) : 0;
+    $("statCons").textContent = elapsed ? cons + "%" : "–";
+    $("statConsSub").textContent = logged + " of " + elapsed + " days logged";
+
+    // output stat — averaged per WRITING day, not per elapsed day
+    const dates = loggedDates(p);
+    const sum = dates.reduce((a, d) => a + countOf(p, d), 0);
+    const wdays = dates.filter(d => countOf(p, d) > 0).length;
+    $("statWordsLab").textContent = cap(p.unit);
+    $("statWords").textContent = nfmt(sum);
+    $("statWordsSub").textContent = wdays
+      ? "avg " + nfmt(Math.round(sum / wdays)) + " per writing day"
+      : "no " + p.unit + " logged yet";
+
+    const goals = p.goals;
+    const doneCount = goals.filter(g => goalPct(g, p) >= 100).length;
+    const avg = goals.length
+      ? Math.round(goals.reduce((a, g) => a + goalPct(g, p), 0) / goals.length)
+      : 0;
+    $("statGoals").textContent = goals.length ? avg + "%" : "–";
+    $("statGoalsSub").textContent = goals.length ? doneCount + " of " + goals.length + " complete" : "no goals yet";
+
+    if (totalDays) {
+      $("timeBarRow").style.display = "block";
+      const pct = Math.min(100, Math.max(0, Math.round((elapsed / totalDays) * 100)));
+      $("barTime").style.width = pct + "%";
+      $("barTimeLbl").textContent = "day " + elapsed + " of " + totalDays + " · " + pct + "%";
+    } else {
+      $("timeBarRow").style.display = "none";
+    }
+  }
+
+  // ---------- goals ----------
+  function renderGoals() {
+    const p = active();
+    const list = $("goalsList");
+    if (!p.goals.length) {
+      list.innerHTML = '<div class="goals-empty">No goals yet — add the first one below.</div>';
+      return;
+    }
+    list.innerHTML = "";
+    for (const g of p.goals) {
+      const pct = goalPct(g, p);
+      const row = document.createElement("div");
+      row.className = "goal2" + (pct >= 100 ? " done" : "");
+      let detail = "";
+      if (g.type === "manual") {
+        detail = '<input type="range" min="0" max="100" step="5" value="' + (g.progress || 0) + '">' +
+                 '<span>drag to update</span>';
+      } else {
+        detail = "<span>" + esc(goalDetail(g, p)) + "</span>";
+      }
+      row.innerHTML =
+        '<div class="g-top">' +
+          '<span class="g-title">' + esc(g.title) + "</span>" +
+          '<span class="g-type">' + typeLabel(g.type) + "</span>" +
+          '<span class="g-pct' + (pct >= 100 ? " done" : "") + '">' + pct + "%</span>" +
+          '<button class="g-del" title="Delete goal">✕</button>' +
+        "</div>" +
+        '<div class="bar mini' + (pct >= 100 ? " ok" : "") + '"><i style="width:' + pct + '%"></i></div>' +
+        '<div class="g-detail">' + detail + "</div>";
+      const range = row.querySelector('input[type="range"]');
+      if (range) {
+        range.addEventListener("input", (e) => { g.progress = parseInt(e.target.value, 10) || 0; });
+        range.addEventListener("change", () => { g.done = g.progress >= 100; persist(); renderGoals(); renderDash(); });
+      }
+      row.querySelector(".g-del").addEventListener("click", () => {
+        p.goals = p.goals.filter(x => x !== g);
+        persist(); renderGoals(); renderDash(); renderQuire();
+      });
+      list.appendChild(row);
+    }
+  }
+  $("goalType").addEventListener("change", () => {
+    $("goalTarget").style.display = $("goalType").value === "manual" ? "none" : "block";
+  });
+  $("goalAdd").addEventListener("click", addGoal);
+  $("goalInput").addEventListener("keydown", (e) => { if (e.key === "Enter") addGoal(); });
+  $("goalTarget").addEventListener("keydown", (e) => { if (e.key === "Enter") addGoal(); });
+  function addGoal() {
+    const p = active();
+    const title = $("goalInput").value.trim();
+    const type = $("goalType").value;
+    const target = parseInt($("goalTarget").value, 10) || 0;
+    if (!title) { showToast("Give the goal a title"); return; }
+    if (type !== "manual" && target < 1) { showToast("Set a target number"); return; }
+    p.goals.push({ id: "g" + Date.now(), title, type,
+                   target: type === "manual" ? undefined : target,
+                   progress: 0, done: false });
+    $("goalInput").value = ""; $("goalTarget").value = "";
+    persist(); renderGoals(); renderDash(); renderQuire();
+  }
+
+  // ---------- quire ----------
+  function renderQuire() {
+    const p = active();
+    const wrap = $("quire");
+    wrap.innerHTML = "";
+    const t = todayISO();
+    if (daysBetween(p.start, t) < 0) {
+      wrap.innerHTML = '<span class="goals-empty">The project hasn\'t started yet.</span>';
+      return;
+    }
+    const target = perdayTarget(p);
+    const totalDays = daysBetween(p.start, t) + 1;
+    const totalWeeks = Math.ceil(totalDays / 7);
+    const maxWeeks = 26;
+    const fromWeek = Math.max(0, totalWeeks - maxWeeks);
+    for (let w = fromWeek; w < totalWeeks; w++) {
+      const row = document.createElement("div");
+      row.className = "quire-row";
+      const sig = document.createElement("span");
+      sig.className = "q-sig";
+      sig.textContent = rom(w + 1) + ".";
+      row.appendChild(sig);
+      for (let i = 0; i < 7; i++) {
+        const d = addDays(p.start, w * 7 + i);
+        const leaf = document.createElement("span");
+        const future = daysBetween(d, t) < 0;
+        const logged = !future && hasEntry(p, d);
+        const hit = logged && target && countOf(p, d) >= target;
+        leaf.className = "leaf" +
+          (future ? " future" : "") +
+          (logged ? " logged" : "") +
+          (hit ? " hit" : "") +
+          (d === t ? " today" : "") +
+          (d === selectedDate ? " sel" : "");
+        leaf.title = fmtShort(d) + " · Day " + dayNum(p, d) +
+          (future ? "" : logged
+            ? (" — logged" + (countOf(p, d) ? ", " + nfmt(countOf(p, d)) + " " + p.unit : "") + (hit ? " ✓ target" : ""))
+            : " — no entry");
+        if (!future) {
+          leaf.addEventListener("click", () => {
+            commitEditor();
+            selectedDate = d;
+            loadEditor(); renderQuire(); renderTimeline();
+            $("didInput").focus();
+          });
+        }
+        row.appendChild(leaf);
+      }
+      wrap.appendChild(row);
+    }
+    if (fromWeek > 0) {
+      const gn = document.createElement("div");
+      gn.className = "gap-note";
+      gn.textContent = "showing the most recent " + maxWeeks + " gatherings of " + totalWeeks;
+      wrap.insertBefore(gn, wrap.firstChild);
+    }
+  }
+
+  // ---------- editor ----------
+  function loadEditor() {
+    const p = active();
+    if (!selectedDate) selectedDate = clampSelectable(p, todayISO());
+    const e = entryOf(p, selectedDate) || {};
+    $("didInput").value = e.did || "";
+    $("refInput").value = e.reflect || "";
+    $("countInput").value = (+e.count > 0) ? +e.count : "";
+    $("countLab").textContent = cap(p.unit) + " today";
+    const target = perdayTarget(p);
+    $("countHint").textContent = target ? "daily target: " + nfmt(target) : "";
+    const isToday = selectedDate === todayISO();
+    $("editorTitle").textContent = (isToday ? "Today — " : "") + "Day " + dayNum(p, selectedDate);
+    $("editorDate").textContent = fmtLong(selectedDate);
+    $("backToday").classList.toggle("show", !isToday);
+  }
+  function commitEditor() {
+    const p = active();
+    if (!p || !selectedDate) return;
+    const did = $("didInput").value;
+    const reflect = $("refInput").value;
+    const count = parseInt($("countInput").value, 10) || 0;
+    const had = !!p.entries[selectedDate];
+    if (did.trim() || reflect.trim() || count > 0) {
+      p.entries[selectedDate] = { did, reflect, count };
+    } else {
+      delete p.entries[selectedDate];
+    }
+    if (had || did.trim() || reflect.trim() || count > 0) {
+      persist(); renderDash(); renderGoals(); renderQuire(); renderTimeline();
+    }
+  }
+  ["didInput", "refInput", "countInput"].forEach(id => {
+    $(id).addEventListener("input", () => {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(commitEditor, 600);
+    });
+    $(id).addEventListener("blur", commitEditor);
+  });
+  $("backToday").addEventListener("click", () => {
+    commitEditor();
+    selectedDate = todayISO();
+    loadEditor(); renderQuire(); renderTimeline();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  // ---------- timeline ----------
+  function renderTimeline() {
+    const p = active();
+    const tl = $("timeline");
+    tl.innerHTML = "";
+    const t = todayISO();
+    if (daysBetween(p.start, t) < 0) return;
+    const total = daysBetween(p.start, t) + 1;
+    const cap60 = 60;
+    const shown = showAllDays ? total : Math.min(total, cap60);
+    $("showAllBtn").style.display = total > cap60 && !showAllDays ? "inline-block" : "none";
+
+    let pendingGhosts = [];
+    const flush = () => {
+      if (pendingGhosts.length > 2) {
+        const gn = document.createElement("div");
+        gn.className = "gap-note";
+        gn.textContent = pendingGhosts.length + " days without entries";
+        tl.appendChild(gn);
+      } else {
+        for (const gd of pendingGhosts) tl.appendChild(dayCard(gd));
+      }
+      pendingGhosts = [];
+    };
+    for (let i = 0; i < shown; i++) {
+      const d = addDays(t, -i);
+      if (daysBetween(p.start, d) < 0) break;
+      if (!hasEntry(p, d) && d !== selectedDate && d !== t) { pendingGhosts.push(d); continue; }
+      flush();
+      tl.appendChild(dayCard(d));
+    }
+    flush();
+  }
+  function dayCard(d) {
+    const p = active();
+    const e = entryOf(p, d) || {};
+    const logged = hasEntry(p, d);
+    const card = document.createElement("div");
+    card.className = "day-card" + (logged ? "" : " ghost") + (d === selectedDate ? " sel" : "");
+    let html = '<div class="dc-head"><span class="dn">Day ' + dayNum(p, d) + "</span><span class='dd'>" + fmtShort(d) + "</span>";
+    if (+e.count > 0) html += '<span class="cnt">' + nfmt(+e.count) + " " + p.unit + "</span>";
+    html += "</div>";
+    if (logged) {
+      if (e.did && e.did.trim()) html += "<p>" + esc(e.did.trim()) + "</p>";
+      if (e.reflect && e.reflect.trim()) html += '<p class="refl">' + esc(e.reflect.trim()) + "</p>";
+    } else {
+      html += "<p>No entry — click to write one.</p>";
+    }
+    card.innerHTML = html;
+    card.addEventListener("click", () => {
+      commitEditor();
+      selectedDate = d;
+      loadEditor(); renderQuire(); renderTimeline();
+      $("didInput").focus();
+    });
+    return card;
+  }
+  $("showAllBtn").addEventListener("click", () => { showAllDays = true; renderTimeline(); });
+
+  // ---------- export / import ----------
+  const exportMenu = $("exportMenu");
+  $("exportBtn").addEventListener("click", (e) => { e.stopPropagation(); exportMenu.classList.toggle("open"); });
+  document.addEventListener("click", () => exportMenu.classList.remove("open"));
+
+  $("expMd").addEventListener("click", () => {
+    const p = active();
+    if (!p) return;
+    commitEditor();
+    let md = "# Progress log — " + p.name + "\n\n";
+    md += "*Started " + fmtLong(p.start) + (p.end ? " · target " + fmtLong(p.end) : "") +
+          " · exported " + new Date().toLocaleString() + " · made with Logbook*\n\n";
+    if (p.goals.length) {
+      md += "## Goals\n\n";
+      for (const g of p.goals) {
+        const pct = goalPct(g, p);
+        md += "- [" + (pct >= 100 ? "x" : " ") + "] " + g.title + " — " + pct + "%" +
+              (g.type !== "manual" ? " (" + goalDetail(g, p) + ")" : "") + "\n";
+      }
+      md += "\n";
+    }
+    md += "## Journal\n\n";
+    const dates = loggedDates(p);
+    if (!dates.length) md += "_No entries yet._\n";
+    for (const d of dates) {
+      const e = p.entries[d];
+      md += "### Day " + dayNum(p, d) + " — " + fmtLong(d) +
+            (+e.count > 0 ? " · " + nfmt(+e.count) + " " + p.unit : "") + "\n\n";
+      if (e.did && e.did.trim()) md += "**Did:** " + e.did.trim() + "\n\n";
+      if (e.reflect && e.reflect.trim()) md += "**Reflections:** " + e.reflect.trim() + "\n\n";
+    }
+    download(p.name.replace(/[\\/:*?"<>|]/g, "") + " — progress log.md", md, "text/markdown");
+    showToast("Journal exported");
+  });
+
+  $("expJson").addEventListener("click", () => {
+    commitEditor();
+    download("logbook backup.json", JSON.stringify(payload(), null, 2), "application/json");
+    showToast("Backup exported (all projects)");
+  });
+
+  $("impJson").addEventListener("click", () => $("jsonInput").click());
+  $("jsonInput").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      if (!data || data.app !== "marginalia-logbook") throw new Error("bad format");
+      adoptData(data);
+      persist();
+      selectedDate = null;
+      renderAll();
+      showToast("Backup imported");
+    } catch (err) {
+      showToast("That doesn't look like a Logbook backup file");
+    }
+  });
+
+  // ---------- render all ----------
+  function renderAll() {
+    renderProjSel();
+    if (!active()) { openSetup("create"); return; }
+    $("setupCard").style.display = "none";
+    $("dash").style.display = "block";
+    const p = active();
+    if (!selectedDate) selectedDate = clampSelectable(p, todayISO());
+    renderDash(); renderGoals(); renderQuire(); loadEditor(); renderTimeline();
+  }
+
+  // ---------- online/offline ----------
+  function updateOnline() { $("offlinePill").classList.toggle("on", !navigator.onLine); }
+  window.addEventListener("online", () => { updateOnline(); showToast("Back online — your cloud folder will sync changes"); });
+  window.addEventListener("offline", updateOnline);
+  updateOnline();
+
+  // ---------- service worker ----------
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+
+  window.addEventListener("beforeunload", commitEditor);
+
+  // ---------- go ----------
+  restoreLocal();
+  if (!state.projects.length) {
+    preload();
+    setTimeout(() => showToast("Preloaded “Writing” and “Kidd study” — adjust dates & goals in Menu → Project settings"), 600);
+  }
+  renderAll();
+  initFolder();
+})();
+</script>
+</body>
+</html>

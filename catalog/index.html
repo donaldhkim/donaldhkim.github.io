@@ -210,6 +210,96 @@ main{max-width:1180px;margin:0 auto;padding:0 1.25rem 5rem}
 footer{border-top:1px solid rgba(203,191,164,.22);margin-top:3.5rem;padding:2rem 1.25rem 3rem;max-width:1180px;margin-left:auto;margin-right:auto}
 footer p{color:#8d8474;font-size:.86rem;max-width:62ch;font-weight:300}
 .foot-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.1rem}
+
+/* ---------- add-a-title form ---------- */
+.adder{max-width:1180px;margin:0 auto;padding:0 1.25rem}
+.add-open{
+  font-family:'Courier Prime',monospace;font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;
+  background:transparent;border:1px dashed rgba(203,191,164,.45);color:#cbbfa4;
+  padding:.7rem 1rem;border-radius:2px;cursor:pointer;width:100%;transition:all .18s;
+}
+.add-open:hover{border-color:var(--brass);color:#e8c98a;border-style:solid}
+.add-open:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.add-form{
+  display:none;background:var(--card);border:1px solid var(--card-edge);border-left:5px solid var(--brass);
+  border-radius:2px;padding:1.2rem;margin-top:.7rem;
+  background-image:repeating-linear-gradient(180deg,transparent 0 27px,rgba(120,105,80,.09) 27px 28px);
+}
+.add-form.open{display:block}
+.add-form h3{font-family:'Bodoni Moda',serif;font-weight:400;font-size:1.2rem;margin-bottom:.9rem}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.7rem}
+.fgrid label{font-family:'Courier Prime',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:.25rem}
+.fgrid input,.fgrid select,.add-form textarea{
+  width:100%;font-family:'Courier Prime',monospace;font-size:.8rem;
+  padding:.5rem .6rem;border:1px solid var(--rule);border-radius:2px;
+  background:rgba(255,255,255,.4);color:var(--ink);
+}
+.add-form textarea{min-height:60px;resize:vertical;margin-top:.7rem}
+.fgrid input:focus,.fgrid select:focus,.add-form textarea:focus{outline:2px solid var(--brass);outline-offset:1px}
+.add-submit{
+  margin-top:.8rem;font-family:'Courier Prime',monospace;font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;
+  background:var(--oxblood);color:var(--card);border:none;padding:.65rem 1.2rem;border-radius:2px;cursor:pointer;font-weight:700;
+}
+.add-submit:hover{background:var(--oxblood-deep)}
+/* ---------- cluster headers & memo debt ---------- */
+.cluster-head{
+  display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;
+  margin:1.6rem 0 .7rem;padding:.6rem .85rem;
+  background:rgba(242,234,216,.055);border-left:3px solid var(--rule);border-radius:2px;
+}
+.cluster-head.debt{border-left-color:var(--buy);background:rgba(138,51,36,.13)}
+.cluster-head.cleared{border-left-color:var(--ok);background:rgba(63,107,69,.1)}
+.cl-name{font-family:'Bodoni Moda',serif;font-size:1.02rem;color:var(--card);display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap}
+.cl-key{font-family:'Courier Prime',monospace;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--brass)}
+.cl-phase{font-family:'Courier Prime',monospace;font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:#8d8474;border:1px solid rgba(203,191,164,.28);padding:.1rem .35rem;border-radius:2px}
+.cl-meta{display:flex;align-items:center;gap:.7rem}
+.cl-count{font-family:'Courier Prime',monospace;font-size:.66rem;letter-spacing:.1em;color:#a99e8d}
+.memo-btn{
+  font-family:'Courier Prime',monospace;font-size:.62rem;letter-spacing:.11em;text-transform:uppercase;
+  background:transparent;border:1px solid rgba(203,191,164,.35);color:#a99e8d;
+  padding:.35rem .6rem;border-radius:2px;cursor:pointer;transition:all .15s;
+}
+.memo-btn:hover{border-color:var(--brass);color:#e8c98a}
+.cluster-head.debt .memo-btn{border-color:var(--buy);color:#e0a294;font-weight:700}
+.memo-btn.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.memo-btn:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+.read-btn{
+  font-family:'Courier Prime',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  background:transparent;border:1px solid var(--rule);color:var(--ink-soft);
+  padding:.25rem .45rem;border-radius:2px;cursor:pointer;transition:all .15s;
+}
+.read-btn:hover{border-color:var(--ink);color:var(--ink)}
+.read-btn.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.read-btn:focus-visible{outline:2px solid var(--brass);outline-offset:1px}
+.card.custom{border-left-style:dashed}
+
+/* ---------- companion panel ---------- */
+.comp-toggle{
+  font-family:'Courier Prime',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  background:none;border:none;border-bottom:1px dotted var(--rule);
+  color:var(--ink-soft);cursor:pointer;padding:0 0 1px;align-self:center;
+}
+.comp-toggle:hover{color:var(--oxblood);border-color:var(--oxblood)}
+.comp-toggle:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.comp-toggle[aria-expanded="true"]{color:var(--oxblood);font-weight:700;border-bottom-style:solid}
+.companion{
+  display:none;margin-top:.55rem;padding:.8rem .9rem;
+  background:rgba(92,31,27,.055);
+  border-left:2px solid var(--oxblood);
+  border-radius:0 2px 2px 0;
+  font-size:.855rem;line-height:1.62;color:#3d372f;
+}
+.companion.open{display:block}
+.companion b{color:var(--oxblood);font-weight:600}
+.companion i{color:var(--ink)}
+.comp-head{
+  font-family:'Courier Prime',monospace;font-size:.55rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--oxblood);opacity:.75;
+  display:block;margin-bottom:.4rem;
+}
+.del{background:none;border:none;color:var(--ink-soft);cursor:pointer;font-family:'Courier Prime',monospace;font-size:.62rem;letter-spacing:.08em;padding:0;border-bottom:1px dotted var(--rule)}
+.del:hover{color:var(--buy);border-color:var(--buy)}
 footer .reset{background:none;border:1px solid rgba(203,191,164,.35);color:#a99e8d;font-family:'Courier Prime',monospace;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;padding:.5rem .8rem;cursor:pointer;border-radius:2px}
 footer .reset:hover{border-color:var(--buy);color:#d98a7a}
 footer .reset.keep:hover{border-color:var(--brass);color:#e8c98a}
@@ -237,6 +327,7 @@ footer .reset:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
       <div class="tally-item t-free"><b id="n-F">0</b>Free online</div>
       <div class="tally-item"><b id="n-U">0</b>Unsearched</div>
       <div class="tally-item"><b id="n-N">0</b>With notes</div>
+      <div class="tally-item"><b id="n-R">0</b>Read</div>
     </div>
     <div class="progress-wrap"><div class="progress-bar" id="bar"></div></div>
   </div>
@@ -250,134 +341,171 @@ footer .reset:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
   <button class="chip" data-f="star" aria-pressed="false">★ Buy list</button>
   <button class="chip" data-f="todo" aria-pressed="false">Unsearched</button>
   <button class="chip" data-f="noted" aria-pressed="false">Noted</button>
+  <button class="chip" data-f="unread" aria-pressed="false">Unread</button>
+  <button class="chip" id="allBriefs" type="button">Open all briefs</button>
+</div>
+
+<div class="adder">
+  <button class="add-open" id="addOpen" aria-expanded="false" aria-controls="addForm">+ Add a title to the catalog</button>
+  <form class="add-form" id="addForm">
+    <h3>New card</h3>
+    <div class="fgrid">
+      <div><label for="f-a">Author</label><input id="f-a" required placeholder="Last name, First name"></div>
+      <div><label for="f-t">Title</label><input id="f-t" required placeholder="Title of the work"></div>
+      <div><label for="f-s">Manuscript</label><select id="f-s">
+        <option value="revival">Revival</option><option value="rebirth">Rebirth</option><option value="free">Free online</option>
+      </select></div>
+      <div><label for="f-p">Reading level</label><select id="f-p">
+        <option>FULL</option><option>GUT</option><option>DIP</option>
+      </select></div>
+    </div>
+    <textarea id="f-n" placeholder="Why it matters — which chapter it feeds, what argument it carries"></textarea>
+    <button type="submit" class="add-submit">File this card</button>
+  </form>
 </div>
 
 <main id="app"></main>
 
 <footer>
   <p>Statuses and notes are saved in this browser only — no account, no server. Export regularly: browser storage is convenience, not an archive, and your notes belong in the manuscript folder alongside the memos.</p>
+  <p style="margin-top:.8rem"><strong style="color:#c4b9a6">On the briefs:</strong> each card's orientation brief replaces the "find two reviews" step — it tells you a book's argument and reputation so your reading starts positioned. It is <em>not</em> citable, carries no page numbers by design, and entries marked ⚠ are the least certain. The book is the authority; your own note is what goes in the manuscript.</p>
   <div class="foot-actions">
     <button class="reset keep" id="export">Export notes (.md)</button>
-    <button class="reset" id="reset">Clear all statuses and notes</button>
+    <button class="reset keep" id="backup">Save backup (.json)</button>
+    <label class="reset keep" for="restore" style="display:inline-block">Restore backup…<input type="file" id="restore" accept=".json,application/json" style="display:none"></label>
+    <button class="reset" id="reset">Clear everything</button>
   </div>
 </footer>
 
 <script>
 const DATA=[
 {s:"free",sec:"Free online — never search the catalog",note:"Best editions are public domain or open access. Mark F and move on.",items:[
- {a:"Edwards, Jonathan",t:"A Faithful Narrative · Distinguishing Marks · Religious Affections",n:"Jonathan Edwards Center, edwards.yale.edu — critical text, free",x:"Both books",p:"FULL"},
- {a:"Wesley, John",t:"The New Birth · The Witness of the Spirit I–II",n:"Wesley Center / CCEL",x:"Rebirth",p:"FULL"},
- {a:"Luther, Martin",t:"Large Catechism — Baptism",n:"bookofconcord.org",x:"Rebirth",p:"FULL"},
- {a:"Calvin, John",t:"Institutes III.3, IV.15–16",n:"CCEL free; Battles translation worth owning",x:"Rebirth",p:"FULL"},
- {a:"Patristic primaries",t:"Justin · Cyril · Chrysostom · Augustine",n:"CCEL / newadvent.org; buy Popular Patristics Cyril to cite",x:"Rebirth",p:"FULL"},
- {a:"Aquinas, Thomas",t:"Summa Theologiae III, qq. 66–69",n:"newadvent.org",x:"Rebirth",p:"DIP"},
- {a:"Spener, Philipp Jakob",t:"Pia Desideria",n:"Public domain; Fortress edition worth owning",x:"Rebirth",p:"FULL"},
- {a:"Finney, Charles",t:"Lectures on Revivals of Religion",n:"CCEL — lectures 1–2 suffice",x:"Revival",p:"DIP"},
- {a:"Spurgeon, C.H.",t:"Baptismal Regeneration (1864)",n:"spurgeon.org",x:"Rebirth",p:"DIP"},
- {a:"Bartleman, Frank",t:"Azusa Street",n:"archive.org — read with Robeck's corrections in hand",x:"Revival",p:"FULL"},
- {a:"Blair & Hunt",t:"The Korean Pentecost",n:"archive.org — read after Oak",x:"Revival",p:"FULL"},
- {a:"Goforth, Jonathan",t:"By My Spirit",n:"archive.org",x:"Revival",p:"DIP"},
- {a:"Stead, W.T.",t:"The Revival in the West",n:"archive.org — 1905 dispatches",x:"Revival",p:"DIP"},
- {a:"Penn-Lewis & Roberts",t:"War on the Saints",n:"archive.org — read as artifact, not scholarship",x:"Revival",p:"DIP"},
- {a:"Ramabai, Pandita",t:"A Testimony of Our Inexhaustible Treasure",n:"archive.org — her own voice for ch. 13",x:"Revival",p:"DIP"},
- {a:"Azusa Street Mission",t:"The Apostolic Faith — complete run",n:"ifphc.org — Flower Pentecostal Heritage Center, digitized",x:"Revival",p:"DIP"},
- {a:"Butler, Jon",t:"Enthusiasm Described and Decried (JAH 1982)",n:"JSTOR",x:"Revival",p:"FULL"},
- {a:"Julian of Norwich · Anselm",t:"Showings · Prayers and Meditations",n:"CCEL to orient; buy Paulist and Ward editions to cite",x:"Rebirth",p:"DIP"}
+ {a:"Edwards, Jonathan",t:"A Faithful Narrative · Distinguishing Marks · Religious Affections",n:"Jonathan Edwards Center, edwards.yale.edu — critical text, free",x:"Both books",p:"FULL",c:"Three works, one download. The <i>Faithful Narrative</i> (1737) essentially invented the revival report as a genre — Northampton described so carefully that every later awakening account imitates its shape. <i>Distinguishing Marks</i> (1741) supplies the negative signs: what revival is <i>not</i> evidenced by. <i>Religious Affections</i> (1746) is the mature masterwork — twelve unreliable signs ruled out, twelve reliable ones developed, Christian practice named the chief evidence. <b>Use:</b> revival ch. 5, 24, 25 and rebirth ch. 14, 23 on one reading. The standing rebuke to any assurance built on intensity of experience.",cluster:"G"},
+ {a:"Wesley, John",t:"The New Birth · The Witness of the Spirit I–II",n:"Wesley Center / CCEL",x:"Rebirth",p:"FULL",c:"\"The New Birth\" is the clearest homiletical statement of the doctrine ever written: why we must be born again (the image of God defaced), what it is (real change, distinct from justification's relative change), and — the nuance his heirs forget — its careful non-identity with baptism, held <i>without</i> discarding infant baptism. The \"Witness\" sermons develop Romans 8:16: the Spirit's direct inward testimony, distinct from and prior to the indirect witness of fruit. <b>Use:</b> ch. 14's core; ch. 23's second ground.",cluster:"C"},
+ {a:"Luther, Martin",t:"Large Catechism — Baptism",n:"bookofconcord.org",x:"Rebirth",p:"FULL",c:"The most pastorally charged sacramental theology ever written. Baptism as God's word and promise joined to water — valid because God is the actor, not because the recipient performed correctly — to be <i>used</i> daily: the old Adam drowned by contrition, a new man daily rising. <b>Use:</b> ch. 10 whole, ch. 23's first ground. The insight to carry: Luther relocates assurance from introspection to God's objective act, the exact inversion of the Puritan direction.",cluster:"C"},
+ {a:"Calvin, John",t:"Institutes III.3, IV.15–16",n:"CCEL free; Battles translation worth owning",x:"Rebirth",p:"FULL",c:"III.3 defines regeneration as repentance — mortification and vivification — the <i>whole Christian life</i>, not an instant. That broad usage is where your semantic-narrowing thesis (O3) begins. IV.15–16 treats baptism as sign and seal of engrafting, with infant baptism defended by covenant continuity. <b>Use:</b> mark every occurrence of \"regeneration\" and its scope as you read; the marked-up text is O3's foundation.",cluster:"I"},
+ {a:"Patristic primaries",t:"Justin · Cyril · Chrysostom · Augustine",n:"CCEL / newadvent.org; buy Popular Patristics Cyril to cite",x:"Rebirth",p:"FULL",c:"Four primary voices establishing that baptism and rebirth were one thing said two ways. Justin (<i>First Apology</i> 61, c. 155) simply calls baptism \"regeneration\" and quotes John 3 as warrant — within living memory of the apostle. Cyril's mystagogical lectures reconstruct the Easter vigil in sensory detail. Chrysostom shows catechesis as preaching. Augustine's <i>Confessions</i> VIII–IX gives the West its archetypal adult conversion — followed, note, by baptism as the obvious completion. <b>Use:</b> ch. 6–7; start your maternal-image file here (the Fathers call the font a womb).",cluster:"F"},
+ {a:"Aquinas, Thomas",t:"Summa Theologiae III, qq. 66–69",n:"newadvent.org",x:"Rebirth",p:"DIP",c:"The medieval synthesis at full strength: matter and form, the character indelibly imprinted, effects (remission, regeneration, incorporation), and — most useful to you — baptism of desire and of blood, the tradition's own admission that the God of the sacraments is not bound by them. <b>Use:</b> ch. 9; that admission becomes load-bearing in ch. 22 and 24.",cluster:"H"},
+ {a:"Spener, Philipp Jakob",t:"Pia Desideria",n:"Public domain; Fortress edition worth owning",x:"Rebirth",p:"FULL",c:"The Pietist manifesto (1675): diagnosis of dead orthodoxy in clergy and laity, then six proposals — Scripture in conventicles, the spiritual priesthood, Christianity as practice, irenic controversy, reformed pastoral training, edifying preaching — all orbiting <i>Wiedergeburt</i>. Brief and readable. <b>Use:</b> ch. 14's opening; Spener shows the experience-turn beginning as <i>churchly reform</i>, not individualism, which complicates the standard declension story.",cluster:"J"},
+ {a:"Finney, Charles",t:"Lectures on Revivals of Religion",n:"CCEL — lectures 1–2 suffice",x:"Revival",p:"DIP",c:"Finney's \"right use of means\" argument in his own voice — revival as the result of the right use of the appropriate means, not a miracle to be awaited. Lectures 1–2 carry the whole position. <b>Use:</b> ch. 8. Read it before Murray's critique so you meet the argument before the rebuttal.",cluster:"H"},
+ {a:"Spurgeon, C.H.",t:"Baptismal Regeneration (1864)",n:"spurgeon.org",x:"Rebirth",p:"DIP",c:"The century's most famous protest — thousands of copies sold — charging Anglican baptismal language with soul-destroying fiction. Primary polemic at full voltage; note how much of its force is rhetorical rather than exegetical. <b>Use:</b> ch. 17, alongside the Gorham material.",cluster:"K"},
+ {a:"Bartleman, Frank",t:"Azusa Street",n:"archive.org — read with Robeck's corrections in hand",x:"Revival",p:"FULL",c:"Bartleman's eyewitness account — and a masterclass in the promoter-source problem. He had an agenda (his own role, his theology of the revival's meaning) and shaped the record accordingly. Read <i>after</i> Robeck so you can watch the shaping happen. <b>Use:</b> ch. 15 for color, ch. 1 as a worked example of source criticism.",cluster:"D"},
+ {a:"Blair & Hunt",t:"The Korean Pentecost",n:"archive.org — read after Oak",x:"Revival",p:"FULL",c:"The missionary account that fixed 1907 in Western memory. Blair is a sympathetic, careful observer — and a lens: what he registers as remarkable and what he passes over silently both tell you where his categories ended. <b>Use:</b> read after Oak, and note specifically what <i>tongsŏng kido</i> sounds like to a missionary ear versus a Korean one. That gap is ch. 14's originality.",cluster:"C"},
+ {a:"Goforth, Jonathan",t:"By My Spirit",n:"archive.org",x:"Revival",p:"DIP",c:"Goforth's account of the Manchurian revival (1908) — the classic revival-report genre in its purest form: conversion counts, confession scenes, before/after moral transformation. <b>Use:</b> ch. 16 for the wave's last node; also a genre specimen for ch. 1's source-criticism argument.",cluster:"C"},
+ {a:"Stead, W.T.",t:"The Revival in the West",n:"archive.org — 1905 dispatches",x:"Revival",p:"DIP",c:"Stead's 1905 dispatches — the journalism that made Wales the first mass-mediated revival. Read for the showmanship as much as the reporting: Stead was a pioneer of sensational journalism, and his own performance is part of the evidence for ch. 12's press-construction thesis.",cluster:"A"},
+ {a:"Penn-Lewis & Roberts",t:"War on the Saints",n:"archive.org — read as artifact, not scholarship",x:"Revival",p:"DIP",c:"Not scholarship but artifact: Penn-Lewis and Roberts on demonic deception among believers, written in the aftermath of Roberts's collapse. <b>Use:</b> ch. 12 and ch. 24 — post-revival trauma literature, and evidence for the pastoral claim that the revivalist is the revival's most at-risk member.",cluster:"A"},
+ {a:"Ramabai, Pandita",t:"A Testimony of Our Inexhaustible Treasure",n:"archive.org — her own voice for ch. 13",x:"Revival",p:"DIP",c:"Ramabai's own account of her journey to Christian faith — the voice that the diffusionist narrative silences. Short. <b>Use:</b> ch. 13; collect quotable passages early, since her own words are the chapter's strongest argument against treating Mukti as derivative.",cluster:"B"},
+ {a:"Azusa Street Mission",t:"The Apostolic Faith — complete run",n:"ifphc.org — Flower Pentecostal Heritage Center, digitized",x:"Revival",p:"DIP",c:"Bartleman's eyewitness account — and a masterclass in the promoter-source problem. He had an agenda (his own role, his theology of the revival's meaning) and shaped the record accordingly. Read <i>after</i> Robeck so you can watch the shaping happen. <b>Use:</b> ch. 15 for color, ch. 1 as a worked example of source criticism.",cluster:"E"},
+ {a:"Butler, Jon",t:"Enthusiasm Described and Decried (JAH 1982)",n:"JSTOR",x:"Revival",p:"FULL",c:"Butler's 1982 article — the constructivist grenade. Argues the \"Great Awakening\" was substantially an interpretive invention of later historians, and that the events themselves were more scattered and less unified than the label implies. <b>Use:</b> ch. 2 and 5. You need not agree; you must answer it.",cluster:"F"},
+ {a:"Julian of Norwich · Anselm",t:"Showings · Prayers and Meditations",n:"CCEL to orient; buy Paulist and Ward editions to cite",x:"Rebirth",p:"DIP",c:"Julian gives the tradition's most developed maternal theology — Christ as true Mother in whom we are endlessly born, worked out with doctrinal precision rather than sentiment. Anselm's prayer to St. Paul contains the mother-Jesus address centuries earlier. <b>Use:</b> ch. 21's crown witnesses. Note the possible O4 discovery: Julian's \"endlessly being born\" and Calvin's lifelong-regeneration converge across three centuries — check whether anyone has said so.",cluster:"M"},
 ]},
 {s:"revival",sec:"Revival manuscript",note:"Global history of Christian revival — 37 searchable titles, ordered by reading priority.",items:[
- {a:"Anderson, Allan",t:"Spreading Fires",n:"Theoretical backbone of Part V — read early",p:"FULL"},
- {a:"Robeck, Cecil M.",t:"The Azusa Street Mission and Revival",n:"Definitive; ch. 15 foundation",p:"FULL",star:1},
- {a:"Wacker, Grant",t:"Heaven Below",n:"Best book on early Pentecostal culture; feeds ch. 15, 19, 20",p:"FULL"},
- {a:"Espinosa, Gastón",t:"William J. Seymour and the Origins of Global Pentecostalism",n:"The strongest anti-polycentric case — ch. 16 must engage him",p:"FULL"},
- {a:"Oak, Sung-Deuk",t:"The Making of Korean Christianity",n:"Korean-agency argument; ch. 14 spine",p:"FULL"},
- {a:"Evans, Eifion",t:"The Welsh Revival of 1904",n:"Standard sympathetic account; read as source and specimen",p:"FULL"},
- {a:"Kidd, Thomas",t:"The Great Awakening",n:"Also your craft-training corpus",p:"FULL",star:1},
- {a:"McLoughlin, William",t:"Revivals, Awakenings, and Reform",n:"Revitalization theory — engage critically",p:"FULL"},
- {a:"Peterson, Derek",t:"Ethnic Patriotism and the East African Revival",n:"Field's most sophisticated recent monograph; a method model",p:"FULL"},
- {a:"Lian Xi",t:"Redeemed by Fire",n:"China chapter spine",p:"FULL"},
- {a:"Raboteau, Albert",t:"Slave Religion",n:"Foundational for ch. 9 and 23",p:"FULL",star:1,x:"Both books"},
- {a:"Johnson, Clifton (ed.)",t:"God Struck Me Dead",n:"Ex-slave conversion narratives — the voices ch. 9 is built on",p:"FULL",x:"Both books"},
- {a:"Lovelace, Richard",t:"Dynamics of Spiritual Life",n:"Modern synthesis for ch. 25",p:"FULL",star:1},
- {a:"Jones, R. Tudur",t:"Faith and the Crisis of a Nation: Wales 1890–1914",n:"Secularization-timeline frame",p:"GUT"},
- {a:"Lambert, Frank",t:"Inventing the \"Great Awakening\"",n:"Constructivist challenge",p:"GUT"},
- {a:"Murray, Iain",t:"Revival and Revivalism",n:"Read charitably; assessed in ch. 2 and 8",p:"GUT"},
- {a:"Marsden, George",t:"The Outrageous Idea of Christian Scholarship",n:"Pair with one hostile review",p:"GUT"},
- {a:"Noll, Mark",t:"The Rise of Evangelicalism",n:"Transatlantic synthesis frame",p:"GUT"},
- {a:"Ward, W.R.",t:"The Protestant Evangelical Awakening",n:"Continental-roots argument for ch. 4",p:"GUT"},
- {a:"Schmidt, Leigh Eric",t:"Holy Fairs",n:"Sacramental roots of Cane Ridge",p:"GUT"},
- {a:"Long, Kathryn",t:"The Revival of 1857–58",n:"Media-construction argument, ch. 10",p:"GUT"},
- {a:"Synan, Vinson",t:"The Holiness-Pentecostal Tradition",n:"Holiness infrastructure, ch. 11",p:"GUT"},
- {a:"MacRobert, Iain",t:"The Black Roots and White Racism of Early Pentecostalism",n:"Black-roots thesis at its sharpest",p:"GUT"},
- {a:"Alexander, Estrelda",t:"Black Fire",n:"Feeds ch. 15, 22, 23",p:"GUT"},
- {a:"Wild-Wood & Ward (eds.)",t:"The East African Revival: History and Legacies",n:"Church-history counterweight to Peterson",p:"GUT"},
- {a:"Bays, Daniel",t:"A New History of Christianity in China",n:"Context for the 1930s",p:"GUT"},
- {a:"Eskridge, Larry",t:"God's Forever Family",n:"Jesus People, ch. 20",p:"GUT"},
- {a:"Jenkins, Philip",t:"The Next Christendom",n:"Latest edition — verify the numbers",p:"GUT"},
- {a:"Shaw, Mark",t:"Global Awakening",n:"Your nearest comp — position against it precisely",p:"GUT"},
- {a:"Bergunder, Michael",t:"Essays in Studying Global Pentecostalism",n:"Methodological warrant for the network chapter",p:"GUT"},
- {a:"Marsden, George",t:"Jonathan Edwards: A Life",n:"Northampton chapters only",p:"DIP"},
- {a:"Orr, J. Edwin",t:"The Flaming Tongue",n:"Genre specimen, not authority",p:"DIP"},
- {a:"Kivengere, Festo",t:"Revolutionary Love",n:"Primary Balokole voice",p:"DIP"},
- {a:"Huang, Ke-hsien",t:"Restoring Religion through Collective Memory",n:"Social Compass 2018 — memory-studies precedent",p:"DIP"},
- {a:"Blumhofer, Edith",t:"Ramabai essays",n:"Article search: ATLA",p:"DIP"},
- {a:"McGee, Gary",t:"\"Latter Rain\" Falling in the East",n:"Church History 1999 + related",p:"DIP"},
- {a:"Lee, Young-Hoon",t:"The Holy Spirit Movement in Korea",n:"Plus articles on 1907",p:"DIP"}
+ {a:"Anderson, Allan",t:"Spreading Fires",n:"Theoretical backbone of Part V — read early",p:"FULL",c:"The theoretical backbone of your Part V. Anderson argues early Pentecostalism was missionary by nature and polycentric in origin — multiple centers igniting through global missionary networks rather than radiating from Los Angeles. <b>Strength:</b> genuinely global evidence base. <b>Weakness:</b> stays inside the Pentecostal-origins frame, so non-Pentecostal centers (Wales, Pyongyang, Khasi Hills) fall outside his argument. <b>Use:</b> read early — everything after reads differently once absorbed. Your book's move is to widen his frame past Pentecostalism to the whole wave.",cluster:"E"},
+ {a:"Robeck, Cecil M.",t:"The Azusa Street Mission and Revival",n:"Definitive; ch. 15 foundation",p:"FULL",star:1,c:"Bartleman's eyewitness account — and a masterclass in the promoter-source problem. He had an agenda (his own role, his theology of the revival's meaning) and shaped the record accordingly. Read <i>after</i> Robeck so you can watch the shaping happen. <b>Use:</b> ch. 15 for color, ch. 1 as a worked example of source criticism.",cluster:"D"},
+ {a:"Wacker, Grant",t:"Heaven Below",n:"Best book on early Pentecostal culture; feeds ch. 15, 19, 20",p:"FULL",c:"The best book ever written on early Pentecostal culture: how believers actually lived, spoke, organized, and negotiated modernity. Wacker's tone — affectionate, wry, unsparing — is arguably the tonal target for your hardest chapters. <b>Use:</b> ch. 15, 19, 20; also craft study for the Franklin program.",cluster:"D"},
+ {a:"Espinosa, Gastón",t:"William J. Seymour and the Origins of Global Pentecostalism",n:"The strongest anti-polycentric case — ch. 16 must engage him",p:"FULL",c:"The strongest <i>anti</i>-polycentric case. Espinosa argues from degrees of separation that Azusa and Seymour really were the generative center of global Pentecostalism, against claims that 1906–1912 had many equal centers. Also collects Seymour's extant writings — your best documentary base. <b>Use:</b> ch. 15–16 must engage him by name or reviewers will do it for you. Staging Espinosa against Anderson is what makes ch. 16 an intervention rather than a summary.",cluster:"D"},
+ {a:"Oak, Sung-Deuk",t:"The Making of Korean Christianity",n:"Korean-agency argument; ch. 14 spine",p:"FULL",c:"Oak's argument: Korean Christianity was made by Koreans — through translation choices, indigenous religious categories, and local agency — not delivered intact by missionaries. <b>Strength:</b> Korean-language sources Western scholarship rarely touches. <b>Use:</b> ch. 14's spine. Read before Blair so you meet 1907 through Korean eyes first.",cluster:"C"},
+ {a:"Evans, Eifion",t:"The Welsh Revival of 1904",n:"Standard sympathetic account; read as source and specimen",p:"FULL",c:"The standard sympathetic account — detailed, affectionate, indispensable, and written from within the tradition it describes. <b>Weakness:</b> hagiographic register; thin on the aftermath and on Roberts's collapse. <b>Use:</b> ch. 12 as both source and specimen — this is the register your book writes <i>with</i> respect and <i>against</i> in method.",cluster:"A"},
+ {a:"Kidd, Thomas",t:"The Great Awakening",n:"Also your craft-training corpus",p:"FULL",star:1,c:"The balanced modern standard: Kidd reframes the awakening around the divide between moderate and radical evangelicals, taking the radicals seriously as historical actors rather than embarrassments. <b>Strength:</b> narrative craft and evenhandedness. <b>Use:</b> ch. 5 — and your craft-training corpus for the Franklin program. Note also: an endorsement from Kidd would materially change how a first submission reads.",cluster:"G"},
+ {a:"McLoughlin, William",t:"Revivals, Awakenings, and Reform",n:"Revitalization theory — engage critically",p:"FULL",c:"McLoughlin applies Anthony Wallace's revitalization theory: awakenings as periodic cultural reorganizations resolving stress between belief and social reality. <b>Strength:</b> explanatory ambition, short book. <b>Weakness:</b> flattens theology into social function. <b>Use:</b> ch. 1 — engage the model critically; it illuminates pattern and misses conviction.",cluster:"F"},
+ {a:"Peterson, Derek",t:"Ethnic Patriotism and the East African Revival",n:"Field's most sophisticated recent monograph; a method model",p:"FULL",c:"The field's most sophisticated recent revival monograph. Peterson reads the Balokole as makers of moral and political community — revival as a form of dissent from both missionary Christianity and colonial order. <b>Strength:</b> archival depth, methodological sophistication. <b>Use:</b> ch. 17, and as a <i>method model</i> for the whole book. Church historians have not caught up with him; that gap is your chapter's opening.",cluster:"I"},
+ {a:"Lian Xi",t:"Redeemed by Fire",n:"China chapter spine",p:"FULL",c:"Lian Xi traces popular Chinese Christianity — its revivals, prophets, and sects — as an indigenous phenomenon with its own logic, not a missionary residue. <b>Use:</b> ch. 18's spine; the house-church explosion as the twentieth century's greatest post-revival trajectory is his evidence, your argument.",cluster:"I"},
+ {a:"Raboteau, Albert",t:"Slave Religion",n:"Foundational for ch. 9 and 23",p:"FULL",star:1,x:"Both books",c:"The foundational study of the \"invisible institution\" — enslaved Christianity in hush harbors, its conversion experience, its African retentions and Christian substance intertwined. <b>Use:</b> revival ch. 9 and rebirth ch. 15. Raboteau is why your book can treat Black revival as a distinct stream rather than a subplot.",cluster:"H"},
+ {a:"Johnson, Clifton (ed.)",t:"God Struck Me Dead",n:"Ex-slave conversion narratives — the voices ch. 9 is built on",p:"FULL",x:"Both books",c:"Ex-slave conversion testimonies collected at Fisk — visionary journeys, being struck dead and made alive, the \"little me\" within the \"big me.\" The doctrine's profoundest modern witnesses, in their own words. <b>Use:</b> quote generously (from the book, with page numbers). Rebirth as God's counter-assertion of personhood against a system built on denying it.",cluster:"H"},
+ {a:"Lovelace, Richard",t:"Dynamics of Spiritual Life",n:"Modern synthesis for ch. 25",p:"FULL",star:1,c:"Lovelace's synthesis: renewal as the recovery of primary elements (justification, sanctification, the Spirit's presence, authority in Christ) whose neglect produces the church's chronic deadness. <b>Strength:</b> theologically serious, pastorally usable. <b>Use:</b> ch. 25's modern spine, paired with Edwards's discernment framework.",cluster:"J"},
+ {a:"Jones, R. Tudur",t:"Faith and the Crisis of a Nation: Wales 1890–1914",n:"Secularization-timeline frame",p:"GUT",c:"R. Tudur Jones on Welsh religion 1890–1914 — the social, linguistic, and denominational world into which 1904 erupted, and out of which the chapels declined. <b>Use:</b> ch. 12's counterweight to Evans; the secularization-timeline argument lives here.",cluster:"A"},
+ {a:"Lambert, Frank",t:"Inventing the \"Great Awakening\"",n:"Constructivist challenge",p:"GUT",c:"Lambert argues the Great Awakening was substantially constructed — by Whitefield's promotional genius, by print culture, and by later interpreters. <b>Strength:</b> the print-culture evidence is superb. <b>Use:</b> ch. 2 and 5; his Whitefield-as-media-innovator material also feeds ch. 16's network thinking.",cluster:"F"},
+ {a:"Murray, Iain",t:"Revival and Revivalism",n:"Read charitably; assessed in ch. 2 and 8",p:"GUT",c:"Murray's influential distinction: genuine revival (sovereign, awaited) versus revivalism (technique, manufactured), with Finney as the hinge. <b>Strength:</b> serious historical reading, deeply felt. <b>Weakness:</b> the distinction partly smuggles Reformed theological commitments in as historical categories. <b>Use:</b> ch. 2 and 8 — assess it with the same charity you extend Finney.",cluster:"F"},
+ {a:"Marsden, George",t:"The Outrageous Idea of Christian Scholarship",n:"Pair with one hostile review",p:"GUT",c:"Marsden's case that religious perspectives belong in scholarship — that methodological naturalism is itself a commitment, not neutrality. <b>Use:</b> ch. 1's providence problem. Pair with one hostile review so you present the counter-case at strength.",cluster:"F"},
+ {a:"Noll, Mark",t:"The Rise of Evangelicalism",n:"Transatlantic synthesis frame",p:"GUT",c:"Noll's transatlantic synthesis of the eighteenth century — Edwards, Whitefield, Wesley, and the movement's emergence as a coherent network. <b>Use:</b> ch. 5–6's framing; his attention to transatlantic ties pre-loads your network argument.",cluster:"G"},
+ {a:"Ward, W.R.",t:"The Protestant Evangelical Awakening",n:"Continental-roots argument for ch. 4",p:"GUT",c:"Ward's argument that the awakening's roots are Continental — Pietist, Moravian, Central European — not Anglo-American. <b>Strength:</b> decenters the origin story with archival force. <b>Use:</b> ch. 4. Ward is why your book can open in Herrnhut rather than Northampton.",cluster:"G"},
+ {a:"Schmidt, Leigh Eric",t:"Holy Fairs",n:"Sacramental roots of Cane Ridge",p:"GUT",c:"Schmidt shows the frontier camp meeting descended from Scottish communion seasons — sacramental festivals with preaching, tokens, and long open-air gatherings. <b>Use:</b> ch. 7; the revisionist case that Cane Ridge was liturgical inheritance, not frontier anarchy.",cluster:"H"},
+ {a:"Long, Kathryn",t:"The Revival of 1857–58",n:"Media-construction argument, ch. 10",p:"GUT",c:"Kathryn Long on the businessmen's revival — lay-led, urban, and amplified by telegraph and the daily press. <b>Use:</b> ch. 10; the first genuinely networked revival, and the clearest precedent for your ch. 16 argument.",cluster:"H"},
+ {a:"Synan, Vinson",t:"The Holiness-Pentecostal Tradition",n:"Holiness infrastructure, ch. 11",p:"GUT",c:"Synan's standard survey of the Holiness roots of Pentecostalism — the doctrinal and institutional infrastructure (camp meetings, Spirit-baptism language, higher-life vocabulary) that the 1904–1910 wave ignited. <b>Use:</b> ch. 11, bridging to Part V.",cluster:"H"},
+ {a:"MacRobert, Iain",t:"The Black Roots and White Racism of Early Pentecostalism",n:"Black-roots thesis at its sharpest",p:"GUT",c:"MacRobert's sharp thesis: Pentecostalism's worship, spirituality, and interracial promise are African-American in origin, and white racism sundered what Azusa joined. <b>Use:</b> ch. 15 and 23; the argument in its most uncompromising form.",cluster:"D"},
+ {a:"Alexander, Estrelda",t:"Black Fire",n:"Feeds ch. 15, 22, 23",p:"GUT",c:"Alexander's century-long history of African American Pentecostalism — origins, denominations, and the women largely written out. <b>Use:</b> ch. 15, 22, 23.",cluster:"D"},
+ {a:"Wild-Wood & Ward (eds.)",t:"The East African Revival: History and Legacies",n:"Church-history counterweight to Peterson",p:"GUT",c:"The church-history counterweight to Peterson: essays on the Balokole's theology, spread, and legacies, closer to the movement's self-understanding. <b>Use:</b> ch. 17 — read alongside Peterson and let the two frames argue.",cluster:"I"},
+ {a:"Bays, Daniel",t:"A New History of Christianity in China",n:"Context for the 1930s",p:"GUT",c:"Bays's standard survey — the long arc from Jesuits to the present, with the 1930s revivals in their institutional context. <b>Use:</b> ch. 18's background; keeps Shantung and Sung from floating free of Chinese church history.",cluster:"I"},
+ {a:"Eskridge, Larry",t:"God's Forever Family",n:"Jesus People, ch. 20",p:"GUT",c:"Eskridge's history of the Jesus People — countercultural conversion, communes, and the movement's lasting effect on evangelical worship and style. <b>Use:</b> ch. 20; also the Lonnie Frisbee erasure as a memory-studies case.",cluster:"I"},
+ {a:"Jenkins, Philip",t:"The Next Christendom",n:"Latest edition — verify the numbers",p:"GUT",c:"Jenkins's demographic argument that Christianity's center of gravity has moved decisively south and east. You know the thesis — read the latest edition for updated figures, since the numbers are the citation. <b>Use:</b> ch. 21.",cluster:"I"},
+ {a:"Shaw, Mark",t:"Global Awakening",n:"Your nearest comp — position against it precisely",p:"GUT",c:"Your nearest comp: Shaw treats twentieth-century revivals globally through a mission-studies frame, arguing they triggered a Christian revolution. <b>Strength:</b> genuinely global, accessible. <b>Weakness:</b> twentieth century only; lighter historiographical apparatus. <b>Use:</b> read to position against precisely and generously in the proposal.",cluster:"I"},
+ {a:"Bergunder, Michael",t:"Essays in Studying Global Pentecostalism",n:"Methodological warrant for the network chapter",p:"GUT",c:"Bergunder's methodological case for network approaches — that an American-centered history obscures interconnected global Pentecostalisms, and that historiography should follow the networks. <b>Use:</b> ch. 16's methodological warrant; the pole opposite Espinosa in your three-way adjudication.",cluster:"E"},
+ {a:"Marsden, George",t:"Jonathan Edwards: A Life",n:"Northampton chapters only",p:"DIP",c:"Marsden's biography — the standard life, contextually rich. <b>Use:</b> Northampton chapters only, for ch. 5's texture.",cluster:"G"},
+ {a:"Orr, J. Edwin",t:"The Flaming Tongue",n:"Genre specimen, not authority",p:"DIP",c:"Orr's account of the early twentieth-century awakenings — the only prior attempt at the global 1904–1910 story, and the reason it was noticed at all in English-language church history. <b>Weakness:</b> providentialist register, uneven sourcing, conversion figures to treat cautiously. <b>Use:</b> ch. 1 as genre specimen; describe the tradition accurately before critiquing it.",cluster:"F"},
+ {a:"Kivengere, Festo",t:"Revolutionary Love",n:"Primary Balokole voice",p:"DIP",c:"Kivengere's own voice — Ugandan bishop, Balokole preacher, and witness to the revival's cost under Amin. <b>Use:</b> ch. 17's primary register; the fellowship's spirituality from inside.",cluster:"I"},
+ {a:"Huang, Ke-hsien",t:"Restoring Religion through Collective Memory",n:"Social Compass 2018 — memory-studies precedent",p:"DIP",c:"Huang's 2018 study of how Chinese Pentecostal elites summon collective memory to rebuild religious community after the Cultural Revolution. <b>Use:</b> the one existing methodological precedent for your memory lens — cite in ch. 18 and 21 to show the approach has a track record.",cluster:"I"},
+ {a:"Blumhofer, Edith",t:"Ramabai essays",n:"Article search: ATLA",p:"DIP",c:"Blumhofer's scholarship on Pandita Ramabai — the Mukti revival, its manifestations, and Ramabai's negotiation of Indian and Christian identity. Article-length; read all of it. <b>Use:</b> ch. 13's scholarly foundation.",cluster:"B"},
+ {a:"McGee, Gary",t:"\"Latter Rain\" Falling in the East",n:"Church History 1999 + related",p:"DIP",c:"McGee's article on the Indian revivals and their relation to Pentecostal origins — essentially the published version of the Mukti-before-Azusa chronology. <b>Use:</b> ch. 13 and 16; cite it rather than claiming the point as new.",cluster:"E"},
+ {a:"Lee, Young-Hoon",t:"The Holy Spirit Movement in Korea",n:"Plus articles on 1907",p:"DIP",c:"Young-Hoon Lee's Pentecostal-theological reading of Korean revival from 1907 forward. <b>Use:</b> ch. 14, alongside Oak's historical account — theology and history of the same events.",cluster:"C"},
 ]},
 {s:"rebirth",sec:"Rebirth manuscript",note:"Theology of rebirth — 45 searchable titles, ordered by reading priority.",items:[
- {a:"Toon, Peter",t:"Born Again",n:"The predecessor volume — read to surpass",p:"FULL",star:1},
- {a:"Hamilton, Stephen J.",t:"\"Born Again\": A Portrait and Analysis",n:"Your methodological warrant — verify early",p:"FULL"},
- {a:"Hindmarsh, D. Bruce",t:"The Evangelical Conversion Narrative",n:"Most important secondary source for the book's originality",p:"FULL",star:1},
- {a:"Morgan, Edmund",t:"Visible Saints",n:"Puritan morphology, ch. 13",p:"FULL"},
- {a:"Beeke, Joel",t:"The Quest for Full Assurance",n:"Read against the grain for ch. 23",p:"FULL"},
- {a:"Schmemann, Alexander",t:"Of Water and the Spirit",n:"Ch. 8 foundation; also a prose model",p:"FULL",star:1},
- {a:"McDonnell & Montague",t:"Christian Initiation and Baptism in the Holy Spirit",n:"Double duty: ch. 6 and ch. 19",p:"FULL"},
- {a:"Bavinck, Herman",t:"Saved by Grace",n:"May be your star witness on the semantic narrowing",p:"FULL"},
- {a:"Clooney, Francis",t:"Comparative Theology",n:"Method for ch. 20",p:"FULL"},
- {a:"Audisio, Gabriel",t:"The Waldensian Dissent",n:"Ch. 9; models reading dissent through hostile records",p:"FULL"},
- {a:"Simons, Menno",t:"The New Birth (Complete Writings)",n:"The title alone is an argument",p:"FULL"},
- {a:"Hubmaier, Balthasar",t:"On the Christian Baptism of Believers",n:"In Pipkin & Yoder, Theologian of Anabaptism",p:"FULL"},
- {a:"Keener, Craig",t:"The Gospel of John: A Commentary",n:"Mine John 3 sections and background essays",p:"GUT"},
- {a:"Campbell, Constantine",t:"Paul and Union with Christ",n:"Exegetical warrant for ch. 4",p:"GUT"},
- {a:"Macaskill, Grant",t:"Union with Christ in the New Testament",n:"Your East-West hinge",p:"GUT"},
- {a:"Wright, N.T.",t:"Surprised by Hope",n:"Ch. 5 frame — and your craft-training corpus",p:"GUT"},
- {a:"Stephens, Mark",t:"Annihilation or Renewal?",n:"Scholarly ballast for cosmic renewal",p:"GUT"},
- {a:"Yarbrough, Robert",t:"1–3 John (BECNT)",n:"Or Marshall, NICNT — the tests of the reborn",p:"GUT"},
- {a:"Osborn, Ian",t:"Can Christianity Cure Obsessive-Compulsive Disorder?",n:"Clinical literacy for ch. 23",p:"GUT"},
- {a:"Harmless, William",t:"Augustine and the Catechumenate",n:"Historical warrant for ch. 24",p:"GUT"},
- {a:"Packer & Parrett",t:"Grounded in the Gospel",n:"Modern catechesis conversation partner",p:"GUT"},
- {a:"Smith, Gordon T.",t:"Transforming Conversion",n:"Nearest pastoral comp",p:"GUT"},
- {a:"Soskice, Janet Martin",t:"Metaphor and Religious Language",n:"Theory under ch. 1 and 21",p:"GUT"},
- {a:"Ferguson, Everett",t:"Baptism in the Early Church",n:"The arbiter volume — use as reference",p:"GUT"},
- {a:"Russell, Norman",t:"The Doctrine of Deification in the Greek Patristic Tradition",n:"Keeps theosis claims precise",p:"GUT"},
- {a:"Ware, Kallistos",t:"The Orthodox Way",n:"The accessible Eastern voice",p:"GUT"},
- {a:"Cameron, Euan",t:"Waldenses",n:"The revisionist check on your own thesis",p:"GUT"},
- {a:"Trigg, Jonathan",t:"Baptism in the Theology of Martin Luther",n:"Scholarly spine under ch. 10",p:"GUT"},
- {a:"Snyder, C. Arnold",t:"Anabaptist History and Theology",n:"Keeps ch. 12 from flattening the movement",p:"GUT"},
- {a:"Barth, Karl",t:"Church Dogmatics IV/4",n:"Read with a guide",p:"GUT"},
- {a:"Fesko, J.V.",t:"Word, Water, and Spirit",n:"Also a structural comp worth studying",p:"GUT"},
- {a:"Bynum, Caroline Walker",t:"Jesus as Mother",n:"Foundation for the maternal-metaphor chapter",p:"GUT"},
- {a:"Carson, D.A.",t:"The Gospel According to John (PNTC)",n:"One pole of the John 3:5 debate",p:"DIP"},
- {a:"Brown, Raymond",t:"The Gospel According to John I–XII",n:"The other pole — Brown vs. Carson is ch. 3 in miniature",p:"DIP"},
- {a:"Block, Daniel",t:"The Book of Ezekiel 25–48 (NICOT)",n:"Water-and-spirit substructure",p:"DIP"},
- {a:"Towner, Philip",t:"The Letters to Timothy and Titus",n:"Watch how he handles the genitive",p:"DIP"},
- {a:"Jobes, Karen",t:"1 Peter (BECNT)",n:"Straight about 3:21",p:"DIP"},
- {a:"van Gennep, Arnold",t:"The Rites of Passage",n:"Ritual-studies auxiliary",p:"DIP"},
- {a:"Turner, Victor",t:"The Ritual Process",n:"Liminality — use critically",p:"DIP"},
- {a:"Gethin, Rupert",t:"The Foundations of Buddhism",n:"Accuracy insurance for ch. 20",p:"DIP"},
- {a:"Nee, Watchman",t:"The Spiritual Man",n:"Regeneration sections — the Chinese voice",p:"DIP"},
- {a:"Bebbington, David",t:"Evangelicalism in Modern Britain",n:"Conversionism, one concept properly cited",p:"DIP"},
- {a:"Chadwick, Owen",t:"The Victorian Church, Part I",n:"For the Gorham controversy",p:"DIP"},
- {a:"Sundar Singh (biography)",t:"A critical biography — assess options",n:"Verify all claims against scholarship",p:"DIP"},
- {a:"Korean-language sources",t:"중생 / 거듭남 · 평양대부흥 scholarship",n:"RISS and KCI — your edge; no competitor has this",p:"DIP"}
+ {a:"Toon, Peter",t:"Born Again",n:"The predecessor volume — read to surpass",p:"FULL",star:1,c:"Your predecessor volume (1987): biblical survey, then historical development from Augustine through the Reformers, Wesley, and modern evangelicalism, with Anglican balance. <b>Weakness — and your opening:</b> forty years old, Western-only, no Orthodoxy in depth, no global South, pre-Hindmarsh on conversion narrative, no cosmic dimension, thin pastoral payoff. <b>Use:</b> read cover to cover asking one question — what does Toon\u2019s table of contents lack that yours has? That answer is your proposal\u2019s positioning paragraph.",cluster:"E"},
+ {a:"Hamilton, Stephen J.",t:"\"Born Again\": A Portrait and Analysis",n:"Your methodological warrant — verify early",p:"FULL",c:"⚠ Known to me chiefly through reviews — verify early. Argues regeneration in evangelicalism is simultaneously fixed doctrine and subjective experience, and that prior scholarship sketches the genealogy then appends dogmatic critique without integrating the two. <b>Use:</b> your methodological warrant, by name, in ch. 1 — he diagnosed the gap your architecture fills. If his integration goes further than reviews suggest, adjust positioning now rather than in peer review.",cluster:"E"},
+ {a:"Hindmarsh, D. Bruce",t:"The Evangelical Conversion Narrative",n:"Most important secondary source for the book's originality",p:"FULL",star:1,c:"The book your originality leans on hardest. Hindmarsh traces spiritual autobiography from Puritan admission testimonies through Wesley, Whitefield, Olney, and early Methodist archives, showing conversion narrative as a <i>genre</i> — conventions, expected sequences, communal shaping — without debunking the experiences it records. <b>Use:</b> O6 entire. His genre analysis is the tool that lets ch. 1, 13, and 16 treat testimony as evidence with the discount rate stated. Read slowly; memo at double length.",cluster:"J"},
+ {a:"Morgan, Edmund",t:"Visible Saints",n:"Puritan morphology, ch. 13",p:"FULL",c:"Morgan's short classic on New England's requirement of a narrated conversion for church membership — the resulting morphology (conviction, humiliation, faith, assurance) and the system's self-undermining, since the pure church's own children could not testify. <b>Use:</b> ch. 13's frame, and a cautionary tale for ch. 24: institutionalize one experiential template and the next generation breaks on it.",cluster:"J"},
+ {a:"Beeke, Joel",t:"The Quest for Full Assurance",n:"Read against the grain for ch. 23",p:"FULL",c:"The definitive study of Reformed assurance. Beeke defends the Puritans against the charge that they abandoned Calvin's assurance-in-faith for morbid introspection, arguing the practical syllogism was pastorally intended and Christ-directed. Learned, and only partly convincing — the diaries he must explain keep testifying. <b>Use:</b> ch. 13 and 23. Read <i>against the grain</i>: your promise→witness→fruit ordering is the correction his own evidence begs for.",cluster:"C"},
+ {a:"Schmemann, Alexander",t:"Of Water and the Spirit",n:"Ch. 8 foundation; also a prose model",p:"FULL",star:1,c:"The book ch. 8 is built on. Schmemann reads the entire baptismal liturgy — exorcisms, renunciation, blessing of water, immersion, chrismation, eucharist — as theology in ritual form: baptism as death and resurrection, entry into the Church's life, the restoration of true humanity. Polemical toward both Western scholasticism and secularism; always luminous. <b>Use:</b> the East at full strength — and study his prose as a model for making sacramental theology readable.",cluster:"G"},
+ {a:"McDonnell & Montague",t:"Christian Initiation and Baptism in the Holy Spirit",n:"Double duty: ch. 6 and ch. 19",p:"FULL",c:"A Benedictine and a Catholic charismatic argue from eight centuries of evidence that the grace Pentecostals call Spirit-baptism belonged originally <i>inside</i> Christian initiation — normative, not a second blessing — and that its charismatic dimension was gradually lost. <b>Use:</b> double duty — patristic evidence for ch. 6, and the bridge argument for ch. 19. One of the few books already living in two of your three rooms.",cluster:"F"},
+ {a:"Bavinck, Herman",t:"Saved by Grace",n:"May be your star witness on the semantic narrowing",p:"FULL",c:"Bavinck's dedicated treatment of calling and regeneration: the Reformed doctrine examined historically and dogmatically, with his signature move — generous survey of the whole tradition, then catholic-Reformed synthesis. <b>Use:</b> ch. 18's strongest monergist voice — and possibly your star witness for O3, since Bavinck <i>explicitly discusses</i> the broad and narrow senses of \"regeneration.\" That the narrowing was noticed inside the tradition that narrowed it turns your thesis from clever to demonstrable.",cluster:"K"},
+ {a:"Clooney, Francis",t:"Comparative Theology",n:"Method for ch. 20",p:"FULL",c:"Clooney's method book: comparative theology as confessional faith seeking understanding <i>through</i> patient study of another tradition's texts — allowing genuine unsettlement, returning home changed rather than diluted. Distinguished sharply from comparative religion's neutrality and from apologetics. <b>Use:</b> ch. 20's rules of engagement; Clooney is what makes the samsara chapter scholarship instead of sermon illustration.",cluster:"L"},
+ {a:"Audisio, Gabriel",t:"The Waldensian Dissent",n:"Ch. 9; models reading dissent through hostile records",p:"FULL",c:"The accessible scholarly history: Valdes of Lyon, apostolic poverty and lay preaching, condemnation, the barbes' clandestine network across four centuries, absorption into the Reformation. Alert throughout to the sources problem — most evidence comes from inquisitors. <b>Use:</b> ch. 9; also models how to read dissent through hostile records.",cluster:"H"},
+ {a:"Simons, Menno",t:"The New Birth (Complete Writings)",n:"The title alone is an argument",p:"FULL",c:"Short, fierce, pastoral. Menno argues the regenerate are known by transformed life — the born-again do not war, hoard, or lie, because the nature received cannot — and that Christendom's baptized masses show no such nature. <b>Use:</b> ch. 12's primary core. The title alone proves your structural claim that for Anabaptism rebirth <i>is</i> the defining doctrine.",cluster:"I"},
+ {a:"Hubmaier, Balthasar",t:"On the Christian Baptism of Believers",n:"In Pipkin & Yoder, Theologian of Anabaptism",p:"FULL",c:"The Anabaptists' academic theologian (doctorate under Eck) making the exegetical case: the New Testament order is word, hearing, faith, baptism, works — infant baptism reverses what Scripture sequences. Written under threat; he was burned in 1528. <b>Use:</b> ch. 12's intellectual backbone — evidence the position was scholarship, not enthusiasm. Pair with Ferguson for the honest tension.",cluster:"I"},
+ {a:"Keener, Craig",t:"The Gospel of John: A Commentary",n:"Mine John 3 sections and background essays",p:"GUT",c:"Two volumes, encyclopedic, unmatched on Jewish and Greco-Roman background. Keener reads <i>anōthen</i> as deliberately double and takes the water of 3:5 primarily as purification imagery against the Jewish ceremonial background; documents proselyte-conversion language that illuminates why Nicodemus should have understood. <b>Weakness:</b> the mass buries the argument. <b>Use:</b> mine the John 3 sections and background essays; his footnotes are a bibliography generator for all of Part I.",cluster:"A"},
+ {a:"Campbell, Constantine",t:"Paul and Union with Christ",n:"Exegetical warrant for ch. 4",p:"GUT",c:"An exegetical audit — every \"in Christ,\" \"with Christ,\" \"through Christ\" catalogued, then synthesized. Campbell's verdict: union is the webbing holding Pauline soteriology together, not one metaphor among many. <b>Use:</b> ch. 4's warrant and ch. 22's second clause — regeneration in Paul is incorporation into the risen Christ, not a discrete gift.",cluster:"B"},
+ {a:"Macaskill, Grant",t:"Union with Christ in the New Testament",n:"Your East-West hinge",p:"GUT",c:"The theological-interpretation complement to Campbell: covenantal and participatory union across the whole NT, in conversation with patristic theosis and Reformation theology — deliberately bridging the traditions you bridge. <b>Use:</b> your East-West hinge; read with Cluster G in view. Macaskill shows a Protestant can say \"participation in divine life\" with exegetical control.",cluster:"B"},
+ {a:"Wright, N.T.",t:"Surprised by Hope",n:"Ch. 5 frame — and your craft-training corpus",p:"GUT",c:"The popular flagship of new-creation eschatology: resurrection rather than disembodied heaven, salvation as creation's renewal, mission as anticipation. <b>Use:</b> ch. 5's frame — and your craft corpus for the Franklin program. Note that Wright connects personal and cosmic <i>palingenesia</i> only in passing; that gap is exactly your O2 opening.",cluster:"B"},
+ {a:"Stephens, Mark",t:"Annihilation or Renewal?",n:"Scholarly ballast for cosmic renewal",p:"GUT",c:"A Mohr Siebeck monograph arguing Revelation's new heaven and earth is the transformation of this creation, not its replacement, with the cosmic renewal functioning ethically. <b>Use:</b> ch. 5's scholarly ballast so the chapter doesn't rest on popularizations.",cluster:"B"},
+ {a:"Yarbrough, Robert",t:"1–3 John (BECNT)",n:"Or Marshall, NICNT — the tests of the reborn",p:"GUT",c:"Wrestles with the perfectionist crux — the one born of God \"does not sin\" — surveying habitual-sin, seed, and eschatological readings. <b>Use:</b> ch. 3's second half and ch. 23's foundation. Whether 1 John's tests function as family resemblance or entrance exam is your assurance chapter's exegetical hinge.",cluster:"A"},
+ {a:"Osborn, Ian",t:"Can Christianity Cure Obsessive-Compulsive Disorder?",n:"Clinical literacy for ch. 23",p:"GUT",c:"A psychiatrist (himself OCD) reads Luther, Bunyan, and Thérèse as scrupulosity sufferers and proposes a \"therapy of trust\" — transferring responsibility to God — against exposure therapy's limits for religious OCD. Clinically contested, pastorally illuminating. <b>Use:</b> ch. 23's clinical literacy: distinguishing spiritual doubt from disorder. Bunyan's <i>Grace Abounding</i> read through this lens is a set piece waiting for you.",cluster:"C"},
+ {a:"Harmless, William",t:"Augustine and the Catechumenate",n:"Historical warrant for ch. 24",p:"GUT",c:"Reconstructs the ancient process through Augustine's practice: inquiry, catechumenate (often years), the intense Lenten stage, the Easter vigil, mystagogy after — formation that was rhetorical, moral, communal, and liturgical at once. <b>Use:</b> ch. 6's process evidence and ch. 24's historical warrant.",cluster:"D"},
+ {a:"Packer & Parrett",t:"Grounded in the Gospel",n:"Modern catechesis conversation partner",p:"GUT",c:"The evangelical case for recovering catechesis: sustained, structured formation against decision-plus-drift. Practical, irenic, somewhat programmatic. <b>Use:</b> ch. 24's conversation partner — and where they stop short (catechesis as information transfer rather than midwifery of new birth) is your chapter's constructive step.",cluster:"D"},
+ {a:"Smith, Gordon T.",t:"Transforming Conversion",n:"Nearest pastoral comp",p:"GUT",c:"Argues evangelical conversion theology is captive to a punctiliar revivalist paradigm, and proposes conversion as extended journey with congregational accompaniment. <b>Use:</b> your nearest pastoral comp. He covers conversion broadly where you anchor in the doctrine and its full history; note where he gestures at baptism and the East without entering — those are your lanes.",cluster:"E"},
+ {a:"Soskice, Janet Martin",t:"Metaphor and Religious Language",n:"Theory under ch. 1 and 21",p:"GUT",c:"The standard philosophical account: metaphor as cognitive rather than ornamental, capable of depicting reality and generating meaning irreducible to paraphrase; religious metaphors can refer truly without being exhaustive. <b>Use:</b> the theory underwriting ch. 1 and 21 — why \"new birth insists on things forensic categories cannot say\" is philosophy, not sentiment.",cluster:"E"},
+ {a:"Ferguson, Everett",t:"Baptism in the Early Church",n:"The arbiter volume — use as reference",p:"GUT",c:"Nine hundred pages: every text, inscription, and font from five centuries. Broadly weighted verdicts — immersion normative, believer's baptism the norm with infant baptism emerging visibly in the second and third centuries, regeneration language pervasive. <b>Use:</b> the arbiter volume. When ch. 6–7 need a patristic fact, check Ferguson; his infant-baptism findings must be handled honestly by <i>both</i> sides of your ch. 17 controversies.",cluster:"F"},
+ {a:"Russell, Norman",t:"The Doctrine of Deification in the Greek Patristic Tradition",n:"Keeps theosis claims precise",p:"GUT",c:"The standard scholarly history of theosis: vocabulary and development from Irenaeus through Athanasius, the Cappadocians, and Maximus — careful that deification means participation in divine life and attributes, never absorption into essence. <b>Use:</b> the precision tool that keeps ch. 8 scholarly, preventing both Protestant caricature and enthusiast overreach.",cluster:"G"},
+ {a:"Ware, Kallistos",t:"The Orthodox Way",n:"The accessible Eastern voice",p:"GUT",c:"The beloved short introduction to Orthodox spiritual vision — God as mystery, the journey into divine life, salvation as healing and participation. Devotional register, deep learning underneath. <b>Use:</b> ch. 8's accessible framing; Ware supplies the sentences that let a Protestant reader feel the Eastern frame from inside before analyzing it.",cluster:"G"},
+ {a:"Cameron, Euan",t:"Waldenses",n:"The revisionist check on your own thesis",p:"GUT",c:"Cameron's revisionist counterweight: deflates romantic proto-Protestant readings, portraying Waldensians as conservative dissenters — orthodox in most doctrine, objecting to clerical corruption and specific practices — whose \"Protestantism before Protestantism\" is largely later myth-making. <b>Use:</b> the check on your own thesis. If ch. 9 claims they preserved a suppressed question, Cameron forces you to name <i>which</i> question on actual evidence. Audisio vs. Cameron is your memo's quarrel.",cluster:"H"},
+ {a:"Trigg, Jonathan",t:"Baptism in the Theology of Martin Luther",n:"Scholarly spine under ch. 10",p:"GUT",c:"Argues baptism is load-bearing rather than peripheral in Luther: a present-tense reality inhabited lifelong (\"I am baptized,\" not \"I was\"), the objective ground against Anfechtung, fully coherent with justification by faith because baptism <i>is</i> God's promise to be believed. <b>Use:</b> ch. 10's scholarly spine; protects you from the common evangelical misreading of Luther as inconsistently sacramental.",cluster:"I"},
+ {a:"Snyder, C. Arnold",t:"Anabaptist History and Theology",n:"Keeps ch. 12 from flattening the movement",p:"GUT",c:"The synthetic modern account: polygenesis origins (Swiss, South German, Dutch), a shared core of new birth, discipleship, believer's baptism, and the ban; sober about diversity and the radical fringes. <b>Use:</b> ch. 12's map, keeping \"the Anabaptists\" from becoming one thing; also your source for Schleitheim's context.",cluster:"I"},
+ {a:"Barth, Karl",t:"Church Dogmatics IV/4",n:"Read with a guide",p:"GUT",c:"The unfinished bombshell: Spirit baptism is God's act of new birth; water baptism is the <i>human</i> act of obedient response — therefore no sacrament in the classic sense, and infant baptism, though not invalid, is disordered practice. From inside the Reformed house, against his own earlier position. <b>Use:</b> ch. 18. Read with a guide, and present his exegetical case (cognitive rather than causative readings of the washing texts) at full strength before assessing.",cluster:"K"},
+ {a:"Fesko, J.V.",t:"Word, Water, and Spirit",n:"Also a structural comp worth studying",p:"GUT",c:"Three-part structure — history of the doctrine, biblical-theological development, systematic construction — presenting baptism as means of grace within covenant theology, against both memorialism and baptismal regeneration. <b>Use:</b> ch. 17–18's contemporary confessional voice; also a <i>structural</i> comp worth studying, since his history→exegesis→construction architecture is a smaller version of yours.",cluster:"K"},
+ {a:"Bynum, Caroline Walker",t:"Jesus as Mother",n:"Foundation for the maternal-metaphor chapter",p:"GUT",c:"The landmark study documenting maternal imagery for Christ and God in twelfth-century monastic devotion — Jesus who labors, nurses, nurtures — argued with rigorous attention to what the imagery <i>did</i> for its users. Bynum is a historian; she cashes nothing into dogmatics. <b>Use:</b> O4's foundation <i>and</i> its opening — the devotional evidence is established; the doctrinal integration is the step she deliberately didn't take and you will.",cluster:"M"},
+ {a:"Carson, D.A.",t:"The Gospel According to John (PNTC)",n:"One pole of the John 3:5 debate",p:"DIP",c:"The standard evangelical commentary: theologically alert, Reformed instincts. On 3:5, Carson argues \"water and Spirit\" is one conceptual unit rooted in Ezekiel 36 — cleansing and renewal, not baptism. <b>Use:</b> one pole of the modern debate; his Ezekiel case is the strongest non-sacramental reading and must appear at that strength in ch. 3.",cluster:"A"},
+ {a:"Brown, Raymond",t:"The Gospel According to John I–XII",n:"The other pole — Brown vs. Carson is ch. 3 in miniature",p:"DIP",c:"The great Catholic critical commentary. Brown hears baptismal overtones in 3:5 as at least secondary and probably intended for John's readers, while attending to the narrative's irony and staging. <b>Use:</b> the other pole. Brown vs. Carson on one verse <i>is</i> your reception-history argument in miniature — two superb exegetes, same Greek, conclusions tracking their communions. Say so in ch. 3.",cluster:"A"},
+ {a:"Block, Daniel",t:"The Book of Ezekiel 25–48 (NICOT)",n:"Water-and-spirit substructure",p:"DIP",c:"The standard commentary. On 36:25–27: sprinkled water as cultic purification, the new heart and spirit as divine surgery on the covenant people — corporate first, then personal. <b>Use:</b> ch. 2's spine; Block gives you the case that Jesus' water-and-Spirit pairing had a seven-hundred-year-old address Nicodemus should have known.",cluster:"A"},
+ {a:"Towner, Philip",t:"The Letters to Timothy and Titus",n:"Watch how he handles the genitive",p:"DIP",c:"The standard Pastorals commentary. On Titus 3:5, keeps the baptismal reference while locating efficacy in the Spirit's renewal. <b>Use:</b> ch. 4's grammatical-fusion text. Watch carefully how he handles the genitive — washing <i>of</i> regeneration as source, means, or apposition — because that grammar is the whole debate.",cluster:"B"},
+ {a:"Jobes, Karen",t:"1 Peter (BECNT)",n:"Straight about 3:21",p:"DIP",c:"Excellent on new-birth language as diaspora identity formation — reborn into a new family precisely when hostile society disowns you — and refreshingly straight about 3:21 rather than explaining it away. <b>Use:</b> ch. 4's Petrine section; her identity-and-exile frame also feeds ch. 15's insight that rebirth language does its deepest work among the displaced.",cluster:"B"},
+ {a:"van Gennep, Arnold",t:"The Rites of Passage",n:"Ritual-studies auxiliary",p:"DIP",c:"Van Gennep's schema: separation, liminal threshold, reincorporation. <b>Use:</b> ch. 1 and 6 as auxiliary light — the baptismal sequence (stripping, descent, rising, white garment) maps onto it with eerie precision, because the Fathers built it that way. Illuminates the rite; does not exhaust the sacrament.",cluster:"M"},
+ {a:"Turner, Victor",t:"The Ritual Process",n:"Liminality — use critically",p:"DIP",c:"Turner on liminality's strange power — status dissolved, communitas formed, the initiate symbolically dead and reborn. <b>Use:</b> ch. 6 and 24; useful for why catechumenal process <i>works</i> anthropologically, provided the chapter says clearly that anthropology explains the form, not the grace.",cluster:"M"},
+ {a:"Gethin, Rupert",t:"The Foundations of Buddhism",n:"Accuracy insurance for ch. 20",p:"DIP",c:"The standard scholarly introduction. On rebirth: no self transmigrates — the <i>anattā</i> teaching — yet karmic continuity conditions the next life; rebirth is the problem, nirvāṇa the cessation the path seeks. Getting this right (rebirth without a soul) is where Christian summaries usually fail. <b>Use:</b> ch. 20's accuracy insurance — your inversion argument only lands if a Buddhist scholar would recognize the description.",cluster:"L"},
+ {a:"Nee, Watchman",t:"The Spiritual Man",n:"Regeneration sections — the Chinese voice",p:"DIP",c:"Nee's tripartite anthropology (spirit, soul, body): regeneration as the quickening of the dead human spirit by God's Spirit — precise, almost clinical, developed for a young Chinese church without Christendom's assumptions. Criticized for the rigid trichotomy; unmatched for treating rebirth's interiority analytically. <b>Use:</b> ch. 20's Chinese voice — what a church outside Christendom heard in John 3.",cluster:"L"},
+ {a:"Bebbington, David",t:"Evangelicalism in Modern Britain",n:"Conversionism, one concept properly cited",p:"DIP",c:"Source of the quadrilateral: conversionism, activism, biblicism, crucicentrism as evangelicalism's defining marks. <b>Use:</b> one concept, properly cited, for ch. 16 — conversionism as genetic code explains both the movement's reach and its reductions.",cluster:"J"},
+ {a:"Chadwick, Owen",t:"The Victorian Church, Part I",n:"For the Gorham controversy",p:"DIP",c:"Chadwick's standard survey — read Part I for the Gorham controversy in its ecclesiastical and political context: an evangelical cleric denied institution over baptismal regeneration, the Privy Council ruling in his favor in 1850, and the secessions that followed. <b>Use:</b> ch. 17. ⚠ My knowledge of the Gorham secondary literature is thinner than most entries here — verify details in Chadwick and Nockles rather than trusting summaries.",cluster:"K"},
+ {a:"Sundar Singh (biography)",t:"A critical biography — assess options",n:"Verify all claims against scholarship",p:"DIP",c:"⚠ Verify carefully. The Sikh-background convert (vision of Christ, 1904) who became Christianity's barefoot sadhu — deliberately Indian in form, Christian in content. Hagiography and controversy both attend the sources. <b>Use:</b> ch. 20's Indian exemplar of inculturated rebirth; read a critical biography rather than the devotional lives, and verify every biographical claim before print.",cluster:"L"},
+ {a:"Korean-language sources",t:"중생 / 거듭남 · 평양대부흥 scholarship",n:"RISS and KCI — your edge; no competitor has this",p:"DIP",c:"Placeholder for your bilingual edge — Korean historiography and theology on repentance-centered spirituality of new life (dawn prayer, <i>tongsŏng kido</i>, revival-formed piety). I cannot summarize what you haven't selected; RISS and KCI are the discovery path. <b>Use:</b> O8, and the proposal sentence no competitor can write.",cluster:"L"},
 ]}
 ];
 
-const KEY="dhk-catalog-v1",NKEY="dhk-catalog-notes-v1";
-let store={},notes={};
+const CLUSTERS={
+ revival:{A:"Wales 1904–05",B:"India / Mukti",C:"Korea 1903–07",D:"Azusa Street & American Pentecostalism",E:"Network & Method",F:"Historiography",G:"The Eighteenth Century",H:"The Nineteenth Century",I:"The Twentieth Century, Globally",J:"Theology & Discernment"},
+ rebirth:{A:"The Johannine Vision",B:"Paul, Peter & the Cosmos",C:"Assurance",D:"Catechesis",E:"The Fracture & the Frame",F:"Patristic",G:"The East",H:"Medieval & Dissent",I:"Reformation",J:"The Age of Experience",K:"Modern Debates",L:"Global & Comparative",M:"The Metaphor"},
+ free:{}
+};
+const PHASE={revival:{A:1,B:1,C:1,D:1,E:1,F:2,G:3,H:3,I:3,J:3},rebirth:{A:1,B:1,C:2,D:2,E:3,F:4,G:4,H:4,I:4,J:4,K:4,L:4,M:4}};
+
+const KEY="dhk-catalog-v1",NKEY="dhk-catalog-notes-v1",CKEY="dhk-catalog-custom-v1",RKEY="dhk-catalog-read-v1",MKEY="dhk-catalog-memo-v1";
+let store={},notes={},custom=[],readSet={},memoSet={};
 try{store=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){store={}}
 try{notes=JSON.parse(localStorage.getItem(NKEY))||{}}catch(e){notes={}}
+try{custom=JSON.parse(localStorage.getItem(CKEY))||[]}catch(e){custom=[]}
+try{readSet=JSON.parse(localStorage.getItem(RKEY))||{}}catch(e){readSet={}}
+try{memoSet=JSON.parse(localStorage.getItem(MKEY))||{}}catch(e){memoSet={}}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}};
 const saveNotes=()=>{try{localStorage.setItem(NKEY,JSON.stringify(notes))}catch(e){}};
+const saveCustom=()=>{try{localStorage.setItem(CKEY,JSON.stringify(custom))}catch(e){}};
+const saveRead=()=>{try{localStorage.setItem(RKEY,JSON.stringify(readSet))}catch(e){}};
+const saveMemo=()=>{try{localStorage.setItem(MKEY,JSON.stringify(memoSet))}catch(e){}};
 const id=(s,i)=>s+"::"+i;
 let filter="all",query="";
 
@@ -387,14 +515,18 @@ function build(){
   app.innerHTML="";
   let shown=0;
   DATA.forEach(sec=>{
-    const items=sec.items.map((it,i)=>({...it,_id:id(sec.s,i)})).filter(it=>{
+    const base=sec.items.map((it,i)=>({...it,_id:id(sec.s,i)}));
+    const mine=custom.filter(c=>c.sec===sec.s).map(c=>({...c,_id:c.cid,custom:true}));
+    const all=base.concat(mine);
+    const items=all.filter(it=>{
       if(filter==="revival"&&sec.s!=="revival"&&it.x!=="Both books"&&!(sec.s==="free"&&it.x==="Revival"))return false;
       if(filter==="rebirth"&&sec.s!=="rebirth"&&it.x!=="Both books"&&!(sec.s==="free"&&it.x==="Rebirth"))return false;
       if(filter==="star"&&!it.star)return false;
       if(filter==="todo"&&store[it._id])return false;
       if(filter==="noted"&&!(notes[it._id]||"").trim())return false;
+      if(filter==="unread"&&readSet[it._id])return false;
       if(query){
-        const hay=(it.a+" "+it.t+" "+(it.n||"")).toLowerCase();
+        const hay=(it.a+" "+it.t+" "+(it.n||"")+" "+(it.c||"")).toLowerCase();
         if(!hay.includes(query))return false;
       }
       return true;
@@ -403,13 +535,41 @@ function build(){
     shown+=items.length;
     const head=document.createElement("div");
     head.className="sec-head";
-    head.innerHTML=`<h2>${sec.sec}</h2><span class="count">${items.length} of ${sec.items.length}</span><p>${sec.note}</p>`;
+    head.innerHTML=`<h2>${sec.sec}</h2><span class="count">${items.length} of ${all.length}</span><p>${sec.note}</p>`;
     app.appendChild(head);
-    const grid=document.createElement("div");
-    grid.className="cards";
-    items.forEach(it=>grid.appendChild(cardEl(it)));
-    app.appendChild(grid);
+
+    const names=CLUSTERS[sec.s]||{};
+    const groups={};
+    items.forEach(it=>{const k=it.cluster||"–";(groups[k]=groups[k]||[]).push(it)});
+    Object.keys(groups).sort().forEach(k=>{
+      if(names[k]){
+        // memo-debt bar for this cluster (counts across ALL items in cluster, not just filtered)
+        const full=all.filter(x=>x.cluster===k);
+        const rd=full.filter(x=>readSet[x._id]).length;
+        const done=rd===full.length&&full.length>0;
+        const memo=memoSet[sec.s+":"+k];
+        const ph=PHASE[sec.s]?PHASE[sec.s][k]:null;
+        const bar=document.createElement("div");
+        bar.className="cluster-head"+(done&&!memo?" debt":"")+(memo?" cleared":"");
+        bar.innerHTML=`
+          <div class="cl-name"><span class="cl-key">Cluster ${k}</span>${names[k]}${ph?`<span class="cl-phase">Phase ${ph}</span>`:""}</div>
+          <div class="cl-meta">
+            <span class="cl-count">${rd}/${full.length} read</span>
+            <button class="memo-btn${memo?" on":""}" data-cl="${sec.s}:${k}">${memo?"memo written ✓":done?"memo owed":"memo"}</button>
+          </div>`;
+        app.appendChild(bar);
+      }
+      const grid=document.createElement("div");
+      grid.className="cards";
+      groups[k].forEach(it=>grid.appendChild(cardEl(it)));
+      app.appendChild(grid);
+    });
   });
+  app.querySelectorAll(".memo-btn").forEach(b=>b.addEventListener("click",()=>{
+    const k=b.dataset.cl;
+    if(memoSet[k])delete memoSet[k];else memoSet[k]=1;
+    saveMemo();build();
+  }));
   if(!shown)app.innerHTML='<p class="empty">No cards match that filter.</p>';
   tally();
 }
@@ -419,7 +579,7 @@ function cardEl(it){
   const noteText=notes[it._id]||"";
   const hasNote=!!noteText.trim();
   const el=document.createElement("article");
-  el.className="card"+(st?" s-"+st:"")+(hasNote?" noted":"");
+  el.className="card"+(st?" s-"+st:"")+(hasNote?" noted":"")+(it.custom?" custom":"");
   const q=encodeURIComponent(it.a.split(",")[0]+" "+it.t.split(/[:·—]/)[0]);
   const nid="n-"+it._id.replace(/[^a-z0-9]/gi,"-");
   el.innerHTML=`
@@ -432,13 +592,17 @@ function cardEl(it){
     ${it.n?`<p class="note">${it.n}</p>`:""}
     ${it.x?`<div class="xref">⇄ ${it.x}</div>`:""}
     <div class="actions">
-      ${["T","I","B","F"].map(k=>`<button class="st ${k}" data-k="${k}" data-id="${it._id}" aria-pressed="${st===k}" title="${{T:"On the shelf at TKU",I:"Request via interlibrary loan",B:"Purchase",F:"Free online"}[k]}" aria-label="${{T:"On the shelf",I:"Interlibrary loan",B:"Purchase",F:"Free online"}[k]}">${k}</button>`).join("")}
+      ${["T","I","B","F"].map(k=>`<button class="st ${k}" data-k="${k}" data-id="${it._id}" aria-pressed="${st===k}" title="${{T:"On the shelf",I:"Interlibrary loan",B:"Purchase",F:"Free online"}[k]}" aria-label="${{T:"On the shelf",I:"Interlibrary loan",B:"Purchase",F:"Free online"}[k]}">${k}</button>`).join("")}
+      <button class="read-btn${readSet[it._id]?" on":""}" title="Mark as read" aria-pressed="${!!readSet[it._id]}">${readSet[it._id]?"read ✓":"read"}</button>
+      ${it.c?`<button class="comp-toggle" aria-expanded="false" aria-controls="c-${nid}">brief</button>`:""}
       <button class="note-toggle${hasNote?" has":""}" aria-expanded="false" aria-controls="${nid}">${hasNote?"notes ●":"notes +"}</button>
       <a class="srch-link" href="https://www.google.com/search?q=${q}" target="_blank" rel="noopener">look up ↗</a>
     </div>
+    ${it.c?`<div class="companion" id="c-${nid}"><span class="comp-head">Orientation — read before opening the book</span>${it.c}</div>`:""}
     <div class="verso" id="${nid}">
       <div class="verso-label"><span>Reading note</span><span class="saved">saved</span></div>
       <textarea placeholder="Argument in your own words · load-bearing evidence · your response, with page numbers">${noteText.replace(/</g,"&lt;")}</textarea>
+      ${it.custom?'<button type="button" class="del">remove this card</button>':""}
     </div>`;
 
   el.querySelectorAll(".st").forEach(b=>b.addEventListener("click",()=>{
@@ -446,6 +610,17 @@ function cardEl(it){
     if(store[i]===k)delete store[i];else store[i]=k;
     save();build();
   }));
+
+  el.querySelector(".read-btn").addEventListener("click",()=>{
+    if(readSet[it._id])delete readSet[it._id];else readSet[it._id]=1;
+    saveRead();build();
+  });
+
+  const ctog=el.querySelector(".comp-toggle"),comp=el.querySelector(".companion");
+  if(ctog)ctog.addEventListener("click",()=>{
+    const open=comp.classList.toggle("open");
+    ctog.setAttribute("aria-expanded",open);
+  });
 
   const toggle=el.querySelector(".note-toggle"),
         verso=el.querySelector(".verso"),
@@ -474,16 +649,29 @@ function cardEl(it){
       tally();
     },500);
   });
+  const del=el.querySelector(".del");
+  if(del)del.addEventListener("click",()=>{
+    if(confirm("Remove this card and its note?")){
+      custom=custom.filter(c=>c.cid!==it._id);
+      delete store[it._id];delete notes[it._id];
+      saveCustom();save();saveNotes();build();
+    }
+  });
   return el;
 }
 
 function tally(){
   const c={T:0,I:0,B:0,F:0};let total=0,noted=0;
-  DATA.forEach(sec=>sec.items.forEach((it,i)=>{
-    total++;const k=id(sec.s,i);
+  const keys=[];
+  DATA.forEach(sec=>sec.items.forEach((it,i)=>keys.push(id(sec.s,i))));
+  custom.forEach(x=>keys.push(x.cid));
+  keys.forEach(k=>{
+    total++;
     const v=store[k];if(v)c[v]++;
     if((notes[k]||"").trim())noted++;
-  }));
+  });
+  const rd=keys.filter(k=>readSet[k]).length;
+  document.getElementById("n-R").textContent=rd;
   const done=c.T+c.I+c.B+c.F;
   ["T","I","B","F"].forEach(k=>document.getElementById("n-"+k).textContent=c[k]);
   document.getElementById("n-U").textContent=total-done;
@@ -492,27 +680,40 @@ function tally(){
 }
 
 document.getElementById("q").addEventListener("input",e=>{query=e.target.value.toLowerCase().trim();build()});
-document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>{
-  document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed","false"));
+document.querySelectorAll(".chip[data-f]").forEach(c=>c.addEventListener("click",()=>{
+  document.querySelectorAll(".chip[data-f]").forEach(x=>x.setAttribute("aria-pressed","false"));
   c.setAttribute("aria-pressed","true");filter=c.dataset.f;build();
 }));
+let briefsOpen=false;
+document.getElementById("allBriefs").addEventListener("click",e=>{
+  briefsOpen=!briefsOpen;
+  document.querySelectorAll(".companion").forEach(c=>c.classList.toggle("open",briefsOpen));
+  document.querySelectorAll(".comp-toggle").forEach(t=>t.setAttribute("aria-expanded",briefsOpen));
+  e.currentTarget.textContent=briefsOpen?"Close all briefs":"Open all briefs";
+});
 document.getElementById("reset").addEventListener("click",()=>{
-  if(confirm("Clear every status and every note? This cannot be undone. Export first if you want a copy."))
-  {store={};notes={};save();saveNotes();build();}
+  if(confirm("Clear every status, note, read mark, and memo flag? This cannot be undone. Save a backup first if you want a copy."))
+  {store={};notes={};readSet={};memoSet={};save();saveNotes();saveRead();saveMemo();build();}
 });
 
 document.getElementById("export").addEventListener("click",()=>{
   const LB={T:"On the shelf",I:"Interlibrary loan",B:"Purchase",F:"Free online"};
-  let md="# Acquisition Catalog — reading notes\n\nExported "+new Date().toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"})+"\n";
+  let md="# Acquisition Catalog — reading notes\n\nExported "+new Date().toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"})+"\n\n> Orientation briefs are working summaries, not citable sources. Verify against the books themselves; entries marked ⚠ are the least certain.\n";
   let any=false;
   DATA.forEach(sec=>{
-    const rows=sec.items.map((it,i)=>({it,k:id(sec.s,i)})).filter(r=>(notes[r.k]||"").trim()||store[r.k]);
+    const base=sec.items.map((it,i)=>({it,k:id(sec.s,i)}));
+    const mine=custom.filter(c=>c.sec===sec.s).map(c=>({it:c,k:c.cid}));
+    const rows=base.concat(mine).filter(r=>(notes[r.k]||"").trim()||store[r.k]||readSet[r.k]);
     if(!rows.length)return;
     md+="\n## "+sec.sec+"\n";
+    const cls=[...new Set(rows.map(r=>r.it.cluster).filter(Boolean))].sort();
+    const owed=cls.filter(c=>!memoSet[sec.s+":"+c]);
+    if(cls.length)md+="\nMemos written: "+cls.filter(c=>memoSet[sec.s+":"+c]).join(", ")+(owed.length?" · **Memos owed: "+owed.join(", ")+"**":"")+"\n";
     rows.forEach(({it,k})=>{
       any=true;
       md+="\n### "+it.a+", *"+it.t+"*\n";
-      md+="- Priority: "+it.p+(store[k]?" · Status: "+LB[store[k]]:"")+(it.star?" · ★ buy":"")+"\n";
+      md+="- Priority: "+it.p+(it.cluster?" · Cluster "+it.cluster:"")+(store[k]?" · Status: "+LB[store[k]]:"")+(readSet[k]?" · READ":"")+(it.star?" · ★ buy":"")+(it.n?"\n- "+it.n:"")+"\n";
+      if(it.c)md+="\n> "+it.c.replace(/<\/?(b|i)>/g,"**").replace(/\*\*\*\*/g,"")+"\n";
       const n=(notes[k]||"").trim();
       if(n)md+="\n"+n+"\n";
     });
@@ -524,6 +725,84 @@ document.getElementById("export").addEventListener("click",()=>{
   a.download="acquisition-notes-"+new Date().toISOString().slice(0,10)+".md";
   a.click();URL.revokeObjectURL(a.href);
 });
+
+// ---- backup / restore ----
+document.getElementById("backup").addEventListener("click",()=>{
+  const payload={v:2,saved:new Date().toISOString(),store,notes,custom,readSet,memoSet};
+  const blob=new Blob([JSON.stringify(payload,null,1)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="catalog-backup-"+new Date().toISOString().slice(0,10)+".json";
+  a.click();URL.revokeObjectURL(a.href);
+});
+document.getElementById("restore").addEventListener("change",e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!d||typeof d!=="object")throw 0;
+      const mode=confirm("OK = merge with what's here now.\nCancel = replace everything with the backup.");
+      if(mode){
+        Object.assign(store,d.store||{});
+        Object.entries(d.notes||{}).forEach(([k,v])=>{
+          notes[k]=notes[k]&&notes[k]!==v?notes[k]+"\n\n— merged —\n"+v:v;
+        });
+        Object.assign(readSet,d.readSet||{});
+        Object.assign(memoSet,d.memoSet||{});
+        (d.custom||[]).forEach(c=>{if(!custom.some(x=>x.cid===c.cid))custom.push(c)});
+      }else{
+        store=d.store||{};notes=d.notes||{};custom=d.custom||[];
+        readSet=d.readSet||{};memoSet=d.memoSet||{};
+      }
+      save();saveNotes();saveCustom();saveRead();saveMemo();build();
+      alert("Restored"+(d.saved?" from "+new Date(d.saved).toLocaleDateString():"")+".");
+    }catch(err){alert("That file could not be read as a catalog backup.")}
+    e.target.value="";
+  };
+  r.readAsText(f);
+});
+
+// ---- add a title ----
+const addOpen=document.getElementById("addOpen"),addForm=document.getElementById("addForm");
+addOpen.addEventListener("click",()=>{
+  const open=addForm.classList.toggle("open");
+  addOpen.setAttribute("aria-expanded",open);
+  addOpen.textContent=open?"– Close":"+ Add a title to the catalog";
+  if(open)document.getElementById("f-a").focus();
+});
+addForm.addEventListener("submit",e=>{
+  e.preventDefault();
+  const a=document.getElementById("f-a").value.trim(),
+        t=document.getElementById("f-t").value.trim();
+  if(!a||!t)return;
+  custom.push({
+    cid:"custom::"+Date.now()+"::"+Math.random().toString(36).slice(2,7),
+    a,t,
+    sec:document.getElementById("f-s").value,
+    p:document.getElementById("f-p").value,
+    n:document.getElementById("f-n").value.trim()
+  });
+  saveCustom();addForm.reset();build();
+  addForm.classList.remove("open");addOpen.setAttribute("aria-expanded","false");
+  addOpen.textContent="+ Add a title to the catalog";
+});
+
+// ---- seed: one example custom card, added once ----
+if(!localStorage.getItem("dhk-seeded-2")){
+  if(!custom.some(c=>c.cid==="custom::seed-morgan")){
+    custom.push({
+      cid:"custom::seed-morgan",
+      a:"Morgan, Derec Llwyd",
+      t:"The Great Awakening in Wales",
+      sec:"revival",p:"GUT",cluster:"A",
+      n:"Welsh scholarship on the 18th-century awakening (Harris, Rowland, Williams Pantycelyn) — evidence for ch. 6's claim that Wales did not begin in 1904. English translation by Dyfnallt Morgan.",
+      c:"The standard Welsh-language study of the eighteenth-century Methodist awakening — Howell Harris, Daniel Rowland, and the hymnody of Williams Pantycelyn — translated into English by Dyfnallt Morgan. <b>Why it matters:</b> citing Welsh scholarship on Welsh revival is the same move as citing Korean scholarship on Pyongyang; it signals you went to the tradition's own historians rather than reading Wales through English secondary work alone. <b>Use:</b> ch. 6 and ch. 12 — the evidence that Welsh revival has a 1730s lineage 1904 was consciously reaching back toward."
+    });
+    saveCustom();
+  }
+  localStorage.setItem("dhk-seeded-2","1");
+}
 
 build();
 </script>

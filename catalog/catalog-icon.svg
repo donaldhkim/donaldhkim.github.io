@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Acquisition Catalog icon — a catalog-drawer face with brass pull,
+       matching the site's oxblood / card / brass palette. -->
+  <defs>
+    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6b2622"/>
+      <stop offset="1" stop-color="#3d1412"/>
+    </linearGradient>
+    <linearGradient id="pull" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e2bd77"/>
+      <stop offset="1" stop-color="#8a6a2c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- drawer face -->
+  <rect x="4" y="4" width="56" height="56" rx="4" fill="url(#front)"/>
+  <rect x="4" y="4" width="56" height="56" rx="4" fill="none" stroke="#a8823c" stroke-width="2"/>
+
+  <!-- card-stock inset, suggesting the ruled catalog card -->
+  <rect x="11" y="13" width="42" height="30" rx="1.5" fill="#f2ead8"/>
+  <line x1="15" y1="21" x2="49" y2="21" stroke="#cbbfa4" stroke-width="1.4"/>
+  <line x1="15" y1="27" x2="49" y2="27" stroke="#cbbfa4" stroke-width="1.4"/>
+  <line x1="15" y1="33" x2="41" y2="33" stroke="#cbbfa4" stroke-width="1.4"/>
+  <line x1="15" y1="39" x2="45" y2="39" stroke="#cbbfa4" stroke-width="1.4"/>
+
+  <!-- brass drawer pull -->
+  <rect x="20" y="48" width="24" height="8" rx="4" fill="url(#pull)"/>
+  <rect x="24.5" y="50.4" width="15" height="3.2" rx="1.6" fill="#000" opacity=".22"/>
+</svg>

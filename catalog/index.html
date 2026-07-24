@@ -534,10 +534,14 @@ function build(){
     });
     if(!items.length)return;
     shown+=items.length;
-    const head=document.createElement("div");
-    head.className="sec-head";
-    head.innerHTML=`<h2>${sec.sec}</h2><span class="count">${items.length} of ${all.length}</span><p>${sec.note}</p>`;
-    app.appendChild(head);
+    
+    // only show section header if not in "All" view
+    if(filter!=="all"){
+      const head=document.createElement("div");
+      head.className="sec-head";
+      head.innerHTML=`<h2>${sec.sec}</h2><span class="count">${items.length} of ${all.length}</span><p>${sec.note}</p>`;
+      app.appendChild(head);
+    }
 
     const names=CLUSTERS[sec.s]||{};
     const groups={};
@@ -552,8 +556,9 @@ function build(){
         const ph=PHASE[sec.s]?PHASE[sec.s][k]:null;
         const bar=document.createElement("div");
         bar.className="cluster-head"+(done&&!memo?" debt":"")+(memo?" cleared":"");
+        const clusterLabel=filter==="all"?sec.s.toUpperCase()+": CLUSTER "+k:("Cluster "+k);
         bar.innerHTML=`
-          <div class="cl-name"><span class="cl-key">Cluster ${k}</span>${names[k]}${ph?`<span class="cl-phase">Phase ${ph}</span>`:""}</div>
+          <div class="cl-name"><span class="cl-key">${clusterLabel}</span>${names[k]}${ph?`<span class="cl-phase">Phase ${ph}</span>`:""}</div>
           <div class="cl-meta">
             <span class="cl-count">${rd}/${full.length} read</span>
             <button class="memo-btn${memo?" on":""}" data-cl="${sec.s}:${k}">${memo?"memo written ✓":done?"memo owed":"memo"}</button>

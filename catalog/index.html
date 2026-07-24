@@ -491,7 +491,9 @@ const DATA=[
 const CLUSTERS={
  revival:{A:"Wales 1904–05",B:"India / Mukti",C:"Korea 1903–07",D:"Azusa Street & American Pentecostalism",E:"Network & Method",F:"Historiography",G:"The Eighteenth Century",H:"The Nineteenth Century",I:"The Twentieth Century, Globally",J:"Theology & Discernment"},
  rebirth:{A:"The Johannine Vision",B:"Paul, Peter & the Cosmos",C:"Assurance",D:"Catechesis",E:"The Fracture & the Frame",F:"Patristic",G:"The East",H:"Medieval & Dissent",I:"Reformation",J:"The Age of Experience",K:"Modern Debates",L:"Global & Comparative",M:"The Metaphor"},
- free:{}
+ free:{
+   A:"Revival: Wales 1904–05",B:"Revival: India / Mukti",C:"Rebirth: Assurance",D:"Revival: Azusa Street",E:"Revival: Network & Method",F:"Rebirth: Patristic",G:"Revival: The Eighteenth Century",H:"Revival & Rebirth: The Nineteenth Century",I:"Rebirth: Reformation",J:"Rebirth: The Age of Experience",K:"Rebirth: Modern Debates",M:"Rebirth: The Metaphor"
+ }
 };
 const PHASE={revival:{A:1,B:1,C:1,D:1,E:1,F:2,G:3,H:3,I:3,J:3},rebirth:{A:1,B:1,C:2,D:2,E:3,F:4,G:4,H:4,I:4,J:4,K:4,L:4,M:4}};
 
@@ -556,9 +558,10 @@ function build(){
         const ph=PHASE[sec.s]?PHASE[sec.s][k]:null;
         const bar=document.createElement("div");
         bar.className="cluster-head"+(done&&!memo?" debt":"")+(memo?" cleared":"");
-        const clusterLabel=filter==="all"?sec.s.toUpperCase()+": CLUSTER "+k:("Cluster "+k);
+        const clusterLabel=filter==="all"&&sec.s!=="free"?sec.s.toUpperCase()+": CLUSTER "+k:("Cluster "+k);
+        const showKey=!(sec.s==="free");
         bar.innerHTML=`
-          <div class="cl-name"><span class="cl-key">${clusterLabel}</span>${names[k]}${ph?`<span class="cl-phase">Phase ${ph}</span>`:""}</div>
+          <div class="cl-name">${showKey?`<span class="cl-key">${clusterLabel}</span>`:""}<span style="flex:1">${names[k]}</span>${ph?`<span class="cl-phase">Phase ${ph}</span>`:""}</div>
           <div class="cl-meta">
             <span class="cl-count">${rd}/${full.length} read</span>
             <button class="memo-btn${memo?" on":""}" data-cl="${sec.s}:${k}">${memo?"memo written ✓":done?"memo owed":"memo"}</button>

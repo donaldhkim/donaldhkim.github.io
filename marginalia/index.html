@@ -254,6 +254,28 @@
   .textLayer ::selection { background: var(--sel); }
   .textLayer span.search-hit { background: var(--hit); border-radius: 2px; }
 
+  /* ---------- EPUB reading column ---------- */
+  .epub-wrap { padding: 28px 28px 60px; }
+  .epub-scroll {
+    max-width: 790px; margin: 0 auto;
+    background: var(--card);
+    border-radius: 3px;
+    box-shadow: var(--shadow);
+    padding: 22px 26px;
+    min-height: 400px;
+  }
+  .epub-scroll iframe { border: 0; width: 100% !important; }
+  .epub-note {
+    max-width: 790px; margin: 0 auto 14px;
+    font-size: 11.5px; color: var(--ink-3);
+    display: flex; justify-content: space-between; gap: 10px;
+  }
+  .sp-row.epub { display: block; }
+  .sp-ex {
+    display: block; font-size: 11.5px; color: var(--ink-3);
+    margin-top: 3px; line-height: 1.45; max-height: 3em; overflow: hidden;
+  }
+
   .quote-btn {
     position: fixed; display: none; z-index: 150;
     background: var(--accent); color: #fff;
@@ -526,7 +548,7 @@
     </button>
     <span id="docControls" style="display:none; align-items:center; gap:8px;">
       <span class="ctl-group search-group" style="display:inline-flex" title="Search the PDF text">
-        <input id="searchInput" placeholder="Search text…">
+        <input id="searchInput" placeholder="Search text…" autocomplete="off">
         <button id="searchGo" title="Search (Enter)">⌕</button>
       </span>
       <span class="ctl-group" style="display:inline-flex" title="Page navigation">
@@ -550,7 +572,7 @@
           <button id="expJson">Annotation file <span class="hint">.json</span></button>
           <hr>
           <button id="impJson">Import annotations… <span class="hint">.json</span></button>
-          <button id="copyPdf" style="display:none">Copy this PDF into sync folder</button>
+          <button id="copyPdf" style="display:none">Copy this book into sync folder</button>
         </span>
       </span>
       <button class="btn" id="newPdfBtn">Open PDF</button>
@@ -561,12 +583,19 @@
 <main class="workspace" id="workspace">
   <section class="pdf-pane" id="pdfPane">
     <div class="pdf-scroll" id="pdfScroll"></div>
+    <div class="epub-wrap" id="epubWrap" style="display:none">
+      <div class="epub-note">
+        <span id="epubChapter"></span>
+        <span id="epubLocLbl"></span>
+      </div>
+      <div class="epub-scroll" id="epubArea"></div>
+    </div>
   </section>
   <div class="divider" id="divider" title="Drag to resize"></div>
   <aside class="notes-pane">
     <div class="notes-head">
       <div class="eyebrow">Writing style · Free-form notes</div>
-      <h2>Page <span id="curPageLabel">–</span> <span class="count" id="noteCount"></span></h2>
+      <h2><span id="pageWordLabel">Page</span> <span id="curPageLabel">–</span> <span class="count" id="noteCount"></span></h2>
       <div class="chips" id="chips">
         <button class="chip" data-t="Diction">Diction</button>
         <button class="chip" data-t="Syntax">Syntax</button>
@@ -601,11 +630,11 @@
     <div class="hero-inner">
       <div class="glyph">m</div>
       <h2>Marginalia</h2>
-      <p>Read closely, write in the margins. Import a PDF and keep free-form notes on the style of the writing — page by page, side by side.</p>
+      <p>Read closely, write in the margins. Import a PDF or EPUB and keep free-form notes on the style of the writing — page by page, side by side.</p>
       <div class="dropzone" id="dropzone">
-        <div class="dz-title">Drop a PDF here</div>
+        <div class="dz-title">Drop a PDF or EPUB here</div>
         <div class="dz-sub">or</div>
-        <button class="btn primary" id="pickBtn">Choose a PDF</button>
+        <button class="btn primary" id="pickBtn">Choose a book</button>
       </div>
       <div class="hero-sync" id="heroSync">
         <div class="hs-title">
@@ -633,7 +662,7 @@
 <div class="drag-overlay" id="dragOverlay"><span>Drop PDF to open</span></div>
 <div class="toast" id="toast"></div>
 
-<input type="file" id="fileInput" accept="application/pdf,.pdf">
+<input type="file" id="fileInput" accept="application/pdf,.pdf,application/epub+zip,.epub">
 <input type="file" id="jsonInput" accept="application/json,.json">
 
 <script>
@@ -664,6 +693,13 @@
   let searchIndexing = false;
   let currentQuery = null;     // lowercased active search query
   let quotePending = null;     // { text, page }
+
+  // epub state
+  let mode = "pdf";            // pdf | epub
+  let book = null, rendition = null;
+  let epubFont = 1;            // font scale
+  let suppressReloc = false;
+  let epubLibPromise = null;
 
   // folder sync state
   const supportsFS = "showDirectoryPicker" in window;
@@ -701,7 +737,7 @@
     a.click();
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
   }
-  function baseName() { return docTitle.replace(/\.pdf$/i, "") || "document"; }
+  function baseName() { return docTitle.replace(/\.(pdf|epub)$/i, "") || "document"; }
   function esc(s) {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
@@ -722,6 +758,7 @@
     const t = document.body.classList.contains("dark") ? "light" : "dark";
     applyTheme(t);
     try { localStorage.setItem("marginalia-theme", t); } catch (e) {}
+    if (mode === "epub") applyEpubTheme();
   });
 
   // ---------- reading comforts ----------
@@ -806,7 +843,7 @@
       $("heroLib").style.display = "none";
     }
     $("copyPdf").style.display =
-      folderState === "connected" && pdfDoc && !pdfFromFolder ? "flex" : "none";
+      folderState === "connected" && hasDoc() && !pdfFromFolder ? "flex" : "none";
   }
 
   async function connectFolder() {
@@ -904,27 +941,28 @@
       const noted = new Set();
       for await (const h of dirHandle.values()) {
         if (h.kind !== "file") continue;
-        if (/\.pdf$/i.test(h.name)) pdfs.push(h);
+        if (/\.(pdf|epub)$/i.test(h.name)) pdfs.push(h);
         const m = h.name.match(/^(.*)\.notes\.json$/i);
         if (m) noted.add(m[1].toLowerCase());
       }
       pdfs.sort((a, b) => a.name.localeCompare(b.name));
       list.innerHTML = "";
       if (!pdfs.length) {
-        list.innerHTML = '<div class="lib-empty">No PDFs here yet — drop some into this folder (in Finder / Explorer) or use “Copy this PDF into sync folder”.</div>';
+        list.innerHTML = '<div class="lib-empty">No books here yet — drop PDFs or EPUBs into this folder (in Finder / Explorer) or use “Copy this book into sync folder”.</div>';
         return;
       }
       for (const h of pdfs) {
         const btn = document.createElement("button");
         btn.className = "lib-item";
-        const hasNotes = noted.has(h.name.replace(/\.pdf$/i, "").toLowerCase());
+        const hasNotes = noted.has(h.name.replace(/\.(pdf|epub)$/i, "").toLowerCase());
         btn.innerHTML =
-          '<span class="pdf-ico">PDF</span><span class="name">' + esc(h.name) + "</span>" +
+          '<span class="pdf-ico">' + (isEpubName(h.name) ? "EPB" : "PDF") + '</span>' +
+          '<span class="name">' + esc(h.name) + "</span>" +
           (hasNotes ? '<span class="noted">✓ notes</span>' : "");
         btn.addEventListener("click", async () => {
           try {
             const f = await h.getFile();
-            await openPdf(f, true);
+            await openFile(f, true);
           } catch (e) {
             console.error(e);
             showToast("Couldn't read that file (if it's iCloud, make sure it's downloaded)");
@@ -958,7 +996,7 @@
   // ---------- persistence ----------
   function payload() {
     return {
-      app: "marginalia", version: 2,
+      app: "marginalia", version: 2, kind: mode,
       document: docTitle, pages: numPages, size: docSize,
       savedAt: new Date().toISOString(),
       notes
@@ -1006,6 +1044,256 @@
     return false;
   }
 
+  // ---------- shared helpers ----------
+  function hasDoc() { return !!(pdfDoc || book); }
+  function pageWord() { return mode === "epub" ? "Loc" : "Page"; }
+  function isEpubName(n) { return /\.epub$/i.test(n); }
+
+  function resetViewer() {
+    Object.values(renderTasks).forEach(t => { try { t.cancel(); } catch (e) {} });
+    renderTasks = {};
+    if (observer) { observer.disconnect(); observer = null; }
+    pdfScroll.innerHTML = "";
+    if (rendition) { try { rendition.destroy(); } catch (e) {} rendition = null; }
+    if (book) { try { book.destroy(); } catch (e) {} book = null; }
+    $("epubArea").innerHTML = "";
+    $("epubChapter").textContent = "";
+    $("epubLocLbl").textContent = "";
+    pdfDoc = null;
+    notes = {};
+    currentPage = 1;
+    activeTag = null;
+    searchText = null;
+    currentQuery = null;
+    suppressReloc = false;
+    $("searchPanel").classList.remove("open");
+    $("searchInput").value = "";
+    hideQuoteBtn();
+  }
+
+  async function openFile(file, fromFolder) {
+    if (isEpubName(file.name) || file.type === "application/epub+zip") {
+      return openEpub(file, fromFolder);
+    }
+    return openPdf(file, fromFolder);
+  }
+
+  // ---------- EPUB ----------
+  function loadScript(src) {
+    return new Promise((res, rej) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.onload = res;
+      s.onerror = () => rej(new Error("Could not load " + src));
+      document.head.appendChild(s);
+    });
+  }
+  function ensureEpubLib() {
+    if (window.ePub) return Promise.resolve();
+    if (!epubLibPromise) {
+      epubLibPromise = loadScript("https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js")
+        .then(() => loadScript("https://cdnjs.cloudflare.com/ajax/libs/epub.js/0.3.93/epub.min.js"))
+        .catch((e) => { epubLibPromise = null; throw e; });
+    }
+    return epubLibPromise;
+  }
+
+  function applyEpubTheme() {
+    if (!rendition) return;
+    const dark = document.body.classList.contains("dark");
+    try {
+      rendition.themes.register("marginalia", {
+        "html, body": {
+          "background": dark ? "#292420" : "#fffdf9",
+          "color": dark ? "#ede5d7" : "#221e18"
+        },
+        "body": {
+          "font-family": "'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif !important",
+          "line-height": "1.7 !important",
+          "padding": "0 2px !important",
+          "text-align": "left !important"
+        },
+        "p": { "line-height": "1.7 !important" },
+        "a": { "color": dark ? "#e59b76" : "#a84f2e" },
+        "h1, h2, h3, h4": { "color": dark ? "#ede5d7" : "#221e18", "line-height": "1.3" },
+        "img": { "max-width": "100% !important", "height": "auto !important" },
+        "::selection": { "background": dark ? "rgba(229,155,118,.4)" : "rgba(168,79,46,.32)" }
+      });
+      rendition.themes.select("marginalia");
+      rendition.themes.fontSize(Math.round(epubFont * 100) + "%");
+    } catch (e) { /* rendition not ready yet */ }
+  }
+
+  function epubGoTo(n) {
+    if (!book || !rendition || !book.locations) return;
+    let cfi = null;
+    try { cfi = book.locations.cfiFromLocation(n); } catch (e) {}
+    if (!cfi) return;
+    suppressReloc = true;
+    Promise.resolve(rendition.display(cfi)).then(() => {
+      setTimeout(() => { suppressReloc = false; }, 500);
+    }, () => { suppressReloc = false; });
+  }
+
+  function epubChapterLabel(loc) {
+    try {
+      const href = loc && loc.start && loc.start.href;
+      if (!href || !book.navigation) return "";
+      const item = book.navigation.get(href) ||
+        (book.navigation.toc || []).find(t => t.href && t.href.split("#")[0] === href.split("#")[0]);
+      return item && item.label ? item.label.trim() : "";
+    } catch (e) { return ""; }
+  }
+
+  async function openEpub(file, fromFolder) {
+    try {
+      showToast("Opening " + file.name + "…");
+      await ensureEpubLib();
+      const buf = await file.arrayBuffer();
+      origBytes = new Uint8Array(buf.slice(0));
+
+      resetViewer();
+      mode = "epub";
+      pdfScroll.style.display = "none";
+      $("epubWrap").style.display = "block";
+      $("zoomReadout").title = "Text size";
+
+      book = window.ePub(buf);
+      rendition = book.renderTo($("epubArea"), {
+        manager: "continuous",
+        flow: "scrolled",
+        width: "100%",
+        allowScriptedContent: false
+      });
+      applyEpubTheme();
+      await rendition.display();
+      await book.ready;
+
+      docTitle = file.name;
+      docSize = file.size;
+      pdfFromFolder = !!fromFolder;
+      docKey = "marginalia::" + file.name + "::" + file.size + "::epub";
+
+      // Locations = stable pseudo-pages (~1600 chars). Generation is slow on
+      // big books, so cache the result keyed to this exact file.
+      let saved = null;
+      try { saved = localStorage.getItem(docKey + "::locs"); } catch (e) {}
+      let loaded = false;
+      if (saved) { try { book.locations.load(saved); loaded = book.locations.length() > 0; } catch (e) {} }
+      if (!loaded) {
+        showToast("Preparing this book — first open only…");
+        await book.locations.generate(1600);
+        try { localStorage.setItem(docKey + "::locs", book.locations.save()); } catch (e) {}
+      }
+      numPages = book.locations.length() || 1;
+
+      // notes priority: sync-folder file > local browser storage
+      restoreLocal();
+      const fileData = await readNotesFile();
+      if (fileData && typeof fileData.notes === "object") notes = normalizeNotes(fileData.notes);
+
+      noteInput.value = notes[1] || "";
+      updateWordCount();
+      renderNotesList();
+      setCurrentPage(1, false);
+
+      rendition.on("relocated", (loc) => {
+        if (!loc || !loc.start) return;
+        $("epubChapter").textContent = epubChapterLabel(loc);
+        const n = loc.start.location || 1;
+        $("epubLocLbl").textContent = "Loc " + n + " / " + numPages +
+          (loc.start.percentage ? " · " + Math.round(loc.start.percentage * 100) + "%" : "");
+        if (suppressReloc) return;
+        if (n !== currentPage) setCurrentPage(n, false);
+      });
+
+      rendition.on("selected", (cfiRange, contents) => {
+        try {
+          const sel = contents.window.getSelection();
+          const text = sel.toString().replace(/\s+/g, " ").trim();
+          if (!text || text.length < 2) { hideQuoteBtn(); return; }
+          const r = sel.getRangeAt(0).getBoundingClientRect();
+          const fr = contents.document.defaultView.frameElement.getBoundingClientRect();
+          const btn = $("quoteBtn");
+          quotePending = { text, page: currentPage };
+          btn.style.display = "inline-flex";
+          btn.style.left = Math.min(window.innerWidth - 170,
+            Math.max(8, fr.left + r.left + r.width / 2 - 65)) + "px";
+          btn.style.top = Math.max(8, fr.top + r.top - 42) + "px";
+        } catch (e) {}
+      });
+
+      $("docName").innerHTML = "<b>" + esc(docTitle) + "</b> · " + numPages + " locations";
+      $("docControls").style.display = "inline-flex";
+      hero.style.display = "none";
+      updateZoomReadout();
+      updateFolderUi();
+
+      const n = Object.keys(notes).length;
+      if (n) showToast("Restored " + n + " saved note" + (n === 1 ? "" : "s") +
+        (fileData ? " from your sync folder" : ""));
+
+      let lp = 0;
+      try { lp = parseInt(localStorage.getItem(docKey + "::lp"), 10) || 0; } catch (e) {}
+      if (lp > 1 && lp <= numPages) {
+        setCurrentPage(lp, true);
+        showToast("Resumed at location " + lp);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast(err && /load/i.test(err.message || "")
+        ? "Couldn't load the EPUB reader library — check your connection"
+        : "Couldn't open that EPUB — the file may be damaged or DRM-protected");
+    }
+  }
+
+  async function epubSearch(q) {
+    const out = [];
+    const items = (book.spine && book.spine.spineItems) || [];
+    for (const item of items) {
+      try {
+        await item.load(book.load.bind(book));
+        const found = item.find(q) || [];
+        for (const f of found) {
+          let loc = 1;
+          try { loc = book.locations.locationFromCfi(f.cfi) || 1; } catch (e) {}
+          out.push({ loc, cfi: f.cfi, excerpt: f.excerpt || "" });
+        }
+      } catch (e) { /* skip unreadable section */ }
+      finally { try { item.unload(); } catch (e) {} }
+      if (out.length > 400) break;
+    }
+    out.sort((a, b) => a.loc - b.loc);
+    return out;
+  }
+
+  function renderSearchPanelEpub(q, res) {
+    const panel = $("searchPanel");
+    panel.innerHTML =
+      '<div class="sp-head"><span>“' + esc(q) + '” — ' + res.length + " hit" +
+      (res.length === 1 ? "" : "s") + '</span><button id="spClose" title="Close">✕</button></div>';
+    const body = document.createElement("div");
+    body.className = "sp-body";
+    if (!res.length) body.innerHTML = '<div class="sp-empty">No matches found in this book.</div>';
+    for (const r of res.slice(0, 250)) {
+      const row = document.createElement("button");
+      row.className = "sp-row epub";
+      row.innerHTML = "<span><b>Loc " + r.loc + "</b>" +
+        (r.excerpt ? '<span class="sp-ex">' + esc(r.excerpt.trim()) + "</span>" : "") + "</span>";
+      row.addEventListener("click", () => {
+        suppressReloc = true;
+        Promise.resolve(rendition.display(r.cfi)).then(() => {
+          setTimeout(() => { suppressReloc = false; }, 500);
+        }, () => { suppressReloc = false; });
+        setCurrentPage(r.loc, false);
+      });
+      body.appendChild(row);
+    }
+    panel.appendChild(body);
+    panel.classList.add("open");
+    $("spClose").addEventListener("click", () => panel.classList.remove("open"));
+  }
+
   // ---------- PDF loading ----------
   async function openPdf(file, fromFolder) {
     try {
@@ -1014,18 +1302,10 @@
       origBytes = new Uint8Array(buf.slice(0)); // keep a copy; pdf.js detaches its buffer
       const doc = await pdfjsLib.getDocument({ data: buf }).promise;
 
-      Object.values(renderTasks).forEach(t => { try { t.cancel(); } catch (e) {} });
-      renderTasks = {};
-      if (observer) observer.disconnect();
-      pdfScroll.innerHTML = "";
-      notes = {};
-      currentPage = 1;
-      activeTag = null;
-      searchText = null;
-      currentQuery = null;
-      $("searchPanel").classList.remove("open");
-      $("searchInput").value = "";
-      hideQuoteBtn();
+      resetViewer();
+      mode = "pdf";
+      pdfScroll.style.display = "";
+      $("epubWrap").style.display = "none";
 
       pdfDoc = doc;
       numPages = doc.numPages;
@@ -1169,11 +1449,15 @@
   function setCurrentPage(n, scroll) {
     n = Math.min(Math.max(1, n), numPages || 1);
     if (scroll) {
-      const shell = shellFor(n);
-      if (shell) {
-        suppressScrollSpy = true;
-        pdfPane.scrollTo({ top: shell.offsetTop - 20 });
-        setTimeout(() => { suppressScrollSpy = false; }, 600);
+      if (mode === "epub") {
+        epubGoTo(n);
+      } else {
+        const shell = shellFor(n);
+        if (shell) {
+          suppressScrollSpy = true;
+          pdfPane.scrollTo({ top: shell.offsetTop - 20 });
+          setTimeout(() => { suppressScrollSpy = false; }, 600);
+        }
       }
     }
     if (n === currentPage && $("curPageLabel").textContent !== "–") {
@@ -1187,6 +1471,7 @@
     updatePageUi();
   }
   function updatePageUi() {
+    $("pageWordLabel").textContent = pageWord();
     $("curPageLabel").textContent = currentPage;
     $("pageReadout").textContent = currentPage + " / " + numPages;
     document.querySelectorAll(".note-card").forEach(c =>
@@ -1196,7 +1481,7 @@
   let spyTimer = null;
   pdfPane.addEventListener("scroll", () => {
     hideQuoteBtn();
-    if (suppressScrollSpy || !pdfDoc) return;
+    if (suppressScrollSpy || mode !== "pdf" || !pdfDoc) return;
     clearTimeout(spyTimer);
     spyTimer = setTimeout(() => {
       const probe = pdfPane.scrollTop + pdfPane.clientHeight * 0.35;
@@ -1244,7 +1529,7 @@
     commitEditor();
     try { window.getSelection().removeAllRanges(); } catch (e) {}
     hideQuoteBtn();
-    showToast("Quote added to page " + page + " note");
+    showToast("Quote added to " + pageWord().toLowerCase() + " " + page + " note");
   });
 
   // ---------- search ----------
@@ -1264,7 +1549,13 @@
   }
   async function runSearch() {
     const q = $("searchInput").value.trim();
-    if (!q || !pdfDoc) return;
+    if (!q || !hasDoc()) return;
+    if (mode === "epub") {
+      showToast("Searching the book…");
+      const res = await epubSearch(q);
+      renderSearchPanelEpub(q, res);
+      return;
+    }
     if (!searchText) {
       showToast("Indexing document text (first search only)…");
       await buildSearchIndex();
@@ -1333,7 +1624,7 @@
 
   // ---------- notes ----------
   function commitEditor() {
-    if (!pdfDoc) return;
+    if (!hasDoc()) return;
     const txt = noteInput.value.trim();
     const had = !!notes[currentPage];
     if (txt) notes[currentPage] = noteInput.value;
@@ -1361,7 +1652,7 @@
 
   $("chips").addEventListener("click", (e) => {
     const chip = e.target.closest(".chip");
-    if (!chip || !pdfDoc) return;
+    if (!chip || !hasDoc()) return;
     const tag = chip.dataset.t + ": ";
     const v = noteInput.value;
     noteInput.value = v + (v && !v.endsWith("\n") ? "\n" : "") + tag;
@@ -1429,7 +1720,7 @@
       card.dataset.page = p;
       const bodyHtml = esc(notes[p]).replace(/#([A-Za-z0-9_-]+)/g, '<span class="nt">#$1</span>');
       card.innerHTML =
-        '<div class="nc-head"><span class="pg">Page ' + p + '</span>' +
+        '<div class="nc-head"><span class="pg">' + pageWord() + " " + p + '</span>' +
         '<button class="del" title="Delete note">✕</button></div>' +
         "<p>" + bodyHtml + "</p>";
       card.addEventListener("click", (e) => {
@@ -1445,6 +1736,7 @@
     }
   }
   function markNotedPages() {
+    if (mode !== "pdf") return;
     document.querySelectorAll(".page-shell").forEach(s =>
       s.classList.toggle("has-note", !!notes[s.dataset.page]));
   }
@@ -1453,16 +1745,25 @@
   $("prevPg").addEventListener("click", () => setCurrentPage(currentPage - 1, true));
   $("nextPg").addEventListener("click", () => setCurrentPage(currentPage + 1, true));
   document.addEventListener("keydown", (e) => {
-    if (!pdfDoc || e.target === noteInput || e.target.tagName === "INPUT") return;
+    if (!hasDoc() || e.target === noteInput || e.target.tagName === "INPUT") return;
     if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); setCurrentPage(currentPage - 1, true); }
     if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); setCurrentPage(currentPage + 1, true); }
   });
 
   function updateZoomReadout() {
-    $("zoomReadout").textContent = Math.round(scale * 100) + "%";
+    $("zoomReadout").textContent =
+      Math.round((mode === "epub" ? epubFont : scale) * 100) + "%";
   }
   function zoom(delta) {
-    if (!pdfDoc) return;
+    if (!hasDoc()) return;
+    if (mode === "epub") {
+      const nf = Math.min(2, Math.max(0.7, epubFont + (delta > 0 ? 0.1 : -0.1)));
+      if (Math.abs(nf - epubFont) < 0.01) return;
+      epubFont = nf;
+      try { rendition.themes.fontSize(Math.round(epubFont * 100) + "%"); } catch (e) {}
+      updateZoomReadout();
+      return;
+    }
     const next = Math.min(2.5, Math.max(0.4, scale + delta));
     if (Math.abs(next - scale) < 0.01) return;
     scale = next;
@@ -1502,20 +1803,21 @@
     commitEditor();
     const { pages, threads, untagged } = collectExport();
     let md = "# Writing style notes — " + baseName() + "\n\n";
-    md += "*" + pages.length + " annotated page" + (pages.length === 1 ? "" : "s") +
+    const W = pageWord(), w = W.toLowerCase();
+    md += "*" + pages.length + " annotated " + w + (pages.length === 1 ? "" : "s") +
           " · exported " + new Date().toLocaleString() + " · made with Marginalia*\n\n";
     if (!pages.length) md += "_No notes yet._\n";
     const tagKeys = Object.keys(threads).sort();
     if (tagKeys.length) {
       md += "## Threads\n\n";
       for (const t of tagKeys) {
-        md += "### #" + t + " — " + threads[t].length + " page" + (threads[t].length === 1 ? "" : "s") + "\n\n";
-        for (const p of threads[t]) md += "**Page " + p + "**\n\n" + mdNote(notes[p]) + "\n\n";
+        md += "### #" + t + " — " + threads[t].length + " " + w + (threads[t].length === 1 ? "" : "s") + "\n\n";
+        for (const p of threads[t]) md += "**" + W + " " + p + "**\n\n" + mdNote(notes[p]) + "\n\n";
       }
     }
     if (untagged.length) {
       if (tagKeys.length) md += "## Other notes\n\n";
-      for (const p of untagged) md += "### Page " + p + "\n\n" + mdNote(notes[p]) + "\n\n";
+      for (const p of untagged) md += "### " + W + " " + p + "\n\n" + mdNote(notes[p]) + "\n\n";
     }
     download(baseName() + " — style notes.md", md, "text/markdown");
     showToast("Markdown exported" + (tagKeys.length ? " (grouped by thread)" : ""));
@@ -1548,12 +1850,12 @@
       for (const t of tagKeys) {
         body += '<h3><span class="pill">#' + t + "</span> &nbsp;" + threads[t].length +
                 " page" + (threads[t].length === 1 ? "" : "s") + "</h3>";
-        for (const p of threads[t]) body += '<div class="note"><div class="pg">Page ' + p + "</div>" + noteHtml(notes[p]) + "</div>";
+        for (const p of threads[t]) body += '<div class="note"><div class="pg">' + pageWord() + " " + p + "</div>" + noteHtml(notes[p]) + "</div>";
       }
     }
     if (untagged.length) {
       body += tagKeys.length ? "<h2>Other notes</h2>" : "<h2>Notes</h2>";
-      for (const p of untagged) body += '<div class="note"><div class="pg">Page ' + p + "</div>" + noteHtml(notes[p]) + "</div>";
+      for (const p of untagged) body += '<div class="note"><div class="pg">' + pageWord() + " " + p + "</div>" + noteHtml(notes[p]) + "</div>";
     }
     const htmlDoc = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>" + esc(baseName()) +
       " — style notes</title><style>" + [
@@ -1570,7 +1872,7 @@
         ".t{color:#7c3517;font-weight:700;}",
         "@media print{body{margin:12mm auto;}h2,h3{break-after:avoid;}.note{break-inside:avoid;}}"
       ].join("") + "</style></head><body><h1>Writing style notes — " + esc(baseName()) +
-      "</h1><div class='meta'>" + pages.length + " annotated page" + (pages.length === 1 ? "" : "s") +
+      "</h1><div class='meta'>" + pages.length + " annotated " + pageWord().toLowerCase() + (pages.length === 1 ? "" : "s") +
       " · exported " + new Date().toLocaleDateString() + " · made with Marginalia</div>" + body +
       "<script>window.onload=function(){setTimeout(function(){window.print()},300)};<\/script></body></html>";
     const w = window.open("", "_blank");
@@ -1614,7 +1916,7 @@
   $("fileInput").addEventListener("change", (e) => {
     const f = e.target.files[0];
     e.target.value = "";
-    if (f) openPdf(f, false);
+    if (f) openFile(f, false);
   });
 
   let dragDepth = 0;
@@ -1636,9 +1938,10 @@
     overlay.classList.remove("on");
     dropzone.classList.remove("drag");
     const f = [...(e.dataTransfer.files || [])].find(f =>
-      f.type === "application/pdf" || /\.pdf$/i.test(f.name));
-    if (f) openPdf(f, false);
-    else if (e.dataTransfer.files.length) showToast("Please drop a PDF file");
+      f.type === "application/pdf" || f.type === "application/epub+zip" ||
+      /\.(pdf|epub)$/i.test(f.name));
+    if (f) openFile(f, false);
+    else if (e.dataTransfer.files.length) showToast("Please drop a PDF or EPUB file");
   });
 
   // ---------- pane resize ----------

@@ -1,6 +1,6 @@
 /* Marginalia service worker — caches the app shell + pdf.js so the app
    loads with no network connection after the first visit. */
-const CACHE = "marginalia-v3";
+const CACHE = "marginalia-v4";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,10 +9,19 @@ const ASSETS = [
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"
 ];
+// EPUB reader libs — nice to have offline, but never block install on them
+const OPTIONAL = [
+  "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/epub.js/0.3.93/epub.min.js"
+];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE).then((c) =>
+      c.addAll(ASSETS).then(() =>
+        Promise.all(OPTIONAL.map((u) => c.add(u).catch(() => {})))
+      )
+    ).then(() => self.skipWaiting())
   );
 });
 

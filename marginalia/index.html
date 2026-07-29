@@ -1088,12 +1088,31 @@
       document.head.appendChild(s);
     });
   }
+  // try each URL in turn; resolve on the first that loads
+  function loadScriptAny(urls) {
+    let chain = Promise.reject(new Error("start"));
+    for (const u of urls) chain = chain.catch(() => loadScript(u));
+    return chain;
+  }
   function ensureEpubLib() {
     if (window.ePub) return Promise.resolve();
     if (!epubLibPromise) {
-      epubLibPromise = loadScript("https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js")
-        .then(() => loadScript("https://cdnjs.cloudflare.com/ajax/libs/epub.js/0.3.93/epub.min.js"))
-        .catch((e) => { epubLibPromise = null; throw e; });
+      epubLibPromise = loadScriptAny([
+        "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js",
+        "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",
+        "https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"
+      ]).then(() => loadScriptAny([
+        "https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js",
+        "https://unpkg.com/epubjs@0.3.93/dist/epub.min.js"
+      ])).then(() => {
+        if (!window.ePub) throw new Error("epub library loaded but ePub is undefined");
+      }).catch((e) => {
+        epubLibPromise = null;
+        console.error("EPUB library load failed:", e);
+        const err = new Error("epub-lib");
+        err.__lib = true;
+        throw err;
+      });
     }
     return epubLibPromise;
   }
@@ -1241,8 +1260,8 @@
       }
     } catch (err) {
       console.error(err);
-      showToast(err && /load/i.test(err.message || "")
-        ? "Couldn't load the EPUB reader library — check your connection"
+      showToast(err && err.__lib
+        ? "Couldn't load the EPUB reader library — check your connection, then reload"
         : "Couldn't open that EPUB — the file may be damaged or DRM-protected");
     }
   }

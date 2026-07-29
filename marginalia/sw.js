@@ -1,6 +1,6 @@
 /* Marginalia service worker — caches the app shell + pdf.js so the app
    loads with no network connection after the first visit. */
-const CACHE = "marginalia-v4";
+const CACHE = "marginalia-v5";
 const ASSETS = [
   "./",
   "./index.html",
@@ -11,9 +11,10 @@ const ASSETS = [
 ];
 // EPUB reader libs — nice to have offline, but never block install on them
 const OPTIONAL = [
-  "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",
-  "https://cdnjs.cloudflare.com/ajax/libs/epub.js/0.3.93/epub.min.js"
+  "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js",
+  "https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"
 ];
+const CDN_HOSTS = ["cdnjs.cloudflare.com", "cdn.jsdelivr.net", "unpkg.com"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
@@ -44,7 +45,7 @@ self.addEventListener("fetch", (e) => {
           const cacheable =
             res.ok &&
             (req.url.startsWith(self.location.origin) ||
-             req.url.indexOf("cdnjs.cloudflare.com") !== -1);
+             CDN_HOSTS.some((h) => req.url.indexOf(h) !== -1));
           if (cacheable) {
             const copy = res.clone();
             caches.open(CACHE).then((c) => c.put(req, copy));

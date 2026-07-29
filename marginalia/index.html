@@ -254,21 +254,35 @@
   .textLayer ::selection { background: var(--sel); }
   .textLayer span.search-hit { background: var(--hit); border-radius: 2px; }
 
-  /* ---------- EPUB reading column ---------- */
-  .epub-wrap { padding: 28px 28px 60px; }
-  .epub-scroll {
-    max-width: 790px; margin: 0 auto;
-    background: var(--card);
-    border-radius: 3px;
-    box-shadow: var(--shadow);
-    padding: 22px 26px;
-    min-height: 400px;
+  /* ---------- EPUB reading column ----------
+     epub.js owns the scrolling in continuous mode, so the container needs a
+     definite height; the pane itself must NOT scroll or sections never load. */
+  .pdf-pane.epub-mode { overflow: hidden; }
+  .epub-wrap {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    background: var(--pane);
   }
-  .epub-scroll iframe { border: 0; width: 100% !important; }
   .epub-note {
-    max-width: 790px; margin: 0 auto 14px;
+    flex-shrink: 0;
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 9px 22px;
     font-size: 11.5px; color: var(--ink-3);
-    display: flex; justify-content: space-between; gap: 10px;
+    background: var(--paper); border-bottom: 1px solid var(--line);
+  }
+  .epub-note span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .epub-scroll {
+    flex: 1; min-height: 0;
+    width: 100%; max-width: 860px; margin: 0 auto;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    padding: 0 18px;
+  }
+  .epub-scroll iframe { border: 0; }
+  .toc-sel {
+    border: 1px solid var(--line); background: var(--card);
+    font-size: 12px; padding: 7px 8px; border-radius: 9px;
+    max-width: 190px; outline: none; cursor: pointer; color: var(--ink);
   }
   .sp-row.epub { display: block; }
   .sp-ex {
@@ -547,7 +561,8 @@
       <span class="lbl" id="folderLabel">Connect sync folder</span>
     </button>
     <span id="docControls" style="display:none; align-items:center; gap:8px;">
-      <span class="ctl-group search-group" style="display:inline-flex" title="Search the PDF text">
+      <select class="toc-sel" id="tocSel" style="display:none" title="Jump to a chapter"></select>
+      <span class="ctl-group search-group" style="display:inline-flex" title="Search the text">
         <input id="searchInput" placeholder="Search text…" autocomplete="off">
         <button id="searchGo" title="Search (Enter)">⌕</button>
       </span>
@@ -1059,6 +1074,9 @@
     $("epubArea").innerHTML = "";
     $("epubChapter").textContent = "";
     $("epubLocLbl").textContent = "";
+    $("tocSel").innerHTML = "";
+    $("tocSel").style.display = "none";
+    pdfPane.classList.remove("epub-mode");
     pdfDoc = null;
     notes = {};
     currentPage = 1;
@@ -1147,12 +1165,66 @@
     if (!book || !rendition || !book.locations) return;
     let cfi = null;
     try { cfi = book.locations.cfiFromLocation(n); } catch (e) {}
-    if (!cfi) return;
+    if (!cfi) { showToast("Couldn't find location " + n + " in this book"); return; }
     suppressReloc = true;
     Promise.resolve(rendition.display(cfi)).then(() => {
       setTimeout(() => { suppressReloc = false; }, 500);
-    }, () => { suppressReloc = false; });
+    }, (e) => {
+      suppressReloc = false;
+      console.error("epub display failed", e);
+      showToast("Couldn't move to location " + n);
+    });
   }
+
+  // epub.js scrolls internally in continuous mode, so it needs real pixel
+  // dimensions — percentages against an auto-height parent render one section.
+  function epubSize() {
+    const el = $("epubArea");
+    const w = Math.max(320, (el.clientWidth || pdfPane.clientWidth || 700) - 36);
+    const h = Math.max(300, el.clientHeight || (pdfPane.clientHeight - 40) || 600);
+    return { w, h };
+  }
+  function resizeEpub() {
+    if (mode !== "epub" || !rendition) return;
+    const s = epubSize();
+    try { rendition.resize(s.w, s.h); } catch (e) {}
+  }
+  let epubResizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(epubResizeTimer);
+    epubResizeTimer = setTimeout(resizeEpub, 180);
+  });
+
+  function buildToc() {
+    const sel = $("tocSel");
+    sel.innerHTML = "";
+    const items = [];
+    const walk = (list, depth) => {
+      for (const it of list || []) {
+        if (it.href) items.push({ label: (depth ? "— ".repeat(depth) : "") + (it.label || "").trim(), href: it.href });
+        if (it.subitems && it.subitems.length) walk(it.subitems, depth + 1);
+      }
+    };
+    try { walk(book.navigation && book.navigation.toc, 0); } catch (e) {}
+    if (!items.length) { sel.style.display = "none"; return; }
+    const head = document.createElement("option");
+    head.value = ""; head.textContent = "Contents…";
+    sel.appendChild(head);
+    for (const it of items) {
+      const o = document.createElement("option");
+      o.value = it.href;
+      o.textContent = it.label || it.href;
+      sel.appendChild(o);
+    }
+    sel.style.display = "inline-block";
+  }
+  $("tocSel").addEventListener("change", (e) => {
+    const href = e.target.value;
+    e.target.selectedIndex = 0;
+    if (!href || !rendition) return;
+    commitEditor();
+    Promise.resolve(rendition.display(href)).catch(() => showToast("Couldn't jump to that chapter"));
+  });
 
   function epubChapterLabel(loc) {
     try {
@@ -1174,19 +1246,23 @@
       resetViewer();
       mode = "epub";
       pdfScroll.style.display = "none";
-      $("epubWrap").style.display = "block";
+      $("epubWrap").style.display = "flex";   // must stay flex — it's a column
       $("zoomReadout").title = "Text size";
 
+      pdfPane.classList.add("epub-mode");
       book = window.ePub(buf);
+      const sz = epubSize();
       rendition = book.renderTo($("epubArea"), {
         manager: "continuous",
         flow: "scrolled",
-        width: "100%",
+        width: sz.w,
+        height: sz.h,
         allowScriptedContent: false
       });
       applyEpubTheme();
       await rendition.display();
       await book.ready;
+      buildToc();
 
       docTitle = file.name;
       docSize = file.size;

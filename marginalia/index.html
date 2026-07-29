@@ -546,7 +546,7 @@
   <div class="brand">
     <span class="mark">m</span>
     <h1>Marginalia</h1>
-    <span class="tag">Style notes</span>
+    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b7</span>
   </div>
   <div class="doc-meta">
     <span class="doc-name" id="docName"></span>
@@ -1195,17 +1195,33 @@
     epubResizeTimer = setTimeout(resizeEpub, 180);
   });
 
-  function buildToc() {
+  async function buildToc() {
     const sel = $("tocSel");
     sel.innerHTML = "";
-    const items = [];
+    let items = [];
     const walk = (list, depth) => {
       for (const it of list || []) {
-        if (it.href) items.push({ label: (depth ? "— ".repeat(depth) : "") + (it.label || "").trim(), href: it.href });
+        if (it.href) items.push({
+          label: (depth ? "— ".repeat(depth) : "") + (((it.label || "").trim()) || it.href),
+          href: it.href
+        });
         if (it.subitems && it.subitems.length) walk(it.subitems, depth + 1);
       }
     };
-    try { walk(book.navigation && book.navigation.toc, 0); } catch (e) {}
+    try {
+      const nav = await book.loaded.navigation;   // may resolve after book.ready
+      walk(nav && nav.toc, 0);
+    } catch (e) { console.warn("Marginalia: TOC parse failed", e); }
+    if (!items.length) {
+      // No usable TOC — fall back to the spine so there is always a way to move
+      try {
+        const spine = await book.loaded.spine;
+        const list = (spine && spine.spineItems) ||
+                     (book.spine && book.spine.spineItems) || [];
+        items = list.map((s, i) => ({ label: "Section " + (i + 1), href: s.href }));
+      } catch (e) { console.warn("Marginalia: spine fallback failed", e); }
+    }
+    console.log("Marginalia: TOC entries =", items.length);
     if (!items.length) { sel.style.display = "none"; return; }
     const head = document.createElement("option");
     head.value = ""; head.textContent = "Contents…";
@@ -1259,10 +1275,12 @@
         height: sz.h,
         allowScriptedContent: false
       });
+      console.log("Marginalia b7: epub container size", sz);
+      if (sz.h < 120) console.warn("Marginalia: reader container is too short — chapters may not advance");
       applyEpubTheme();
       await rendition.display();
       await book.ready;
-      buildToc();
+      await buildToc();
 
       docTitle = file.name;
       docSize = file.size;
@@ -1837,12 +1855,22 @@
   }
 
   // ---------- nav / zoom ----------
-  $("prevPg").addEventListener("click", () => setCurrentPage(currentPage - 1, true));
-  $("nextPg").addEventListener("click", () => setCurrentPage(currentPage + 1, true));
+  // In EPUB mode ‹ › move a screenful (a single location is only ~1,600 chars)
+  function stepBack() {
+    if (mode === "epub" && rendition) { commitEditor(); rendition.prev(); return; }
+    setCurrentPage(currentPage - 1, true);
+  }
+  function stepFwd() {
+    if (mode === "epub" && rendition) { commitEditor(); rendition.next(); return; }
+    setCurrentPage(currentPage + 1, true);
+  }
+  $("prevPg").addEventListener("click", stepBack);
+  $("nextPg").addEventListener("click", stepFwd);
   document.addEventListener("keydown", (e) => {
-    if (!hasDoc() || e.target === noteInput || e.target.tagName === "INPUT") return;
-    if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); setCurrentPage(currentPage - 1, true); }
-    if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); setCurrentPage(currentPage + 1, true); }
+    if (!hasDoc() || e.target === noteInput || e.target.tagName === "INPUT" ||
+        e.target.tagName === "SELECT") return;
+    if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); stepBack(); }
+    if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); stepFwd(); }
   });
 
   function updateZoomReadout() {

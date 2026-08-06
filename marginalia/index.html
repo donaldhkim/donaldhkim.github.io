@@ -471,8 +471,32 @@
     transition: border-color .2s, background .2s;
   }
   .dropzone.drag { border-color: var(--accent); background: var(--accent-soft); }
-  .dropzone .dz-title { font-size: 14px; font-weight: 600; }
-  .dropzone .dz-sub { font-size: 12px; color: var(--ink-3); margin: 6px 0 16px; }
+  .dropzone .dz-title { font-size: 15px; font-weight: 600; }
+  .dropzone .dz-sub { font-size: 12px; color: var(--ink-3); margin: 5px 0 14px; }
+  .hero-select {
+    width: 100%; max-width: 420px;
+    border: 1px solid var(--accent);
+    background: var(--card); color: var(--ink);
+    font-size: 14px; font-weight: 500;
+    padding: 11px 13px; border-radius: 10px;
+    outline: none; cursor: pointer;
+    text-overflow: ellipsis;
+  }
+  .hero-select:hover:not(:disabled) { background: var(--accent-soft); }
+  .hero-select:disabled {
+    border-color: var(--line); color: var(--ink-3);
+    cursor: default; background: var(--paper-2);
+  }
+  .dropzone .dz-alt {
+    font-size: 12px; color: var(--ink-3);
+    margin-top: 14px; line-height: 1.6;
+  }
+  .dropzone .dz-alt button {
+    border: none; background: none; padding: 0;
+    font-size: 12px; color: var(--accent-ink);
+    text-decoration: underline; text-underline-offset: 2px;
+  }
+  .dropzone .dz-alt button:hover { color: var(--accent); }
   .hero-sync {
     margin-top: 16px;
     background: var(--paper-2);
@@ -565,7 +589,7 @@
   <div class="brand">
     <span class="mark">m</span>
     <h1>Marginalia</h1>
-    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b8</span>
+    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b9</span>
   </div>
   <div class="doc-meta">
     <span class="doc-name" id="docName"></span>
@@ -613,7 +637,6 @@
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2.5h3v11h-3zM6.5 2.5h3v11h-3zM10.8 3l2.7.7-2.8 10.6-2.7-.7z"/></svg>
         Library
       </button>
-      <button class="btn" id="newPdfBtn">Open file…</button>
     </span>
   </div>
 </header>
@@ -670,9 +693,15 @@
       <h2>Marginalia</h2>
       <p>Read closely, write in the margins. Import a PDF or EPUB and keep free-form notes on the style of the writing — page by page, side by side.</p>
       <div class="dropzone" id="dropzone">
-        <div class="dz-title">Drop a PDF or EPUB here</div>
-        <div class="dz-sub">or</div>
-        <button class="btn primary" id="pickBtn">Choose a book</button>
+        <div class="dz-title">Open a book</div>
+        <div class="dz-sub">from your synced folder</div>
+        <select class="hero-select" id="heroSelect" disabled>
+          <option value="">Loading…</option>
+        </select>
+        <div class="dz-alt">
+          Drop a PDF or EPUB anywhere on this window, or
+          <button id="pickBtn">browse this computer…</button>
+        </div>
       </div>
       <div class="hero-sync" id="heroSync">
         <div class="hs-title">
@@ -684,10 +713,6 @@
         </div>
         <div class="hs-actions" id="heroSyncActions">
           <button class="btn" id="heroConnect">Connect iCloud / Google Drive folder</button>
-        </div>
-        <div class="lib" id="heroLib" style="display:none">
-          <h4>PDFs in your sync folder</h4>
-          <div id="libList"></div>
         </div>
       </div>
       <div class="hero-foot">Everything stays in your own storage — nothing is uploaded to any third-party server. Notes also autosave in this browser and can be exported as Markdown or JSON.</div>
@@ -855,6 +880,7 @@
       btn.style.display = "none";
       heroBtn.style.display = "none";
       heroState.textContent = "";
+      heroPlaceholder("Folder list needs Chrome or Edge — use “browse this computer” below");
       heroSub.innerHTML = "Folder sync needs <b>Chrome</b> or <b>Edge</b> (this browser doesn't support direct folder access). You can still read, annotate, and use Export / Import to move notes between computers.";
       return;
     }
@@ -866,20 +892,19 @@
       btn.title = "Notes sync to this folder. Click to choose a different folder.";
       heroBtn.textContent = "Change folder";
       heroState.textContent = "Connected: " + (dirHandle ? dirHandle.name : "");
-      $("heroLib").style.display = "block";
     } else if (folderState === "prompt") {
       btn.classList.add("attention");
       lbl.textContent = "Reconnect folder";
       btn.title = "Click to re-authorize access to your sync folder (browsers require this each session).";
       heroBtn.textContent = "Reconnect " + (dirHandle && dirHandle.name ? "“" + dirHandle.name + "”" : "folder");
       heroState.textContent = "Needs one click to reconnect";
-      $("heroLib").style.display = "none";
+      heroPlaceholder("Reconnect your folder to list your books ↓");
     } else {
       lbl.textContent = "Connect sync folder";
       btn.title = "Pick a folder inside iCloud Drive or Google Drive";
       heroBtn.textContent = "Connect iCloud / Google Drive folder";
       heroState.textContent = "";
-      $("heroLib").style.display = "none";
+      heroPlaceholder("Connect a folder below to list your books ↓");
     }
     $("copyPdf").style.display =
       folderState === "connected" && hasDoc() && !pdfFromFolder ? "flex" : "none";
@@ -1068,42 +1093,60 @@
     else openLibraryPanel();
   });
 
+  // start-screen dropdown of everything in the sync folder
+  let heroHandles = [];
+  function heroPlaceholder(text) {
+    const sel = $("heroSelect");
+    sel.innerHTML = "";
+    const o = document.createElement("option");
+    o.value = "";
+    o.textContent = text;
+    sel.appendChild(o);
+    sel.disabled = true;
+    heroHandles = [];
+  }
   async function scanLibrary() {
-    const list = $("libList");
+    const sel = $("heroSelect");
     if (folderState !== "connected") return;
     try {
       const res = await listFolderDocs();
-      const pdfs = res ? res.docs : [];
-      const noted = res ? res.noted : new Set();
-      list.innerHTML = "";
-      if (!pdfs.length) {
-        list.innerHTML = '<div class="lib-empty">No books here yet — drop PDFs or EPUBs into this folder (in Finder / Explorer) or use “Copy this book into sync folder”.</div>';
-        return;
+      const docs = res ? res.docs : [];
+      heroHandles = docs;
+      sel.innerHTML = "";
+      const head = document.createElement("option");
+      head.value = "";
+      head.textContent = docs.length
+        ? "Choose from " + dirHandle.name + " (" + docs.length + ")…"
+        : "No books in " + dirHandle.name + " yet — drop some in";
+      sel.appendChild(head);
+      for (const h of docs) {
+        const o = document.createElement("option");
+        o.value = h.name;
+        const hasNotes = res.noted.has(h.name.replace(/\.(pdf|epub)$/i, "").toLowerCase());
+        o.textContent = (isEpubName(h.name) ? "EPUB · " : "PDF · ") + h.name +
+          (hasNotes ? "   ✓ notes" : "");
+        sel.appendChild(o);
       }
-      for (const h of pdfs) {
-        const btn = document.createElement("button");
-        btn.className = "lib-item";
-        const hasNotes = noted.has(h.name.replace(/\.(pdf|epub)$/i, "").toLowerCase());
-        btn.innerHTML =
-          '<span class="pdf-ico">' + (isEpubName(h.name) ? "EPB" : "PDF") + '</span>' +
-          '<span class="name">' + esc(h.name) + "</span>" +
-          (hasNotes ? '<span class="noted">✓ notes</span>' : "");
-        btn.addEventListener("click", async () => {
-          try {
-            const f = await h.getFile();
-            await openFile(f, true);
-          } catch (e) {
-            console.error(e);
-            showToast("Couldn't read that file (if it's iCloud, make sure it's downloaded)");
-          }
-        });
-        list.appendChild(btn);
-      }
+      sel.disabled = !docs.length;
     } catch (e) {
       console.error(e);
-      list.innerHTML = '<div class="lib-empty">Couldn’t read the folder.</div>';
+      heroPlaceholder("Couldn't read that folder");
     }
   }
+  $("heroSelect").addEventListener("change", async (e) => {
+    const name = e.target.value;
+    e.target.selectedIndex = 0;
+    if (!name) return;
+    const h = heroHandles.find(x => x.name === name);
+    if (!h) { showToast("That book is no longer in the folder"); scanLibrary(); return; }
+    try {
+      const f = await h.getFile();
+      await openFile(f, true);
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't read that file (if it's in iCloud, make sure it's downloaded)");
+    }
+  });
 
   $("copyPdf").addEventListener("click", async () => {
     if (folderState !== "connected" || !origBytes) { showToast("Connect a sync folder first"); return; }
@@ -2154,7 +2197,6 @@
 
   // ---------- file pickers & drag/drop ----------
   $("pickBtn").addEventListener("click", () => $("fileInput").click());
-  $("newPdfBtn").addEventListener("click", () => $("fileInput").click());
   $("fileInput").addEventListener("change", (e) => {
     const f = e.target.files[0];
     e.target.value = "";

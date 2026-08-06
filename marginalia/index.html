@@ -201,6 +201,25 @@
   .sp-row:hover { background: var(--paper-2); }
   .sp-count { color: var(--ink-3); font-size: 11px; font-variant-numeric: tabular-nums; }
   .sp-empty { padding: 14px; font-size: 12px; color: var(--ink-3); font-style: italic; }
+  .lib-panel { width: 340px; max-height: 68vh; }
+  .sp-row.doc { gap: 10px; }
+  .sp-row.doc .ico {
+    width: 22px; height: 22px; border-radius: 5px; flex-shrink: 0;
+    background: var(--accent-soft); color: var(--accent-ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 700;
+  }
+  .sp-row.doc .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+  .sp-row.doc .bdg { font-size: 10.5px; color: var(--ok); flex-shrink: 0; }
+  .sp-row.doc.cur { background: var(--accent-soft); }
+  .sp-row.doc.cur .nm { color: var(--accent-ink); font-weight: 600; }
+  .sp-foot { border-top: 1px solid var(--line); padding: 6px; }
+  .sp-foot button {
+    display: flex; width: 100%; align-items: center; gap: 8px;
+    border: none; background: none; color: var(--ink-2);
+    font-size: 12.5px; padding: 8px 10px; border-radius: 8px; text-align: left;
+  }
+  .sp-foot button:hover { background: var(--paper-2); color: var(--ink); }
 
   /* ---------- Layout ---------- */
   .workspace { display: flex; height: calc(100% - 58px); position: relative; }
@@ -546,7 +565,7 @@
   <div class="brand">
     <span class="mark">m</span>
     <h1>Marginalia</h1>
-    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b7</span>
+    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b8</span>
   </div>
   <div class="doc-meta">
     <span class="doc-name" id="docName"></span>
@@ -590,7 +609,11 @@
           <button id="copyPdf" style="display:none">Copy this book into sync folder</button>
         </span>
       </span>
-      <button class="btn" id="newPdfBtn">Open PDF</button>
+      <button class="btn" id="libBtn" title="Switch to another book in your sync folder">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2.5h3v11h-3zM6.5 2.5h3v11h-3zM10.8 3l2.7.7-2.8 10.6-2.7-.7z"/></svg>
+        Library
+      </button>
+      <button class="btn" id="newPdfBtn">Open file…</button>
     </span>
   </div>
 </header>
@@ -673,6 +696,7 @@
 </main>
 
 <div class="search-panel" id="searchPanel"></div>
+<div class="search-panel lib-panel" id="libPanel"></div>
 <button class="quote-btn" id="quoteBtn">❝ Add to note</button>
 <div class="drag-overlay" id="dragOverlay"><span>Drop PDF to open</span></div>
 <div class="toast" id="toast"></div>
@@ -948,19 +972,109 @@
     }
   }
 
+  // one source of truth for "what's in the sync folder"
+  async function listFolderDocs() {
+    if (folderState !== "connected") return null;
+    const docs = [], noted = new Set();
+    for await (const h of dirHandle.values()) {
+      if (h.kind !== "file") continue;
+      if (/\.(pdf|epub)$/i.test(h.name)) docs.push(h);
+      const m = h.name.match(/^(.*)\.notes\.json$/i);
+      if (m) noted.add(m[1].toLowerCase());
+    }
+    docs.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+    return { docs, noted };
+  }
+
+  // ---------- library switcher (works while a document is open) ----------
+  async function openLibraryPanel() {
+    const panel = $("libPanel");
+    $("searchPanel").classList.remove("open");
+    panel.innerHTML =
+      '<div class="sp-head"><span>' +
+      (folderState === "connected" ? "Library · " + esc(dirHandle.name) : "Library") +
+      '</span><button id="libClose" title="Close">✕</button></div>' +
+      '<div class="sp-body" id="libPanelBody"><div class="sp-empty">Reading folder…</div></div>' +
+      '<div class="sp-foot">' +
+        '<button id="libOpenLocal">📂 Open a file from this computer…</button>' +
+        '<button id="libHome">⌂ Back to the start screen</button>' +
+      "</div>";
+    panel.classList.add("open");
+    $("libClose").addEventListener("click", () => panel.classList.remove("open"));
+    $("libOpenLocal").addEventListener("click", () => {
+      panel.classList.remove("open");
+      $("fileInput").click();
+    });
+    $("libHome").addEventListener("click", () => {
+      panel.classList.remove("open");
+      commitEditor();
+      hero.style.display = "flex";
+      scanLibrary();
+    });
+
+    const body = $("libPanelBody");
+    if (folderState !== "connected") {
+      body.innerHTML = "";
+      const row = document.createElement("button");
+      row.className = "sp-row";
+      row.innerHTML = "<span>" +
+        (folderState === "prompt" ? "Reconnect your sync folder" : "Connect a sync folder") +
+        "</span>";
+      row.addEventListener("click", () => {
+        panel.classList.remove("open");
+        if (folderState === "prompt") reconnectFolder(); else connectFolder();
+      });
+      body.appendChild(row);
+      return;
+    }
+    try {
+      const res = await listFolderDocs();
+      body.innerHTML = "";
+      if (!res || !res.docs.length) {
+        body.innerHTML = '<div class="sp-empty">No PDFs or EPUBs in this folder yet.</div>';
+        return;
+      }
+      for (const h of res.docs) {
+        const isCur = h.name === docTitle;
+        const hasNotes = res.noted.has(h.name.replace(/\.(pdf|epub)$/i, "").toLowerCase());
+        const row = document.createElement("button");
+        row.className = "sp-row doc" + (isCur ? " cur" : "");
+        row.innerHTML =
+          '<span class="ico">' + (isEpubName(h.name) ? "EPB" : "PDF") + "</span>" +
+          '<span class="nm">' + esc(h.name) + "</span>" +
+          (isCur ? '<span class="bdg">open</span>' : (hasNotes ? '<span class="bdg">✓ notes</span>' : ""));
+        row.addEventListener("click", async () => {
+          panel.classList.remove("open");
+          if (isCur) { showToast("That book is already open"); return; }
+          try {
+            const f = await h.getFile();
+            await openFile(f, true);
+          } catch (e) {
+            console.error(e);
+            showToast("Couldn't read that file (if it's in iCloud, make sure it's downloaded)");
+          }
+        });
+        body.appendChild(row);
+      }
+    } catch (e) {
+      console.error(e);
+      body.innerHTML = '<div class="sp-empty">Couldn’t read the folder.</div>';
+    }
+  }
+  $("libBtn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    const panel = $("libPanel");
+    if (panel.classList.contains("open")) panel.classList.remove("open");
+    else openLibraryPanel();
+  });
+
   async function scanLibrary() {
     const list = $("libList");
     if (folderState !== "connected") return;
     try {
-      const pdfs = [];
-      const noted = new Set();
-      for await (const h of dirHandle.values()) {
-        if (h.kind !== "file") continue;
-        if (/\.(pdf|epub)$/i.test(h.name)) pdfs.push(h);
-        const m = h.name.match(/^(.*)\.notes\.json$/i);
-        if (m) noted.add(m[1].toLowerCase());
-      }
-      pdfs.sort((a, b) => a.name.localeCompare(b.name));
+      const res = await listFolderDocs();
+      const pdfs = res ? res.docs : [];
+      const noted = res ? res.noted : new Set();
       list.innerHTML = "";
       if (!pdfs.length) {
         list.innerHTML = '<div class="lib-empty">No books here yet — drop PDFs or EPUBs into this folder (in Finder / Explorer) or use “Copy this book into sync folder”.</div>';
@@ -1090,6 +1204,10 @@
   }
 
   async function openFile(file, fromFolder) {
+    // flush any in-flight edit to the OLD document before we swap it out
+    clearTimeout(saveTimer);
+    commitEditor();
+    if (folderState === "connected") { clearTimeout(folderSaveTimer); await writeNotesFile(); }
     if (isEpubName(file.name) || file.type === "application/epub+zip") {
       return openEpub(file, fromFolder);
     }
@@ -1867,6 +1985,7 @@
   $("prevPg").addEventListener("click", stepBack);
   $("nextPg").addEventListener("click", stepFwd);
   document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { $("libPanel").classList.remove("open"); }
     if (!hasDoc() || e.target === noteInput || e.target.tagName === "INPUT" ||
         e.target.tagName === "SELECT") return;
     if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); stepBack(); }

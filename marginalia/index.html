@@ -591,7 +591,7 @@
   <div class="brand">
     <span class="mark">m</span>
     <h1>Marginalia</h1>
-    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b11</span>
+    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b12</span>
   </div>
   <div class="doc-meta">
     <span class="doc-name" id="docName"></span>
@@ -2426,7 +2426,21 @@
 
   // ---------- service worker (offline app shell) ----------
   if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+    navigator.serviceWorker.register("sw.js").then((reg) => {
+      // tell the user (and refresh) when a new build lands, instead of
+      // silently serving them yesterday's app
+      reg.addEventListener("updatefound", () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener("statechange", () => {
+          if (nw.state === "installed" && navigator.serviceWorker.controller) {
+            showToast("New version downloaded — refreshing…");
+            setTimeout(() => location.reload(), 1400);
+          }
+        });
+      });
+      setInterval(() => { reg.update().catch(() => {}); }, 60000);
+    }).catch(() => {});
   }
 
   // save on unload

@@ -1,6 +1,6 @@
 /* Marginalia service worker — caches the app shell + pdf.js so the app
    loads with no network connection after the first visit. */
-const CACHE = "marginalia-v11";
+const CACHE = "marginalia-v12";
 const ASSETS = [
   "./",
   "./index.html",
@@ -37,6 +37,29 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
+
+  // The page itself is NETWORK-FIRST: a reload must always be able to pick up
+  // a new deploy. Cache-first here means a stale app can never update itself.
+  const isHTML = req.mode === "navigate" ||
+    (req.headers.get("accept") || "").indexOf("text/html") !== -1;
+  if (isHTML) {
+    e.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put("./index.html", copy));
+          }
+          return res;
+        })
+        .catch(() =>
+          caches.match("./index.html").then((r) => r || caches.match("./"))
+        )
+    );
+    return;
+  }
+
+  // Everything else (libraries, icons) stays cache-first for speed + offline.
   e.respondWith(
     caches.match(req, { ignoreSearch: req.mode === "navigate" }).then((hit) => {
       if (hit) return hit;

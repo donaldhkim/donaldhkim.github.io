@@ -591,7 +591,7 @@
   <div class="brand">
     <span class="mark">m</span>
     <h1>Marginalia</h1>
-    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b12</span>
+    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b13</span>
   </div>
   <div class="doc-meta">
     <span class="doc-name" id="docName"></span>
@@ -931,10 +931,13 @@
       updateFolderUi();
       scanLibrary();
       showToast("Connected “" + h.name + "” — notes will sync there");
-      if (pdfDoc) {
-        const fileData = await readNotesFile();
-        if (fileData) applyNotesData(fileData, "sync folder");
+      if (hasDoc()) {
+        lastRemoteStamp = null;
+        await checkRemote(false);   // merge, don't overwrite
         scheduleFolderSave();
+        startPolling();
+      } else {
+        autoResume();
       }
     } catch (e) {
       if (e && e.name === "AbortError") return;
@@ -951,12 +954,30 @@
         updateFolderUi();
         scanLibrary();
         showToast("Folder reconnected");
-        if (pdfDoc) {
-          const fileData = await readNotesFile();
-          if (fileData) applyNotesData(fileData, "sync folder");
+        if (hasDoc()) {
+          lastRemoteStamp = null;
+          await checkRemote(false);
+        } else {
+          autoResume();
         }
       }
     } catch (e) { console.error(e); }
+  }
+
+  // reopen whatever you were last reading, so a refresh isn't a reset
+  async function autoResume() {
+    if (folderState !== "connected" || hasDoc()) return;
+    let name = null;
+    try { name = localStorage.getItem("marginalia::lastDoc"); } catch (e) {}
+    if (!name) return;
+    try {
+      const fh = await dirHandle.getFileHandle(name);
+      const f = await fh.getFile();
+      await openFile(f, true);
+    } catch (e) {
+      console.warn("Marginalia: couldn't reopen", name, e);
+      try { localStorage.removeItem("marginalia::lastDoc"); } catch (e2) {}
+    }
   }
 
   async function initFolder() {
@@ -967,12 +988,13 @@
         dirHandle = h;
         const p = await h.queryPermission({ mode: "readwrite" });
         folderState = p === "granted" ? "connected" : "prompt";
-        if (folderState === "connected") scanLibrary();
+        if (folderState === "connected") await scanLibrary();
       } else {
         folderState = "none";
       }
     } catch (e) { folderState = "none"; }
     updateFolderUi();
+    if (folderState === "connected") autoResume();
   }
 
   $("folderBtn").addEventListener("click", () => {
@@ -1228,6 +1250,12 @@
       if (data && data.notes) {
         notes = normalizeNotes(data.notes);
         noteTimes = (data.noteTimes && typeof data.noteTimes === "object") ? data.noteTimes : {};
+        // Notes saved before timestamps existed would look infinitely old and
+        // lose every merge. Date them from the file instead.
+        if (!data.noteTimes) {
+          const stamp = data.savedAt || new Date().toISOString();
+          for (const p of Object.keys(notes)) noteTimes[p] = stamp;
+        }
         return true;
       }
     } catch (e) {}
@@ -1268,6 +1296,8 @@
     try {
       const fh = await dirHandle.getFileHandle(notesFileName());
       const f = await fh.getFile();
+      $("savedDot").title = "Notes file in your folder was last written " +
+        new Date(f.lastModified).toLocaleString();
       if (lastRemoteStamp !== null && f.lastModified <= lastRemoteStamp) {
         if (announce) showToast("Already up to date");
         return;
@@ -1535,6 +1565,11 @@
       docTitle = file.name;
       docSize = file.size;
       pdfFromFolder = !!fromFolder;
+      // remember it so a refresh comes back here instead of the start screen
+      try {
+        if (fromFolder) localStorage.setItem("marginalia::lastDoc", file.name);
+        else localStorage.removeItem("marginalia::lastDoc");
+      } catch (e) {}
       docKey = "marginalia::" + file.name + "::" + file.size + "::epub";
 
       // Locations = stable pseudo-pages (~1600 chars). Generation is slow on
@@ -1683,6 +1718,11 @@
       docTitle = file.name;
       docSize = file.size;
       pdfFromFolder = !!fromFolder;
+      // remember it so a refresh comes back here instead of the start screen
+      try {
+        if (fromFolder) localStorage.setItem("marginalia::lastDoc", file.name);
+        else localStorage.removeItem("marginalia::lastDoc");
+      } catch (e) {}
       docKey = "marginalia::" + file.name + "::" + file.size + "::" + numPages;
 
       const p1 = await doc.getPage(1);
@@ -1729,7 +1769,8 @@
       let lp = 0;
       try { lp = parseInt(localStorage.getItem(docKey + "::lp"), 10) || 0; } catch (e) {}
       if (lp > 1 && lp <= numPages) {
-        setCurrentPage(lp, true);
+        setCurrentPage(lp, false);
+        await scrollToPageSettled(lp);
         showToast("Resumed at page " + lp);
       }
     } catch (err) {
@@ -1890,6 +1931,34 @@
     $("pageReadout").textContent = currentPage + " / " + numPages;
     document.querySelectorAll(".note-card").forEach(c =>
       c.classList.toggle("current", parseInt(c.dataset.page, 10) === currentPage));
+    // keep the note you're on visible in the list without yanking it around
+    const cur = notesList.querySelector(".note-card.current");
+    if (cur && cur.scrollIntoView) {
+      try { cur.scrollIntoView({ block: "nearest" }); } catch (e) {}
+    }
+  }
+
+  // Scroll to a page and stay there: a placeholder's height is a guess until
+  // the page actually renders, so re-anchor once its real height is known.
+  async function scrollToPageSettled(n) {
+    let s = shellFor(n);
+    if (!s) return;
+    suppressScrollSpy = true;
+    pdfPane.classList.add("no-smooth");
+    const put = () => {
+      const el = shellFor(n);
+      if (el) pdfPane.scrollTop = Math.max(0, el.offsetTop - 20);
+    };
+    put();
+    if (!s.dataset.rendered) { s.dataset.rendered = "1"; await renderPage(n, s); }
+    put();
+    requestAnimationFrame(() => {
+      put();
+      setTimeout(() => {
+        pdfPane.classList.remove("no-smooth");
+        suppressScrollSpy = false;
+      }, 250);
+    });
   }
 
   let spyTimer = null;

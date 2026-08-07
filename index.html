@@ -1,480 +1,2523 @@
 <!DOCTYPE html>
-<html class="no-js" lang="en">
+<html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-K028T125KG"></script>
-    <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marginalia — PDF Style Annotator</title>
+<meta name="theme-color" content="#a84f2e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  :root {
+    --paper: #faf7f2;
+    --paper-2: #f3efe7;
+    --pane: #eae4d9;
+    --ink: #221e18;
+    --ink-2: #5c554a;
+    --ink-3: #8d8578;
+    --line: #ddd5c7;
+    --line-2: #cfc6b5;
+    --accent: #a84f2e;
+    --accent-soft: #f4e3da;
+    --accent-ink: #7c3517;
+    --ok: #3d7a45;
+    --ok-soft: #e4efe2;
+    --card: #fffdf9;
+    --hover: #ffffff;
+    --hover-2: #e7e0d3;
+    --shadow: 0 1px 2px rgba(52,42,28,.06), 0 4px 16px rgba(52,42,28,.07);
+    --shadow-lg: 0 2px 6px rgba(52,42,28,.08), 0 12px 40px rgba(52,42,28,.14);
+    --sel: rgba(168,79,46,.32);
+    --hit: rgba(240,190,70,.5);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  body.dark {
+    --paper: #201c17;
+    --paper-2: #2a251e;
+    --pane: #15120e;
+    --ink: #ede5d7;
+    --ink-2: #b9ad9b;
+    --ink-3: #8a8071;
+    --line: #3b3529;
+    --line-2: #4c4536;
+    --accent: #c96a41;
+    --accent-soft: #41291d;
+    --accent-ink: #e59b76;
+    --ok: #8dc593;
+    --ok-soft: #243528;
+    --card: #292420;
+    --hover: #322c25;
+    --hover-2: #3a342b;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 4px 16px rgba(0,0,0,.3);
+    --shadow-lg: 0 2px 6px rgba(0,0,0,.45), 0 12px 40px rgba(0,0,0,.5);
+    --sel: rgba(229,155,118,.4);
+    --hit: rgba(240,190,70,.4);
+  }
+  body.dark .page-shell canvas { filter: brightness(.88); }
+  body.dark .btn.connected { border-color: #3f5c42; }
+  body.dark .note-card .del:hover { color: #e08a7a; background: #472a24; }
 
-    gtag('config', 'G-K028T125KG');
-    </script>
-    <!--- basic page needs
-    ================================================== -->
-    <meta charset="utf-8">
-    <meta name="theme-color" content="#0b0a15">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>donaldhkim | here and now</title>
-    <meta name="The here and now." content="">
-    <meta name="Donald Kim" content="">
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    transition: background .25s, color .25s;
+  }
+  button { font-family: inherit; cursor: pointer; }
 
-    <!-- mobile specific metas
-    ================================================== -->
-    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=yes">
+  /* ---------- Top bar ---------- */
+  .topbar {
+    height: 58px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 20px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    position: relative;
+    z-index: 20;
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; user-select: none; flex-shrink: 0; }
+  .brand .mark {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    background: var(--accent);
+    color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--serif); font-size: 17px; font-style: italic;
+    transform: translateY(4px);
+  }
+  .brand h1 { font-family: var(--serif); font-weight: 600; font-size: 19px; letter-spacing: .01em; }
+  .brand .tag { font-size: 11px; color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; }
+  .doc-meta { min-width: 0; flex: 1; display: flex; align-items: center; gap: 10px; }
+  .doc-name {
+    font-size: 13px; color: var(--ink-2);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px;
+  }
+  .doc-name b { color: var(--ink); font-weight: 600; }
+  .saved-dot { font-size: 11px; color: var(--ink-3); white-space: nowrap; transition: color .3s; }
+  .saved-dot.flash { color: var(--accent); }
+  .saved-dot.synced { color: var(--ok); }
 
-    <!-- CSS
-    ================================================== -->
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/vendor.css">
+  .controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .ctl-group {
+    display: flex; align-items: center;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 9px; overflow: hidden;
+  }
+  .ctl-group button {
+    border: none; background: transparent;
+    padding: 7px 11px; font-size: 14px; color: var(--ink-2); line-height: 1;
+    transition: background .15s, color .15s;
+  }
+  .ctl-group button:hover { background: var(--hover-2); color: var(--ink); }
+  .ctl-group .readout {
+    font-size: 12px; color: var(--ink-2);
+    padding: 0 8px; min-width: 52px; text-align: center;
+    font-variant-numeric: tabular-nums;
+    border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+    align-self: stretch; display: flex; align-items: center; justify-content: center;
+    background: var(--card);
+  }
+  .search-group input {
+    border: none; outline: none; background: transparent;
+    font-size: 12px; color: var(--ink);
+    padding: 7px 10px; width: 130px; font-family: inherit;
+  }
+  .search-group input::placeholder { color: var(--ink-3); }
+  .btn {
+    border: 1px solid var(--line);
+    background: var(--card); color: var(--ink);
+    font-size: 13px; font-weight: 500;
+    padding: 8px 14px; border-radius: 9px;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: border-color .15s, background .15s, transform .05s;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--line-2); background: var(--hover); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent-ink); border-color: var(--accent-ink); color: #fff; }
+  .btn.connected { background: var(--ok-soft); border-color: #bcd3b8; color: var(--ok); }
+  .btn.attention { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-soft); }
+  .btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .btn .lbl { max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
+  .btn.icon { padding: 8px 11px; font-size: 14px; line-height: 1; }
 
-    <!-- script
-    ================================================== -->
-    <script src="js/modernizr.js"></script>
+  .menu-wrap { position: relative; }
+  .menu {
+    position: absolute; top: calc(100% + 6px); right: 0;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    padding: 6px; min-width: 240px;
+    display: none; z-index: 50;
+  }
+  .menu.open { display: block; }
+  .menu button {
+    display: flex; width: 100%; align-items: center; gap: 10px;
+    border: none; background: transparent; text-align: left;
+    font-size: 13px; color: var(--ink);
+    padding: 9px 10px; border-radius: 8px;
+  }
+  .menu button:hover { background: var(--paper-2); }
+  .menu .hint { font-size: 11px; color: var(--ink-3); margin-left: auto; }
+  .menu hr { border: none; border-top: 1px solid var(--line); margin: 5px 4px; }
 
-    <!-- favicons
-    ================================================== -->
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-    <link rel="manifest" href="site.webmanifest">
+  /* ---------- Search panel ---------- */
+  .search-panel {
+    position: fixed; top: 64px; right: 20px;
+    width: 280px; max-height: 55vh;
+    display: none; flex-direction: column;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    z-index: 60; overflow: hidden;
+  }
+  .search-panel.open { display: flex; }
+  .sp-head {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; padding: 10px 12px; gap: 8px;
+    border-bottom: 1px solid var(--line); color: var(--ink-2);
+  }
+  .sp-head button { border: none; background: none; color: var(--ink-3); font-size: 13px; padding: 2px 6px; border-radius: 6px; }
+  .sp-head button:hover { color: var(--ink); background: var(--paper-2); }
+  .sp-body { overflow-y: auto; padding: 6px; }
+  .sp-row {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; border: none; background: none;
+    font-size: 13px; color: var(--ink);
+    padding: 8px 10px; border-radius: 8px; text-align: left;
+  }
+  .sp-row:hover { background: var(--paper-2); }
+  .sp-count { color: var(--ink-3); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .sp-empty { padding: 14px; font-size: 12px; color: var(--ink-3); font-style: italic; }
+  .lib-panel { width: 340px; max-height: 68vh; }
+  .sp-row.doc { gap: 10px; }
+  .sp-row.doc .ico {
+    width: 22px; height: 22px; border-radius: 5px; flex-shrink: 0;
+    background: var(--accent-soft); color: var(--accent-ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 700;
+  }
+  .sp-row.doc .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+  .sp-row.doc .bdg { font-size: 10.5px; color: var(--ok); flex-shrink: 0; }
+  .sp-row.doc.cur { background: var(--accent-soft); }
+  .sp-row.doc.cur .nm { color: var(--accent-ink); font-weight: 600; }
+  .sp-foot { border-top: 1px solid var(--line); padding: 6px; }
+  .sp-foot button {
+    display: flex; width: 100%; align-items: center; gap: 8px;
+    border: none; background: none; color: var(--ink-2);
+    font-size: 12.5px; padding: 8px 10px; border-radius: 8px; text-align: left;
+  }
+  .sp-foot button:hover { background: var(--paper-2); color: var(--ink); }
 
+  /* ---------- Layout ---------- */
+  .workspace { display: flex; height: calc(100% - 58px); position: relative; }
+  .pdf-pane {
+    flex: 1 1 58%; min-width: 320px;
+    background: var(--pane);
+    overflow: auto; position: relative;
+    scroll-behavior: smooth;
+  }
+  .pdf-scroll { padding: 28px 28px 60px; }
+  .page-shell {
+    margin: 0 auto 22px; position: relative;
+    background: #fff;
+    box-shadow: var(--shadow);
+    border-radius: 3px; overflow: hidden;
+  }
+  .page-shell canvas { display: block; width: 100%; height: 100%; }
+  .page-shell .page-num {
+    position: absolute; bottom: 8px; right: 10px;
+    font-size: 10px; color: #8d8578;
+    background: rgba(250,247,242,.9);
+    padding: 2px 7px; border-radius: 20px; pointer-events: none;
+    z-index: 3;
+  }
+  .page-shell.has-note::after {
+    content: "";
+    position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: var(--accent); opacity: .85;
+    z-index: 3; pointer-events: none;
+  }
+  .page-loading {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #8d8578; font-size: 12px;
+    letter-spacing: .06em; text-transform: uppercase;
+  }
+
+  /* pdf.js text layer (invisible text over the canvas → selectable) */
+  .textLayer {
+    position: absolute; inset: 0; overflow: hidden;
+    line-height: 1; text-align: initial;
+    transform-origin: 0 0; z-index: 2;
+    caret-color: CanvasText;
+  }
+  .textLayer span, .textLayer br {
+    color: transparent; position: absolute;
+    white-space: pre; cursor: text;
+    transform-origin: 0% 0%;
+  }
+  .textLayer ::selection { background: var(--sel); }
+  .textLayer span.search-hit { background: var(--hit); border-radius: 2px; }
+
+  /* ---------- EPUB reading column ----------
+     epub.js owns the scrolling in continuous mode, so the container needs a
+     definite height; the pane itself must NOT scroll or sections never load. */
+  .pdf-pane.epub-mode { overflow: hidden; }
+  /* smooth scrolling fights programmatic re-anchoring during zoom */
+  .pdf-pane.no-smooth { scroll-behavior: auto; }
+  .epub-wrap {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    background: var(--pane);
+  }
+  .epub-note {
+    flex-shrink: 0;
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 9px 22px;
+    font-size: 11.5px; color: var(--ink-3);
+    background: var(--paper); border-bottom: 1px solid var(--line);
+  }
+  .epub-note span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .epub-scroll {
+    flex: 1; min-height: 0;
+    width: 100%; max-width: 860px; margin: 0 auto;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    padding: 0 18px;
+  }
+  .epub-scroll iframe { border: 0; }
+  .toc-sel {
+    border: 1px solid var(--line); background: var(--card);
+    font-size: 12px; padding: 7px 8px; border-radius: 9px;
+    max-width: 190px; outline: none; cursor: pointer; color: var(--ink);
+  }
+  .sp-row.epub { display: block; }
+  .sp-ex {
+    display: block; font-size: 11.5px; color: var(--ink-3);
+    margin-top: 3px; line-height: 1.45; max-height: 3em; overflow: hidden;
+  }
+
+  .quote-btn {
+    position: fixed; display: none; z-index: 150;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 100px;
+    font-size: 12px; font-weight: 600;
+    padding: 8px 15px;
+    box-shadow: var(--shadow-lg);
+    align-items: center; gap: 6px;
+  }
+  .quote-btn:hover { background: var(--accent-ink); }
+
+  .divider {
+    width: 7px; cursor: col-resize;
+    background: var(--paper);
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    flex-shrink: 0; position: relative; z-index: 5;
+  }
+  .divider::after {
+    content: "";
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 3px; height: 36px; border-radius: 4px;
+    background: var(--line-2);
+  }
+  .divider:hover::after, body.resizing .divider::after { background: var(--accent); }
+  body.resizing { cursor: col-resize; user-select: none; }
+  body.resizing .pdf-pane { scroll-behavior: auto; }
+
+  /* ---------- Notes pane ---------- */
+  .notes-pane {
+    flex: 1 1 42%; min-width: 340px;
+    background: var(--paper);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .notes-head { padding: 20px 24px 0; flex-shrink: 0; }
+  .notes-head .eyebrow {
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent-ink); font-weight: 600;
+  }
+  .notes-head h2 {
+    font-family: var(--serif); font-size: 24px; font-weight: 600;
+    margin-top: 4px; display: flex; align-items: baseline; gap: 10px;
+  }
+  .notes-head h2 .count { font-family: var(--sans); font-size: 12px; font-weight: 500; color: var(--ink-3); }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 14px 0 0; }
+  .chip {
+    border: 1px solid var(--line);
+    background: var(--card); color: var(--ink-2);
+    font-size: 12px; padding: 5px 11px; border-radius: 100px;
+    transition: all .15s;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-soft); }
+  .editor-card {
+    margin: 16px 24px 0;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column; flex-shrink: 0;
+  }
+  .editor-card textarea {
+    border: none; outline: none; resize: none; background: transparent;
+    font-family: var(--serif); font-size: var(--note-size, 15.5px); line-height: 1.65; color: var(--ink);
+    padding: 16px 18px 8px; height: 190px;
+  }
+  /* focus mode: just the PDF and the note editor */
+  body.focus .chips, body.focus .notes-list, body.focus .notes-list-head, body.focus .tag-bar { display: none; }
+  body.focus .editor-card { flex: 1; margin-bottom: 24px; }
+  body.focus .editor-card textarea { flex: 1; height: auto; }
+  .editor-card textarea::placeholder { color: var(--ink-3); font-style: italic; }
+  .editor-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 16px 12px; font-size: 11px; color: var(--ink-3);
+  }
+  .editor-foot .wc { font-variant-numeric: tabular-nums; }
+  .editor-foot button {
+    border: none; background: none; color: var(--ink-3);
+    font-size: 11px; padding: 3px 6px; border-radius: 6px;
+  }
+  .editor-foot button:hover { color: var(--accent-ink); background: var(--accent-soft); }
+
+  .notes-list-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 20px 24px 8px; flex-shrink: 0;
+  }
+  .notes-list-head h3 {
+    font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-2); font-weight: 600;
+  }
+  .tag-bar {
+    display: none; flex-wrap: wrap; gap: 6px;
+    padding: 0 24px 8px; flex-shrink: 0;
+  }
+  .tag {
+    border: 1px solid var(--line);
+    background: var(--paper-2); color: var(--ink-2);
+    font-size: 11px; padding: 3px 10px; border-radius: 100px;
+    transition: all .15s;
+  }
+  .tag:hover { border-color: var(--accent); color: var(--accent-ink); }
+  .tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .notes-list { overflow-y: auto; padding: 2px 24px 40px; flex: 1; }
+  .note-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 13px 15px; margin-bottom: 10px;
+    cursor: pointer; position: relative;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .note-card:hover { border-color: var(--line-2); box-shadow: var(--shadow); }
+  .note-card.current { border-color: var(--accent); }
+  .note-card .nc-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .note-card .pg {
+    font-size: 11px; font-weight: 600; color: var(--accent-ink);
+    background: var(--accent-soft);
+    padding: 2px 9px; border-radius: 100px;
+  }
+  .note-card .del {
+    border: none; background: none; color: var(--ink-3);
+    font-size: 13px; line-height: 1; padding: 3px 6px; border-radius: 6px;
+    opacity: 0; transition: opacity .15s;
+  }
+  .note-card:hover .del { opacity: 1; }
+  .note-card .del:hover { color: #a33; background: #f7e5e0; }
+  .note-card p {
+    font-family: var(--serif); font-size: 13.5px; line-height: 1.55; color: var(--ink-2);
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+    overflow: hidden; white-space: pre-line;
+  }
+  .note-card .nt { color: var(--accent-ink); font-weight: 600; }
+  .empty-notes {
+    text-align: center; color: var(--ink-3); font-size: 13px;
+    padding: 34px 20px; font-style: italic; font-family: var(--serif);
+  }
+
+  /* ---------- Empty / import state ---------- */
+  .hero {
+    position: absolute; inset: 0;
+    background: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 15; overflow-y: auto;
+  }
+  .hero-inner { text-align: center; max-width: 560px; padding: 40px 24px; }
+  .hero-inner .glyph {
+    font-family: var(--serif); font-style: italic; font-size: 44px;
+    color: #fff; background: var(--accent);
+    width: 84px; height: 84px; border-radius: 22px;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow-lg); margin-bottom: 26px;
+  }
+  .hero-inner h2 { font-family: var(--serif); font-size: 34px; font-weight: 600; letter-spacing: .01em; }
+  .hero-inner > p { color: var(--ink-2); font-size: 15px; line-height: 1.6; margin: 12px 0 28px; }
+  .dropzone {
+    border: 1.5px dashed var(--line-2);
+    border-radius: 16px;
+    padding: 30px 28px;
+    background: var(--card);
+    transition: border-color .2s, background .2s;
+  }
+  .dropzone.drag { border-color: var(--accent); background: var(--accent-soft); }
+  .dropzone .dz-title { font-size: 15px; font-weight: 600; }
+  .dropzone .dz-sub { font-size: 12px; color: var(--ink-3); margin: 5px 0 14px; }
+  .hero-select {
+    width: 100%; max-width: 420px;
+    border: 1px solid var(--accent);
+    background: var(--card); color: var(--ink);
+    font-size: 14px; font-weight: 500;
+    padding: 11px 13px; border-radius: 10px;
+    outline: none; cursor: pointer;
+    text-overflow: ellipsis;
+  }
+  .hero-select:hover:not(:disabled) { background: var(--accent-soft); }
+  .hero-select:disabled {
+    border-color: var(--line); color: var(--ink-3);
+    cursor: default; background: var(--paper-2);
+  }
+  .dropzone .dz-alt {
+    font-size: 12px; color: var(--ink-3);
+    margin-top: 14px; line-height: 1.6;
+  }
+  .dropzone .dz-alt button {
+    border: none; background: none; padding: 0;
+    font-size: 12px; color: var(--accent-ink);
+    text-decoration: underline; text-underline-offset: 2px;
+  }
+  .dropzone .dz-alt button:hover { color: var(--accent); }
+  .hero-sync {
+    margin-top: 16px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px 22px;
+    text-align: left;
+  }
+  .hero-sync .hs-title {
+    font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px; justify-content: space-between;
+  }
+  .hero-sync .hs-sub { font-size: 12px; color: var(--ink-2); line-height: 1.55; margin-top: 6px; }
+  .hero-sync .hs-actions { margin-top: 12px; }
+  .lib { margin-top: 14px; text-align: left; }
+  .lib h4 {
+    font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink-2); margin-bottom: 8px;
+  }
+  .lib-item {
+    display: flex; width: 100%; align-items: center; gap: 10px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    border-radius: 10px;
+    padding: 10px 13px; margin-bottom: 7px;
+    font-size: 13px; color: var(--ink); text-align: left;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .lib-item:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+  .lib-item .pdf-ico {
+    width: 24px; height: 24px; border-radius: 6px;
+    background: var(--accent-soft); color: var(--accent-ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; flex-shrink: 0;
+  }
+  .lib-item .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lib-item .noted { margin-left: auto; font-size: 11px; color: var(--ok); flex-shrink: 0; }
+  .lib-empty { font-size: 12px; color: var(--ink-3); font-style: italic; }
+  .hero-foot { margin-top: 22px; font-size: 11.5px; color: var(--ink-3); line-height: 1.6; }
+
+  .drag-overlay {
+    position: fixed; inset: 0;
+    background: rgba(168,79,46,.08);
+    border: 3px dashed var(--accent);
+    z-index: 100;
+    display: none; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .drag-overlay.on { display: flex; }
+  .drag-overlay span {
+    background: var(--accent); color: #fff;
+    font-size: 15px; font-weight: 600;
+    padding: 12px 26px; border-radius: 100px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .toast {
+    position: fixed; bottom: 26px; left: 50%;
+    transform: translate(-50%, 20px);
+    background: var(--ink); color: var(--paper);
+    font-size: 13px; padding: 10px 20px; border-radius: 100px;
+    box-shadow: var(--shadow-lg);
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s, transform .25s;
+    z-index: 200;
+    max-width: 80vw; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  .offline-pill {
+    font-size: 11px; color: var(--ink-2);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    padding: 3px 10px; border-radius: 100px;
+    display: none;
+  }
+  .offline-pill.on { display: inline-block; }
+
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 10px; border: 3px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-3); border: 3px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  input[type="file"] { display: none; }
+</style>
 </head>
+<body>
 
-<body id="top">
+<header class="topbar">
+  <div class="brand">
+    <span class="mark">m</span>
+    <h1>Marginalia</h1>
+    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b13</span>
+  </div>
+  <div class="doc-meta">
+    <span class="doc-name" id="docName"></span>
+    <span class="saved-dot" id="savedDot"></span>
+    <span class="offline-pill" id="offlinePill">Offline — changes save locally</span>
+  </div>
+  <div class="controls">
+    <button class="btn icon" id="themeBtn" title="Toggle light / dark mode">☾</button>
+    <button class="btn icon" id="focusBtn" title="Focus mode — just the PDF and your note">⛶</button>
+    <button class="btn" id="folderBtn" style="display:none">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5a1 1 0 011-1h3l1.5 2h6a1 1 0 011 1v6a1 1 0 01-1 1h-10.5a1 1 0 01-1-1v-8z"/></svg>
+      <span class="lbl" id="folderLabel">Connect sync folder</span>
+    </button>
+    <button class="btn icon" id="syncBtn" style="display:none"
+            title="Check the sync folder now for changes made on another computer">⟳</button>
+    <span id="docControls" style="display:none; align-items:center; gap:8px;">
+      <select class="toc-sel" id="tocSel" style="display:none" title="Jump to a chapter"></select>
+      <span class="ctl-group search-group" style="display:inline-flex" title="Search the text">
+        <input id="searchInput" placeholder="Search text…" autocomplete="off">
+        <button id="searchGo" title="Search (Enter)">⌕</button>
+      </span>
+      <span class="ctl-group" style="display:inline-flex" title="Page navigation">
+        <button id="prevPg" title="Previous page (←)">‹</button>
+        <span class="readout" id="pageReadout">–</span>
+        <button id="nextPg" title="Next page (→)">›</button>
+      </span>
+      <span class="ctl-group" style="display:inline-flex" title="Zoom">
+        <button id="zoomOut" title="Zoom out">−</button>
+        <span class="readout" id="zoomReadout">100%</span>
+        <button id="zoomIn" title="Zoom in">+</button>
+      </span>
+      <span class="menu-wrap">
+        <button class="btn" id="exportBtn">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 5l3-3 3 3M2.5 10v3a1 1 0 001 1h9a1 1 0 001-1v-3"/></svg>
+          Export
+        </button>
+        <span class="menu" id="exportMenu">
+          <button id="expMd">Markdown notes <span class="hint">.md</span></button>
+          <button id="expPdf">Styled document <span class="hint">print / PDF</span></button>
+          <button id="expJson">Annotation file <span class="hint">.json</span></button>
+          <hr>
+          <button id="refreshBtn">Check folder for updates <span class="hint">now</span></button>
+          <button id="impJson">Import annotations… <span class="hint">.json</span></button>
+          <button id="copyPdf" style="display:none">Copy this book into sync folder</button>
+        </span>
+      </span>
+      <button class="btn" id="libBtn" title="Switch to another book in your sync folder">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2.5h3v11h-3zM6.5 2.5h3v11h-3zM10.8 3l2.7.7-2.8 10.6-2.7-.7z"/></svg>
+        Library
+      </button>
+    </span>
+  </div>
+</header>
 
-
-    <!-- preloader
-    ================================================== -->
-    <div id="preloader">
-        <div id="loader" class="dots-fade">
-            <div></div>
-            <div></div>
-            <div></div>
-        </div>
+<main class="workspace" id="workspace">
+  <section class="pdf-pane" id="pdfPane">
+    <div class="pdf-scroll" id="pdfScroll"></div>
+    <div class="epub-wrap" id="epubWrap" style="display:none">
+      <div class="epub-note">
+        <span id="epubChapter"></span>
+        <span id="epubLocLbl"></span>
+      </div>
+      <div class="epub-scroll" id="epubArea"></div>
     </div>
+  </section>
+  <div class="divider" id="divider" title="Drag to resize"></div>
+  <aside class="notes-pane">
+    <div class="notes-head">
+      <div class="eyebrow">Writing style · Free-form notes</div>
+      <h2><span id="pageWordLabel">Page</span> <span id="curPageLabel">–</span> <span class="count" id="noteCount"></span></h2>
+      <div class="chips" id="chips">
+        <button class="chip" data-t="Diction">Diction</button>
+        <button class="chip" data-t="Syntax">Syntax</button>
+        <button class="chip" data-t="Tone">Tone</button>
+        <button class="chip" data-t="Imagery">Imagery</button>
+        <button class="chip" data-t="Rhythm">Rhythm</button>
+        <button class="chip" data-t="Structure">Structure</button>
+        <button class="chip" data-t="Voice">Voice</button>
+      </div>
+    </div>
+    <div class="editor-card">
+      <textarea id="noteInput" placeholder="What do you notice about the writing on this page? Add #tags (e.g. #quote-as-closer) to build your thread index…" spellcheck="true"></textarea>
+      <div class="editor-foot">
+        <span style="display:flex; align-items:center; gap:10px;">
+          <span class="wc" id="wordCount">0 words</span>
+          <button id="fontMinus" title="Smaller note text">A−</button>
+          <button id="fontPlus" title="Larger note text">A+</button>
+        </span>
+        <button id="clearNote">Clear page note</button>
+      </div>
+    </div>
+    <div class="notes-list-head">
+      <h3 id="notesListTitle">All notes</h3>
+    </div>
+    <div class="tag-bar" id="tagBar"></div>
+    <div class="notes-list" id="notesList">
+      <div class="empty-notes">Your notes will collect here as you read.</div>
+    </div>
+  </aside>
 
-
-    <!-- header
-    ================================================== -->
-    <header class="s-header">
-
-        <div class="header-logo">
-            <a href="index.html">
-                <img src="images/logo.svg" alt="Homepage">
-            </a>
+  <div class="hero" id="hero">
+    <div class="hero-inner">
+      <div class="glyph">m</div>
+      <h2>Marginalia</h2>
+      <p>Read closely, write in the margins. Import a PDF or EPUB and keep free-form notes on the style of the writing — page by page, side by side.</p>
+      <div class="dropzone" id="dropzone">
+        <div class="dz-title">Open a book</div>
+        <div class="dz-sub">from your synced folder</div>
+        <select class="hero-select" id="heroSelect" disabled>
+          <option value="">Loading…</option>
+        </select>
+        <div class="dz-alt">
+          Drop a PDF or EPUB anywhere on this window, or
+          <button id="pickBtn">browse this computer…</button>
         </div>
-
-        <div class="header-content">
-
-            <nav class="row header-nav-wrap">
-                <ul class="header-nav">
-                    <li><a class="smoothscroll" href="#home" title="Intro">Home</a></li>
-                    <li><a class="smoothscroll" href="#about" title="About">About</a></li>
-                    <li><a class="smoothscroll" href="#experience" title="Experience">Experience</a></li>
-                    <li><a class="smoothscroll" href="#curriculum" title="Curriculum">Curriculum</a></li>
-                    <li><a class="smoothscroll" href="#contact" title="Contact">Contact</a></li>
-                </ul>
-            </nav> <!-- end header-nav-wrap -->
-
-        </div> <!-- end header-content -->
-
-        <a class="header-menu-toggle" href="#0"><span>Menu</span></a>
-
-    </header>
-
-
-    <!-- hero
-    ================================================== -->
-    <section id="home" class="s-hero target-section" data-parallax="scroll" data-image-src="images/hero-bg-3000.jpg" data-natural-width=3000 data-natural-height=2000 data-position-y=center>
-
-        <div class="row hero-content">
-
-            <div class="column large-full">
-
-                <h1>
-                History. <br>
-                Theology. <br>
-                Innovation. <br>
-                </h1>
-
-                <ul class="hero-social">
-                    <li>
-                        <a href="http://twitter.com/donaldhkim" title="">Twitter</a>
-                    </li>
-                    <li>
-                        <a href="https://www.instagram.com/donaldhkim/" title="">Instagram</a>
-                    </li>
-                </ul> <!-- end hero-social -->
-
-            </div>
-
-        </div> <!-- end hero-content -->
-
-        <div class="hero-scroll">
-            <a href="#about" class="scroll-link smoothscroll">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 24l-8-9h6v-15h4v15h6z"/></svg>
-            </a>
-        </div> <!-- end hero-scroll -->
-
-    </section> <!-- end s-hero -->
-
-
-    <!-- about
-    ================================================== -->
-    <section id="about" class="s-about target-section">
-
-        <div class="s-about__section s-about__section--profile">
-
-            <div class="right-vert-line"></div>
-
-            <div class="row">
-                <div class="column large-6 medium-8 tab-full">
-
-                    <div class="section-intro" data-num="" data-aos="fade-up">
-                        <h3 class="subhead">About Me</h3>
-                        <h1 class="display-1">How it all began...</h1>
-                    </div>
-
-                    <div class="profile-pic" data-aos="fade-up">
-                        <img src="images/profile-pic.jpg"
-                             srcset="images/profile-pic.jpg 1x, images/profile-pic@2x.jpg 2x" alt="">
-                    </div>
-
-                    <h3 data-aos="fade-up">Curiosity.</h3>
-                    <p data-aos="fade-up">
-                    In the sixth grade. My first computer was a Pentium 386 that had Windows 3.0 and MS-DOS 4.51.
-                    In college, my first job was with IBM as a programmer—as a freshman. Then I switched majors five times:
-                    undeclared, communication, philosophy, classics, computer science, and then back to classics. (Who knew?)
-                    </p>
-                    <h3 data-aos="fade-up">Passion.</h3>
-                    <p data-aos="fade-up">
-                    My passion was ancient history. I had a head start in high school when I geeked out with Latin. Surprisingly,
-                    I stuck with those subject matters that were most challenging. Programming came relatively easy; reading comprehension not so much.
-                    Even then, it was my thesis supervisor who challenged me to new heights. He encouraged me to apply to Yale, his alma mater.
-                    </p>
-                    <h3 data-aos="fade-up">Opportunities.</h3>
-                    <p data-aos="fade-up">
-                    I got in. I went to Yale, studied theology there in New Haven, and also served on staff at a church for four years until
-                    it was time for me to come back to Texas. I knew it was time because my mom was here and plus I got to start another graduate
-                    program, where I was offered a teaching post at the place where I started my studies again. The next fiften years were spent on that campus in Fort Worth.
-                    </p>
-                    <h3 data-aos="fade-up">Here and now.</h3>
-                    <p data-aos="fade-up">
-                    A lot of life happened. After those years in the classroom, I was thrilled to begin a new chapter of my life.
-                    I went back into tech in 2023, fully immersed in the world of big data, while also cherishing my family and involvement
-                    in church life.
-                    </p>
-                    <p data-aos="fade-up">
-                    <b>Ph.D. in New Testament</b><br>
-                    Southwestern Seminary<br>
-                    <b>M.Div., New Testament Studies</b><br>
-                    Yale University<br>
-                    <b id="experience">B.A. Classics</b><br>
-                    University of Texas at Austin
-                    <div></div>
-                    </p>
-                </div>
-            </div>
-
-        </div> <!-- end s-about__section--profile -->
-
-        <div class="s-about target-section" >
-            <!--class="s-about target-section"> old = s-about__section-->
-            <div class="row">
-                <div class="column">
-                    <h1 data-aos="fade-up">Experience</h1>
-                </div>
-            </div>
-
-            <div class="row block-large-1-2 block-900-full work-positions">
-                <div class="column" data-aos="fade-up">
-
-
-                    <div class="position">
-                        <div class="position__header">
-                            <h6>
-                                <span class="position__co">Health Catalyst</span> <br>
-                                <span class="position__pos">Data Engineer | Cloud Migration</span>
-                            </h6>
-                            <div class="position__timeframe">
-                                June 2023 - Present
-                            </div>
-                        </div>
-                        <p>
-                        I live and breathe data pipelines and database design. I work on migration projects with a special focus on data engineering.
-                        </p>
-                    </div>
-                </div> <!-- end column -->
-                <div class="column" data-aos="fade-up">
-                    <div class="position">
-                        <div class="position__header">
-                            <h6>
-                                <span class="position__co">Southwestern Seminary</span>
-                                <span class="position__pos">Assistant Professor of Bible</span>
-                            </h6>
-                            <div class="position__timeframe">
-                                August 2007 - December 2022
-                            </div>
-                        </div>
-                        <p>
-                        I started teaching as an adjunct while working on a degree here. Adjunct became tenure track.
-                        Ended up teaching over 15 years here. Lots of great memories.
-                        </p>
-                    </div>
-                </div> <!-- end column -->
-                <div class="column" data-aos="fade-up">
-                    <div class="position">
-                        <div class="position__header">
-                            <h6>
-                                <span class="position__co">Yale University</span>
-                                <span class="position__pos">Computer & Information Services</span>
-                            </h6>
-                            <div class="position__timeframe">
-                                July 2006 - August 2007
-                            </div>
-                        </div>
-                        <p>
-                        After graduating from Yale, I was on staff at church. I needed a job and I didn't have to go
-                        far to find a job. Right on campus where the church was. Tech support for the administration
-                        of the school where I studied.
-                        </p>
-                    </div>
-                </div> <!-- end column -->
-                <div class="column" data-aos="fade-up">
-                    <div class="position">
-                        <div class="position__header">
-                            <h6>
-                                <span class="position__co">IBM</span><br>
-                                <span class="position__pos">Software Engineer</span>
-                            </h6>
-                            <div class="position__timeframe">
-                                January 1999 - July 2003
-                            </div>
-                        </div>
-                        <p>
-                        One manager gave me a chance in my freshman year. Worked on code fixes
-                        and shipped them out to cients as patches and service packs. Learned to
-                        code in a Unix environment. Bash = Bourne Again Shell. Yes, I am bourne again.
-                        </p>
-                    </div>
-                </div> <!-- end column -->
-
-            </div> <!-- work positions -->
-
-        </div> <!-- end s-about__section -->
-
-
-    </section> <!-- end experience -->
-
-
-    <!-- curriculum
-    ================================================== -->
-    <section id="curriculum" class="s-services target-section h-dark-bg">
-
-        <div class="row s-services__content">
-
-            <div class="vert-line"></div>
-
-            <div class="column large-6 s-services__leftcol">
-                <div class="section-intro" data-num="" data-aos="fade-up">
-                    <h3 class="subhead">Curriculum</h3>
-
-                    <h1 class="display-1">
-                    Classes taught over the years.
-                    </h1>
-                </div>
-
-                <p class="lead" data-aos="fade-up">
-                So much happened in the classroom. Learning and life happened. We grew together. Those years flew by.
-                </p>
-            </div> <!-- end  s-services--leftcol -->
-
-            <div class="column large-6">
-                <ul class="services-list" data-aos="fade-up">
-                    <li class="services-list__item is-active">
-                        <div class="services-list__item-header">
-                            <h5>Greek</h5>
-                        </div>
-                        <div class="services-list__item-body">
-                            <p>
-                            Greek grammar for Attic and Koine. Poured into NT, LXX, and various authors. Toga days were the best.
-                            </p>
-                        </div>
-                    </li> <!-- services-list__item -->
-                    <li class="services-list__item">
-                        <div class="services-list__item-header">
-                            <h5>Latin</h5>
-                        </div>
-                        <div class="services-list__item-body">
-                            <p>
-                            Latin grammar. Latin literature. Roman and church history. Some inscriptions.
-                            Cicero knew how to pack a punch with words.
-                            </p>
-                        </div>
-                    </li> <!-- services-list__item -->
-                    <li class="services-list__item">
-                        <div class="services-list__item-header">
-                            <h5>New Testament</h5>
-                        </div>
-                        <div class="services-list__item-body">
-                            <p>
-                            Gundry as my textbook solely because of the pictures. Flew through the NT books in two semesters.
-                            </p>
-                        </div>
-                    </li> <!-- services-list__item -->
-
-                    <li class="services-list__item">
-                        <div class="services-list__item-header">
-                            <h5>Hermeneutics</h5>
-                        </div>
-                        <div class="services-list__item-body">
-                            <p>
-                            Fancy word for "interpretation" but really just Bible study methods. Never got to the high-level
-                            theories, but we didn't need to. So much to unpack in the text.
-                            </p>
-                        </div>
-                    </li> <!-- services-list__item -->
-                    <li class="services-list__item">
-                        <div class="services-list__item-header">
-                            <h5>World Religions</h5>
-                        </div>
-                        <div class="services-list__item-body">
-                            <p>
-                            Super fun class. Learned to respect other religions and belief systems. Best part was visiting
-                            different religious sites. I chose Prothero because it was an easy read.
-                            </p>
-                        </div>
-                    </li> <!-- services-list__item -->
-                    <li class="services-list__item">
-                        <div class="services-list__item-header">
-                            <h5>Advanced Exegesis</h5>
-                        </div>
-                        <div class="services-list__item-body">
-                            <p>
-                            1 Corinthians, Hebrews, 2 Corinthians, and Luke. Deep dive into the text. Learn to read the text
-                            carefully. Lots to take in. Always impressed with the ideas students came up with.
-                            </p>
-                        </div>
-                    </li> <!-- services-list__item -->
-                </ul> <!-- end services-list -->
-            </div>
-
-        </div> <!-- s-services__content -->
-
-    </section> <!-- end s-services -->
-
-    <!-- footer
-    ================================================== -->
-    <footer id="contact" class="s-footer h-dark-bg">
-
-        <div class="right-vert-line"></div>
-
-        <div class="row s-footer__main">
-            <div class="column large-6">
-
-                <div class="section-intro" data-aos="fade-up">
-                    <h3 class="subhead">Get In Touch</h3>
-
-                    <h1 class="display-1">
-                    Want to connect?
-                    </h1>
-                </div>
-
-                <div class="footer-email-us">
-                    <a href="mailto:letstalk@donaldhkim.com" class="btn btn--primary h-full-width">Let's Talk</a>
-                </div>
-            </div>
-
-            <div class="column large-5">
-                <div class="footer-contacts">
-                    <div class="footer-contact-block" data-aos="fade-up">
-                        <h5 class="footer-contact-block__header">
-                            Email
-                        </h5>
-                        <p class="footer-contact-block__content">
-                            <a href="mailto:contact@donaldhkim.com">contact@donaldhkim.com</a>
-                        </p>
-                    </div> <!-- end footer-contact-block -->
-
-                    <br>
-                    <div class="footer-contact-block" data-aos="fade-up">
-                        <h5 class="footer-contact-block__header">
-                            Social
-                        </h5>
-                        <ul class="footer-contact-block__list">
-                            <li><a href="http://twitter.com/donaldhkim">Twitter</a></li>
-                            <li><a href="https://www.instagram.com/donaldhkim/">Instagram</a></li>
-                            <li><a href="https://www.linkedin.com/in/donaldhkim/">LinkedIn</a></li>
-                        </ul>
-                    </div> <!-- end footer-contact-block -->
-                </div>
-            </div>
-        </div> <!-- end s-footer__main -->
-
-        <div class="row s-footer__bottom">
-            <div class="column large-full ss-copyright">
-                <span>© copyright 2026 donald kim</span>
-                <span>design by <a href="https://www.styleshout.com/">styleshout</a></span>
-            </div> <!-- end ss-copyright -->
-
-            <div class="ss-go-top">
-                <a class="smoothscroll" title="Back to Top" href="#top">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0l8 9h-6v15h-4v-15h-6z"/></svg>
-                </a>
-            </div> <!-- end ss-go-top -->
-        </div> <!-- end s-footer__bottom -->
-
-    </footer> <!-- end s-footer -->
-
-
-    <!-- photoswipe background
-    ================================================== -->
-    <div aria-hidden="true" class="pswp" role="dialog" tabindex="-1">
-
-        <div class="pswp__bg"></div>
-        <div class="pswp__scroll-wrap">
-
-            <div class="pswp__container">
-                <div class="pswp__item"></div>
-                <div class="pswp__item"></div>
-                <div class="pswp__item"></div>
-            </div>
-
-            <div class="pswp__ui pswp__ui--hidden">
-                <div class="pswp__top-bar">
-                    <div class="pswp__counter"></div><button class="pswp__button pswp__button--close" title="Close (Esc)"></button> <button class="pswp__button pswp__button--share" title=
-                    "Share"></button> <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button> <button class="pswp__button pswp__button--zoom" title=
-                    "Zoom in/out"></button>
-                    <div class="pswp__preloader">
-                        <div class="pswp__preloader__icn">
-                            <div class="pswp__preloader__cut">
-                                <div class="pswp__preloader__donut"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
-                    <div class="pswp__share-tooltip"></div>
-                </div><button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)"></button> <button class="pswp__button pswp__button--arrow--right" title=
-                "Next (arrow right)"></button>
-                <div class="pswp__caption">
-                    <div class="pswp__caption__center"></div>
-                </div>
-            </div>
-
+      </div>
+      <div class="hero-sync" id="heroSync">
+        <div class="hs-title">
+          <span>☁︎ Sync across your computers</span>
+          <span id="heroSyncState" style="font-size:11px; color:var(--ink-3); font-weight:500"></span>
         </div>
+        <div class="hs-sub" id="heroSyncSub">
+          Connect a folder inside your <b>iCloud Drive</b> or <b>Google Drive</b>. Marginalia keeps your PDFs and notes there as ordinary files, and your cloud service syncs them to every computer — including changes made offline, which upload when you're back online.
+        </div>
+        <div class="hs-actions" id="heroSyncActions">
+          <button class="btn" id="heroConnect">Connect iCloud / Google Drive folder</button>
+        </div>
+      </div>
+      <div class="hero-foot">Everything stays in your own storage — nothing is uploaded to any third-party server. Notes also autosave in this browser and can be exported as Markdown or JSON.</div>
+    </div>
+  </div>
+</main>
 
-    </div> <!-- end photoSwipe background -->
+<div class="search-panel" id="searchPanel"></div>
+<div class="search-panel lib-panel" id="libPanel"></div>
+<button class="quote-btn" id="quoteBtn">❝ Add to note</button>
+<div class="drag-overlay" id="dragOverlay"><span>Drop PDF to open</span></div>
+<div class="toast" id="toast"></div>
 
+<input type="file" id="fileInput" accept="application/pdf,.pdf,application/epub+zip,.epub">
+<input type="file" id="jsonInput" accept="application/json,.json">
 
-    <!-- Java Script
-    ================================================== -->
-    <script src="js/jquery-3.2.1.min.js"></script>
-    <script src="js/plugins.js"></script>
-    <script src="js/main.js"></script>
+<script>
+(function () {
+  "use strict";
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
+  // ---------- state ----------
+  let pdfDoc = null;
+  let docTitle = "";
+  let docSize = 0;
+  let docKey = "";
+  let numPages = 0;
+  let scale = 1;
+  let baseWidth = 612, baseHeight = 792;
+  let currentPage = 1;
+  let notes = {};              // { pageNumber: "text" }
+  let renderTasks = {};
+  let observer = null;
+  let saveTimer = null;
+  let folderSaveTimer = null;
+  let suppressScrollSpy = false;
+  let origBytes = null;
+  let pdfFromFolder = false;
+  let activeTag = null;        // thread-index filter
+  let searchText = null;       // per-page extracted text cache
+  let searchIndexing = false;
+  let currentQuery = null;     // lowercased active search query
+  let quotePending = null;     // { text, page }
+
+  let noteTimes = {};          // { page: ISO } — last change per note, incl. deletions
+  let pageSizes = {};          // { page: {w,h} } unscaled, learned as pages render
+  let lastRemoteStamp = null;  // mtime of the notes file we last read
+  let pollTimer = null;
+
+  // epub state
+  let mode = "pdf";            // pdf | epub
+  let book = null, rendition = null;
+  let epubFont = 1;            // font scale
+  let suppressReloc = false;
+  let epubLibPromise = null;
+
+  // folder sync state
+  const supportsFS = "showDirectoryPicker" in window;
+  let dirHandle = null;
+  let folderState = "none";    // none | prompt | connected | unsupported
+
+  // ---------- els ----------
+  const $ = (id) => document.getElementById(id);
+  const pdfPane = $("pdfPane"), pdfScroll = $("pdfScroll"),
+        hero = $("hero"), dropzone = $("dropzone"),
+        noteInput = $("noteInput"), notesList = $("notesList"),
+        toast = $("toast");
+
+  // ---------- helpers ----------
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove("show"), 2600);
+  }
+  function flashSaved(synced) {
+    const d = $("savedDot");
+    d.textContent = synced ? "Synced to folder ✓" : "Saved on this device";
+    d.classList.toggle("synced", !!synced);
+    d.classList.add("flash");
+    clearTimeout(flashSaved._t);
+    flashSaved._t = setTimeout(() => d.classList.remove("flash"), 1200);
+  }
+  function download(filename, text, mime) {
+    const blob = new Blob([text], { type: mime || "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+  }
+  function baseName() { return docTitle.replace(/\.(pdf|epub)$/i, "") || "document"; }
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  // ---------- theme ----------
+  function applyTheme(t) {
+    document.body.classList.toggle("dark", t === "dark");
+    $("themeBtn").textContent = t === "dark" ? "☀" : "☾";
+    $("themeBtn").title = t === "dark" ? "Switch to light mode" : "Switch to dark mode";
+  }
+  (function initTheme() {
+    let t = null;
+    try { t = localStorage.getItem("marginalia-theme"); } catch (e) {}
+    if (!t) t = (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+    applyTheme(t);
+  })();
+  $("themeBtn").addEventListener("click", () => {
+    const t = document.body.classList.contains("dark") ? "light" : "dark";
+    applyTheme(t);
+    try { localStorage.setItem("marginalia-theme", t); } catch (e) {}
+    if (mode === "epub") applyEpubTheme();
+  });
+
+  // ---------- reading comforts ----------
+  (function initComforts() {
+    let s = 15.5;
+    try { s = parseFloat(localStorage.getItem("marginalia-note-size")) || 15.5; } catch (e) {}
+    document.body.style.setProperty("--note-size", s + "px");
+  })();
+  function nudgeFont(d) {
+    const cur = parseFloat(document.body.style.getPropertyValue("--note-size")) || 15.5;
+    const next = Math.min(22, Math.max(12, cur + d));
+    document.body.style.setProperty("--note-size", next + "px");
+    try { localStorage.setItem("marginalia-note-size", next); } catch (e) {}
+  }
+  $("fontMinus").addEventListener("click", () => nudgeFont(-1));
+  $("fontPlus").addEventListener("click", () => nudgeFont(1));
+  $("focusBtn").addEventListener("click", () => {
+    const on = document.body.classList.toggle("focus");
+    $("focusBtn").title = on ? "Exit focus mode" : "Focus mode — just the PDF and your note";
+    if (on) noteInput.focus();
+  });
+
+  // ---------- tiny IndexedDB key-value store (persists the folder handle) ----------
+  function idbOpen() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open("marginalia-db", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("kv");
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+  }
+  async function idbGet(k) {
+    const db = await idbOpen();
+    return new Promise((res, rej) => {
+      const t = db.transaction("kv").objectStore("kv").get(k);
+      t.onsuccess = () => res(t.result);
+      t.onerror = () => rej(t.error);
+    });
+  }
+  async function idbSet(k, v) {
+    const db = await idbOpen();
+    return new Promise((res, rej) => {
+      const t = db.transaction("kv", "readwrite").objectStore("kv").put(v, k);
+      t.onsuccess = () => res();
+      t.onerror = () => rej(t.error);
+    });
+  }
+
+  // ---------- folder sync ----------
+  function updateFolderUi() {
+    const btn = $("folderBtn"), lbl = $("folderLabel"),
+          heroBtn = $("heroConnect"), heroState = $("heroSyncState"),
+          heroSub = $("heroSyncSub");
+    if (!supportsFS) {
+      btn.style.display = "none";
+      $("syncBtn").style.display = "none";
+      heroBtn.style.display = "none";
+      heroState.textContent = "";
+      heroPlaceholder("Folder list needs Chrome or Edge — use “browse this computer” below");
+      heroSub.innerHTML = "Folder sync needs <b>Chrome</b> or <b>Edge</b> (this browser doesn't support direct folder access). You can still read, annotate, and use Export / Import to move notes between computers.";
+      return;
+    }
+    btn.style.display = "inline-flex";
+    btn.classList.remove("connected", "attention");
+    $("syncBtn").style.display = folderState === "connected" ? "inline-flex" : "none";
+    if (folderState === "connected") {
+      btn.classList.add("connected");
+      lbl.textContent = "✓ " + (dirHandle && dirHandle.name ? dirHandle.name : "Folder connected");
+      btn.title = "Notes sync to this folder. Click to choose a different folder.";
+      heroBtn.textContent = "Change folder";
+      heroState.textContent = "Connected: " + (dirHandle ? dirHandle.name : "");
+    } else if (folderState === "prompt") {
+      btn.classList.add("attention");
+      lbl.textContent = "Reconnect folder";
+      btn.title = "Click to re-authorize access to your sync folder (browsers require this each session).";
+      heroBtn.textContent = "Reconnect " + (dirHandle && dirHandle.name ? "“" + dirHandle.name + "”" : "folder");
+      heroState.textContent = "Needs one click to reconnect";
+      heroPlaceholder("Reconnect your folder to list your books ↓");
+    } else {
+      lbl.textContent = "Connect sync folder";
+      btn.title = "Pick a folder inside iCloud Drive or Google Drive";
+      heroBtn.textContent = "Connect iCloud / Google Drive folder";
+      heroState.textContent = "";
+      heroPlaceholder("Connect a folder below to list your books ↓");
+    }
+    $("copyPdf").style.display =
+      folderState === "connected" && hasDoc() && !pdfFromFolder ? "flex" : "none";
+  }
+
+  async function connectFolder() {
+    try {
+      const h = await window.showDirectoryPicker({ mode: "readwrite" });
+      dirHandle = h;
+      folderState = "connected";
+      await idbSet("dirHandle", h).catch(() => {});
+      updateFolderUi();
+      scanLibrary();
+      showToast("Connected “" + h.name + "” — notes will sync there");
+      if (hasDoc()) {
+        lastRemoteStamp = null;
+        await checkRemote(false);   // merge, don't overwrite
+        scheduleFolderSave();
+        startPolling();
+      } else {
+        autoResume();
+      }
+    } catch (e) {
+      if (e && e.name === "AbortError") return;
+      console.error(e);
+      showToast("Couldn't access that folder");
+    }
+  }
+
+  async function reconnectFolder() {
+    try {
+      const p = await dirHandle.requestPermission({ mode: "readwrite" });
+      if (p === "granted") {
+        folderState = "connected";
+        updateFolderUi();
+        scanLibrary();
+        showToast("Folder reconnected");
+        if (hasDoc()) {
+          lastRemoteStamp = null;
+          await checkRemote(false);
+        } else {
+          autoResume();
+        }
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  // reopen whatever you were last reading, so a refresh isn't a reset
+  async function autoResume() {
+    if (folderState !== "connected" || hasDoc()) return;
+    let name = null;
+    try { name = localStorage.getItem("marginalia::lastDoc"); } catch (e) {}
+    if (!name) return;
+    try {
+      const fh = await dirHandle.getFileHandle(name);
+      const f = await fh.getFile();
+      await openFile(f, true);
+    } catch (e) {
+      console.warn("Marginalia: couldn't reopen", name, e);
+      try { localStorage.removeItem("marginalia::lastDoc"); } catch (e2) {}
+    }
+  }
+
+  async function initFolder() {
+    if (!supportsFS) { folderState = "unsupported"; updateFolderUi(); return; }
+    try {
+      const h = await idbGet("dirHandle");
+      if (h && h.queryPermission) {
+        dirHandle = h;
+        const p = await h.queryPermission({ mode: "readwrite" });
+        folderState = p === "granted" ? "connected" : "prompt";
+        if (folderState === "connected") await scanLibrary();
+      } else {
+        folderState = "none";
+      }
+    } catch (e) { folderState = "none"; }
+    updateFolderUi();
+    if (folderState === "connected") autoResume();
+  }
+
+  $("folderBtn").addEventListener("click", () => {
+    if (folderState === "prompt") reconnectFolder();
+    else connectFolder();
+  });
+  $("heroConnect").addEventListener("click", () => {
+    if (folderState === "prompt") reconnectFolder();
+    else connectFolder();
+  });
+
+  function notesFileName() { return baseName() + ".notes.json"; }
+
+  async function readNotesFile() {
+    if (folderState !== "connected" || !docTitle) return null;
+    try {
+      const fh = await dirHandle.getFileHandle(notesFileName());
+      const f = await fh.getFile();
+      return JSON.parse(await f.text());
+    } catch (e) { return null; }
+  }
+
+  async function writeNotesFile() {
+    if (folderState !== "connected" || !docKey) return false;
+    try {
+      const fh = await dirHandle.getFileHandle(notesFileName(), { create: true });
+      const w = await fh.createWritable();
+      await w.write(JSON.stringify(payload(), null, 2));
+      await w.close();
+      // remember our own write so the poller doesn't treat it as a remote change
+      try { const f = await fh.getFile(); lastRemoteStamp = f.lastModified; } catch (e) {}
+      return true;
+    } catch (e) {
+      console.warn("folder save failed", e);
+      return false;
+    }
+  }
+
+  // one source of truth for "what's in the sync folder"
+  async function listFolderDocs() {
+    if (folderState !== "connected") return null;
+    const docs = [], noted = new Set();
+    for await (const h of dirHandle.values()) {
+      if (h.kind !== "file") continue;
+      if (/\.(pdf|epub)$/i.test(h.name)) docs.push(h);
+      const m = h.name.match(/^(.*)\.notes\.json$/i);
+      if (m) noted.add(m[1].toLowerCase());
+    }
+    docs.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+    return { docs, noted };
+  }
+
+  // ---------- library switcher (works while a document is open) ----------
+  async function openLibraryPanel() {
+    const panel = $("libPanel");
+    $("searchPanel").classList.remove("open");
+    panel.innerHTML =
+      '<div class="sp-head"><span>' +
+      (folderState === "connected" ? "Library · " + esc(dirHandle.name) : "Library") +
+      '</span><button id="libClose" title="Close">✕</button></div>' +
+      '<div class="sp-body" id="libPanelBody"><div class="sp-empty">Reading folder…</div></div>' +
+      '<div class="sp-foot">' +
+        '<button id="libOpenLocal">📂 Open a file from this computer…</button>' +
+        '<button id="libHome">⌂ Back to the start screen</button>' +
+      "</div>";
+    panel.classList.add("open");
+    $("libClose").addEventListener("click", () => panel.classList.remove("open"));
+    $("libOpenLocal").addEventListener("click", () => {
+      panel.classList.remove("open");
+      $("fileInput").click();
+    });
+    $("libHome").addEventListener("click", () => {
+      panel.classList.remove("open");
+      commitEditor();
+      hero.style.display = "flex";
+      scanLibrary();
+    });
+
+    const body = $("libPanelBody");
+    if (folderState !== "connected") {
+      body.innerHTML = "";
+      const row = document.createElement("button");
+      row.className = "sp-row";
+      row.innerHTML = "<span>" +
+        (folderState === "prompt" ? "Reconnect your sync folder" : "Connect a sync folder") +
+        "</span>";
+      row.addEventListener("click", () => {
+        panel.classList.remove("open");
+        if (folderState === "prompt") reconnectFolder(); else connectFolder();
+      });
+      body.appendChild(row);
+      return;
+    }
+    try {
+      const res = await listFolderDocs();
+      body.innerHTML = "";
+      if (!res || !res.docs.length) {
+        body.innerHTML = '<div class="sp-empty">No PDFs or EPUBs in this folder yet.</div>';
+        return;
+      }
+      for (const h of res.docs) {
+        const isCur = h.name === docTitle;
+        const hasNotes = res.noted.has(h.name.replace(/\.(pdf|epub)$/i, "").toLowerCase());
+        const row = document.createElement("button");
+        row.className = "sp-row doc" + (isCur ? " cur" : "");
+        row.innerHTML =
+          '<span class="ico">' + (isEpubName(h.name) ? "EPB" : "PDF") + "</span>" +
+          '<span class="nm">' + esc(h.name) + "</span>" +
+          (isCur ? '<span class="bdg">open</span>' : (hasNotes ? '<span class="bdg">✓ notes</span>' : ""));
+        row.addEventListener("click", async () => {
+          panel.classList.remove("open");
+          if (isCur) { showToast("That book is already open"); return; }
+          try {
+            const f = await h.getFile();
+            await openFile(f, true);
+          } catch (e) {
+            console.error(e);
+            showToast("Couldn't read that file (if it's in iCloud, make sure it's downloaded)");
+          }
+        });
+        body.appendChild(row);
+      }
+    } catch (e) {
+      console.error(e);
+      body.innerHTML = '<div class="sp-empty">Couldn’t read the folder.</div>';
+    }
+  }
+  $("libBtn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    const panel = $("libPanel");
+    if (panel.classList.contains("open")) panel.classList.remove("open");
+    else openLibraryPanel();
+  });
+
+  // start-screen dropdown of everything in the sync folder
+  let heroHandles = [];
+  function heroPlaceholder(text) {
+    const sel = $("heroSelect");
+    sel.innerHTML = "";
+    const o = document.createElement("option");
+    o.value = "";
+    o.textContent = text;
+    sel.appendChild(o);
+    sel.disabled = true;
+    heroHandles = [];
+  }
+  async function scanLibrary() {
+    const sel = $("heroSelect");
+    if (folderState !== "connected") return;
+    try {
+      const res = await listFolderDocs();
+      const docs = res ? res.docs : [];
+      heroHandles = docs;
+      sel.innerHTML = "";
+      const head = document.createElement("option");
+      head.value = "";
+      head.textContent = docs.length
+        ? "Choose from " + dirHandle.name + " (" + docs.length + ")…"
+        : "No books in " + dirHandle.name + " yet — drop some in";
+      sel.appendChild(head);
+      for (const h of docs) {
+        const o = document.createElement("option");
+        o.value = h.name;
+        const hasNotes = res.noted.has(h.name.replace(/\.(pdf|epub)$/i, "").toLowerCase());
+        o.textContent = (isEpubName(h.name) ? "EPUB · " : "PDF · ") + h.name +
+          (hasNotes ? "   ✓ notes" : "");
+        sel.appendChild(o);
+      }
+      sel.disabled = !docs.length;
+    } catch (e) {
+      console.error(e);
+      heroPlaceholder("Couldn't read that folder");
+    }
+  }
+  $("heroSelect").addEventListener("change", async (e) => {
+    const name = e.target.value;
+    e.target.selectedIndex = 0;
+    if (!name) return;
+    const h = heroHandles.find(x => x.name === name);
+    if (!h) { showToast("That book is no longer in the folder"); scanLibrary(); return; }
+    try {
+      const f = await h.getFile();
+      await openFile(f, true);
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't read that file (if it's in iCloud, make sure it's downloaded)");
+    }
+  });
+
+  $("copyPdf").addEventListener("click", async () => {
+    if (folderState !== "connected" || !origBytes) { showToast("Connect a sync folder first"); return; }
+    try {
+      const fh = await dirHandle.getFileHandle(docTitle, { create: true });
+      const w = await fh.createWritable();
+      await w.write(origBytes);
+      await w.close();
+      pdfFromFolder = true;
+      updateFolderUi();
+      scanLibrary();
+      showToast("Copied “" + docTitle + "” into your sync folder");
+    } catch (e) {
+      console.error(e);
+      showToast("Copy failed — check folder permissions");
+    }
+  });
+
+  // ---------- persistence ----------
+  function payload() {
+    return {
+      app: "marginalia", version: 3, kind: mode,
+      document: docTitle, pages: numPages, size: docSize,
+      savedAt: new Date().toISOString(),
+      notes, noteTimes
+    };
+  }
+  function persist() {
+    if (!docKey) return;
+    try { localStorage.setItem(docKey, JSON.stringify(payload())); } catch (e) {}
+    if (folderState === "connected") scheduleFolderSave();
+    else flashSaved(false);
+  }
+  function scheduleFolderSave() {
+    clearTimeout(folderSaveTimer);
+    folderSaveTimer = setTimeout(async () => {
+      const ok = await writeNotesFile();
+      flashSaved(ok);
+    }, 800);
+  }
+  function normalizeNotes(raw) {
+    const out = {};
+    for (const [k, v] of Object.entries(raw || {})) {
+      const p = parseInt(k, 10);
+      if (p >= 1 && typeof v === "string" && v.trim()) out[p] = v;
+    }
+    return out;
+  }
+  function applyNotesData(data, sourceLabel) {
+    if (!data || typeof data.notes !== "object") return false;
+    notes = normalizeNotes(data.notes);
+    noteInput.value = notes[currentPage] || "";
+    updateWordCount();
+    renderNotesList();
+    markNotedPages();
+    const n = Object.keys(notes).length;
+    if (n && sourceLabel) showToast("Loaded " + n + " note" + (n === 1 ? "" : "s") + " from " + sourceLabel);
+    return true;
+  }
+  function restoreLocal() {
+    try {
+      const raw = localStorage.getItem(docKey);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      if (data && data.notes) {
+        notes = normalizeNotes(data.notes);
+        noteTimes = (data.noteTimes && typeof data.noteTimes === "object") ? data.noteTimes : {};
+        // Notes saved before timestamps existed would look infinitely old and
+        // lose every merge. Date them from the file instead.
+        if (!data.noteTimes) {
+          const stamp = data.savedAt || new Date().toISOString();
+          for (const p of Object.keys(notes)) noteTimes[p] = stamp;
+        }
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  // ---------- cross-computer merge ----------
+  // Per-note timestamps let two machines converge without a "last file wins"
+  // stomp. A page present in noteTimes but absent from notes is a deletion.
+  function mergeRemote(remote) {
+    if (!remote || typeof remote.notes !== "object") return 0;
+    const rNotes = normalizeNotes(remote.notes);
+    const rTimes = (remote.noteTimes && typeof remote.noteTimes === "object") ? remote.noteTimes : {};
+    const fallback = remote.savedAt || "1970-01-01T00:00:00.000Z";
+    const pages = new Set(
+      [].concat(Object.keys(notes), Object.keys(noteTimes),
+                Object.keys(rNotes), Object.keys(rTimes))
+        .map(Number).filter(n => n >= 1)
+    );
+    let changed = 0;
+    for (const p of pages) {
+      const lt = noteTimes[p] || "1970-01-01T00:00:00.000Z";
+      let rt = rTimes[p];
+      if (!rt) rt = (rNotes[p] !== undefined) ? fallback : null;  // older file format
+      if (rt === null || rt <= lt) continue;                       // ours is newer, keep it
+      if (rNotes[p] !== undefined) {
+        if (notes[p] !== rNotes[p]) { notes[p] = rNotes[p]; changed++; }
+      } else if (notes[p] !== undefined) {
+        delete notes[p]; changed++;
+      }
+      noteTimes[p] = rt;
+    }
+    return changed;
+  }
+
+  async function checkRemote(announce) {
+    if (folderState !== "connected" || !docKey || !hasDoc()) return;
+    try {
+      const fh = await dirHandle.getFileHandle(notesFileName());
+      const f = await fh.getFile();
+      $("savedDot").title = "Notes file in your folder was last written " +
+        new Date(f.lastModified).toLocaleString();
+      if (lastRemoteStamp !== null && f.lastModified <= lastRemoteStamp) {
+        if (announce) showToast("Already up to date");
+        return;
+      }
+      const data = JSON.parse(await f.text());
+      lastRemoteStamp = f.lastModified;
+      const changed = mergeRemote(data);
+      if (changed) {
+        noteInput.value = notes[currentPage] || "";
+        updateWordCount();
+        renderNotesList();
+        markNotedPages();
+        try { localStorage.setItem(docKey, JSON.stringify(payload())); } catch (e) {}
+        await writeNotesFile();   // push the merged result so both sides agree
+        showToast("Pulled in " + changed + " note" + (changed === 1 ? "" : "s") + " from your other computer");
+      } else if (announce) {
+        showToast("Already up to date");
+      }
+    } catch (e) {
+      if (announce) showToast("Couldn't read the notes file from the folder");
+    }
+  }
+
+  function startPolling() {
+    clearInterval(pollTimer);
+    pollTimer = setInterval(() => checkRemote(false), 20000);
+  }
+  // the moment you come back to this window is exactly when you'd notice staleness
+  window.addEventListener("focus", () => checkRemote(false));
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) checkRemote(false);
+  });
+  window.addEventListener("online", () => checkRemote(false));
+
+  // ---------- shared helpers ----------
+  function hasDoc() { return !!(pdfDoc || book); }
+  function pageWord() { return mode === "epub" ? "Loc" : "Page"; }
+  function isEpubName(n) { return /\.epub$/i.test(n); }
+
+  function resetViewer() {
+    Object.values(renderTasks).forEach(t => { try { t.cancel(); } catch (e) {} });
+    renderTasks = {};
+    if (observer) { observer.disconnect(); observer = null; }
+    pdfScroll.innerHTML = "";
+    if (rendition) { try { rendition.destroy(); } catch (e) {} rendition = null; }
+    if (book) { try { book.destroy(); } catch (e) {} book = null; }
+    $("epubArea").innerHTML = "";
+    $("epubChapter").textContent = "";
+    $("epubLocLbl").textContent = "";
+    $("tocSel").innerHTML = "";
+    $("tocSel").style.display = "none";
+    pdfPane.classList.remove("epub-mode");
+    pdfDoc = null;
+    notes = {};
+    noteTimes = {};
+    pageSizes = {};
+    lastRemoteStamp = null;
+    currentPage = 1;
+    activeTag = null;
+    searchText = null;
+    currentQuery = null;
+    suppressReloc = false;
+    $("searchPanel").classList.remove("open");
+    $("searchInput").value = "";
+    hideQuoteBtn();
+  }
+
+  async function openFile(file, fromFolder) {
+    // flush any in-flight edit to the OLD document before we swap it out
+    clearTimeout(saveTimer);
+    commitEditor();
+    if (folderState === "connected") { clearTimeout(folderSaveTimer); await writeNotesFile(); }
+    if (isEpubName(file.name) || file.type === "application/epub+zip") {
+      return openEpub(file, fromFolder);
+    }
+    return openPdf(file, fromFolder);
+  }
+
+  // ---------- EPUB ----------
+  function loadScript(src) {
+    return new Promise((res, rej) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.onload = res;
+      s.onerror = () => rej(new Error("Could not load " + src));
+      document.head.appendChild(s);
+    });
+  }
+  // try each URL in turn; resolve on the first that loads
+  function loadScriptAny(urls) {
+    let chain = Promise.reject(new Error("start"));
+    for (const u of urls) chain = chain.catch(() => loadScript(u));
+    return chain;
+  }
+  function ensureEpubLib() {
+    if (window.ePub) return Promise.resolve();
+    if (!epubLibPromise) {
+      epubLibPromise = loadScriptAny([
+        "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js",
+        "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",
+        "https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"
+      ]).then(() => loadScriptAny([
+        "https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js",
+        "https://unpkg.com/epubjs@0.3.93/dist/epub.min.js"
+      ])).then(() => {
+        if (!window.ePub) throw new Error("epub library loaded but ePub is undefined");
+      }).catch((e) => {
+        epubLibPromise = null;
+        console.error("EPUB library load failed:", e);
+        const err = new Error("epub-lib");
+        err.__lib = true;
+        throw err;
+      });
+    }
+    return epubLibPromise;
+  }
+
+  function applyEpubTheme() {
+    if (!rendition) return;
+    const dark = document.body.classList.contains("dark");
+    try {
+      rendition.themes.register("marginalia", {
+        "html, body": {
+          "background": dark ? "#292420" : "#fffdf9",
+          "color": dark ? "#ede5d7" : "#221e18"
+        },
+        "body": {
+          "font-family": "'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif !important",
+          "line-height": "1.7 !important",
+          "padding": "0 2px !important",
+          "text-align": "left !important"
+        },
+        "p": { "line-height": "1.7 !important" },
+        "a": { "color": dark ? "#e59b76" : "#a84f2e" },
+        "h1, h2, h3, h4": { "color": dark ? "#ede5d7" : "#221e18", "line-height": "1.3" },
+        "img": { "max-width": "100% !important", "height": "auto !important" },
+        "::selection": { "background": dark ? "rgba(229,155,118,.4)" : "rgba(168,79,46,.32)" }
+      });
+      rendition.themes.select("marginalia");
+      rendition.themes.fontSize(Math.round(epubFont * 100) + "%");
+    } catch (e) { /* rendition not ready yet */ }
+  }
+
+  function epubGoTo(n) {
+    if (!book || !rendition || !book.locations) return;
+    let cfi = null;
+    try { cfi = book.locations.cfiFromLocation(n); } catch (e) {}
+    if (!cfi) { showToast("Couldn't find location " + n + " in this book"); return; }
+    suppressReloc = true;
+    Promise.resolve(rendition.display(cfi)).then(() => {
+      setTimeout(() => { suppressReloc = false; }, 500);
+    }, (e) => {
+      suppressReloc = false;
+      console.error("epub display failed", e);
+      showToast("Couldn't move to location " + n);
+    });
+  }
+
+  // epub.js scrolls internally in continuous mode, so it needs real pixel
+  // dimensions — percentages against an auto-height parent render one section.
+  function epubSize() {
+    const el = $("epubArea");
+    const w = Math.max(320, (el.clientWidth || pdfPane.clientWidth || 700) - 36);
+    const h = Math.max(300, el.clientHeight || (pdfPane.clientHeight - 40) || 600);
+    return { w, h };
+  }
+  function resizeEpub() {
+    if (mode !== "epub" || !rendition) return;
+    const s = epubSize();
+    try { rendition.resize(s.w, s.h); } catch (e) {}
+  }
+  let epubResizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(epubResizeTimer);
+    epubResizeTimer = setTimeout(resizeEpub, 180);
+  });
+
+  async function buildToc() {
+    const sel = $("tocSel");
+    sel.innerHTML = "";
+    let items = [];
+    const walk = (list, depth) => {
+      for (const it of list || []) {
+        if (it.href) items.push({
+          label: (depth ? "— ".repeat(depth) : "") + (((it.label || "").trim()) || it.href),
+          href: it.href
+        });
+        if (it.subitems && it.subitems.length) walk(it.subitems, depth + 1);
+      }
+    };
+    try {
+      const nav = await book.loaded.navigation;   // may resolve after book.ready
+      walk(nav && nav.toc, 0);
+    } catch (e) { console.warn("Marginalia: TOC parse failed", e); }
+    if (!items.length) {
+      // No usable TOC — fall back to the spine so there is always a way to move
+      try {
+        const spine = await book.loaded.spine;
+        const list = (spine && spine.spineItems) ||
+                     (book.spine && book.spine.spineItems) || [];
+        items = list.map((s, i) => ({ label: "Section " + (i + 1), href: s.href }));
+      } catch (e) { console.warn("Marginalia: spine fallback failed", e); }
+    }
+    console.log("Marginalia: TOC entries =", items.length);
+    if (!items.length) { sel.style.display = "none"; return; }
+    const head = document.createElement("option");
+    head.value = ""; head.textContent = "Contents…";
+    sel.appendChild(head);
+    for (const it of items) {
+      const o = document.createElement("option");
+      o.value = it.href;
+      o.textContent = it.label || it.href;
+      sel.appendChild(o);
+    }
+    sel.style.display = "inline-block";
+  }
+  $("tocSel").addEventListener("change", (e) => {
+    const href = e.target.value;
+    e.target.selectedIndex = 0;
+    if (!href || !rendition) return;
+    commitEditor();
+    Promise.resolve(rendition.display(href)).catch(() => showToast("Couldn't jump to that chapter"));
+  });
+
+  function epubChapterLabel(loc) {
+    try {
+      const href = loc && loc.start && loc.start.href;
+      if (!href || !book.navigation) return "";
+      const item = book.navigation.get(href) ||
+        (book.navigation.toc || []).find(t => t.href && t.href.split("#")[0] === href.split("#")[0]);
+      return item && item.label ? item.label.trim() : "";
+    } catch (e) { return ""; }
+  }
+
+  async function openEpub(file, fromFolder) {
+    try {
+      showToast("Opening " + file.name + "…");
+      await ensureEpubLib();
+      const buf = await file.arrayBuffer();
+      origBytes = new Uint8Array(buf.slice(0));
+
+      resetViewer();
+      mode = "epub";
+      pdfScroll.style.display = "none";
+      $("epubWrap").style.display = "flex";   // must stay flex — it's a column
+      $("zoomReadout").title = "Text size";
+
+      pdfPane.classList.add("epub-mode");
+      book = window.ePub(buf);
+      const sz = epubSize();
+      rendition = book.renderTo($("epubArea"), {
+        manager: "continuous",
+        flow: "scrolled",
+        width: sz.w,
+        height: sz.h,
+        allowScriptedContent: false
+      });
+      console.log("Marginalia b7: epub container size", sz);
+      if (sz.h < 120) console.warn("Marginalia: reader container is too short — chapters may not advance");
+      applyEpubTheme();
+      await rendition.display();
+      await book.ready;
+      await buildToc();
+
+      docTitle = file.name;
+      docSize = file.size;
+      pdfFromFolder = !!fromFolder;
+      // remember it so a refresh comes back here instead of the start screen
+      try {
+        if (fromFolder) localStorage.setItem("marginalia::lastDoc", file.name);
+        else localStorage.removeItem("marginalia::lastDoc");
+      } catch (e) {}
+      docKey = "marginalia::" + file.name + "::" + file.size + "::epub";
+
+      // Locations = stable pseudo-pages (~1600 chars). Generation is slow on
+      // big books, so cache the result keyed to this exact file.
+      let saved = null;
+      try { saved = localStorage.getItem(docKey + "::locs"); } catch (e) {}
+      let loaded = false;
+      if (saved) { try { book.locations.load(saved); loaded = book.locations.length() > 0; } catch (e) {} }
+      if (!loaded) {
+        showToast("Preparing this book — first open only…");
+        await book.locations.generate(1600);
+        try { localStorage.setItem(docKey + "::locs", book.locations.save()); } catch (e) {}
+      }
+      numPages = book.locations.length() || 1;
+
+      // Load this device's copy, then MERGE the folder copy over it per note.
+      // (A blind overwrite would discard edits made here while offline.)
+      restoreLocal();
+      const fileData = await readNotesFile();
+      if (fileData) {
+        mergeRemote(fileData);
+        try {
+          const fh = await dirHandle.getFileHandle(notesFileName());
+          lastRemoteStamp = (await fh.getFile()).lastModified;
+        } catch (e) {}
+      }
+      startPolling();
+
+      noteInput.value = notes[1] || "";
+      updateWordCount();
+      renderNotesList();
+      setCurrentPage(1, false);
+
+      rendition.on("relocated", (loc) => {
+        if (!loc || !loc.start) return;
+        $("epubChapter").textContent = epubChapterLabel(loc);
+        const n = loc.start.location || 1;
+        $("epubLocLbl").textContent = "Loc " + n + " / " + numPages +
+          (loc.start.percentage ? " · " + Math.round(loc.start.percentage * 100) + "%" : "");
+        if (suppressReloc) return;
+        if (n !== currentPage) setCurrentPage(n, false);
+      });
+
+      rendition.on("selected", (cfiRange, contents) => {
+        try {
+          const sel = contents.window.getSelection();
+          const text = sel.toString().replace(/\s+/g, " ").trim();
+          if (!text || text.length < 2) { hideQuoteBtn(); return; }
+          const r = sel.getRangeAt(0).getBoundingClientRect();
+          const fr = contents.document.defaultView.frameElement.getBoundingClientRect();
+          const btn = $("quoteBtn");
+          quotePending = { text, page: currentPage };
+          btn.style.display = "inline-flex";
+          btn.style.left = Math.min(window.innerWidth - 170,
+            Math.max(8, fr.left + r.left + r.width / 2 - 65)) + "px";
+          btn.style.top = Math.max(8, fr.top + r.top - 42) + "px";
+        } catch (e) {}
+      });
+
+      $("docName").innerHTML = "<b>" + esc(docTitle) + "</b> · " + numPages + " locations";
+      $("docControls").style.display = "inline-flex";
+      hero.style.display = "none";
+      updateZoomReadout();
+      updateFolderUi();
+
+      const n = Object.keys(notes).length;
+      if (n) showToast("Restored " + n + " saved note" + (n === 1 ? "" : "s") +
+        (fileData ? " from your sync folder" : ""));
+
+      let lp = 0;
+      try { lp = parseInt(localStorage.getItem(docKey + "::lp"), 10) || 0; } catch (e) {}
+      if (lp > 1 && lp <= numPages) {
+        setCurrentPage(lp, true);
+        showToast("Resumed at location " + lp);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast(err && err.__lib
+        ? "Couldn't load the EPUB reader library — check your connection, then reload"
+        : "Couldn't open that EPUB — the file may be damaged or DRM-protected");
+    }
+  }
+
+  async function epubSearch(q) {
+    const out = [];
+    const items = (book.spine && book.spine.spineItems) || [];
+    for (const item of items) {
+      try {
+        await item.load(book.load.bind(book));
+        const found = item.find(q) || [];
+        for (const f of found) {
+          let loc = 1;
+          try { loc = book.locations.locationFromCfi(f.cfi) || 1; } catch (e) {}
+          out.push({ loc, cfi: f.cfi, excerpt: f.excerpt || "" });
+        }
+      } catch (e) { /* skip unreadable section */ }
+      finally { try { item.unload(); } catch (e) {} }
+      if (out.length > 400) break;
+    }
+    out.sort((a, b) => a.loc - b.loc);
+    return out;
+  }
+
+  function renderSearchPanelEpub(q, res) {
+    const panel = $("searchPanel");
+    panel.innerHTML =
+      '<div class="sp-head"><span>“' + esc(q) + '” — ' + res.length + " hit" +
+      (res.length === 1 ? "" : "s") + '</span><button id="spClose" title="Close">✕</button></div>';
+    const body = document.createElement("div");
+    body.className = "sp-body";
+    if (!res.length) body.innerHTML = '<div class="sp-empty">No matches found in this book.</div>';
+    for (const r of res.slice(0, 250)) {
+      const row = document.createElement("button");
+      row.className = "sp-row epub";
+      row.innerHTML = "<span><b>Loc " + r.loc + "</b>" +
+        (r.excerpt ? '<span class="sp-ex">' + esc(r.excerpt.trim()) + "</span>" : "") + "</span>";
+      row.addEventListener("click", () => {
+        suppressReloc = true;
+        Promise.resolve(rendition.display(r.cfi)).then(() => {
+          setTimeout(() => { suppressReloc = false; }, 500);
+        }, () => { suppressReloc = false; });
+        setCurrentPage(r.loc, false);
+      });
+      body.appendChild(row);
+    }
+    panel.appendChild(body);
+    panel.classList.add("open");
+    $("spClose").addEventListener("click", () => panel.classList.remove("open"));
+  }
+
+  // ---------- PDF loading ----------
+  async function openPdf(file, fromFolder) {
+    try {
+      showToast("Opening " + file.name + "…");
+      const buf = await file.arrayBuffer();
+      origBytes = new Uint8Array(buf.slice(0)); // keep a copy; pdf.js detaches its buffer
+      const doc = await pdfjsLib.getDocument({ data: buf }).promise;
+
+      resetViewer();
+      mode = "pdf";
+      pdfScroll.style.display = "";
+      $("epubWrap").style.display = "none";
+
+      pdfDoc = doc;
+      numPages = doc.numPages;
+      docTitle = file.name;
+      docSize = file.size;
+      pdfFromFolder = !!fromFolder;
+      // remember it so a refresh comes back here instead of the start screen
+      try {
+        if (fromFolder) localStorage.setItem("marginalia::lastDoc", file.name);
+        else localStorage.removeItem("marginalia::lastDoc");
+      } catch (e) {}
+      docKey = "marginalia::" + file.name + "::" + file.size + "::" + numPages;
+
+      const p1 = await doc.getPage(1);
+      const vp = p1.getViewport({ scale: 1 });
+      baseWidth = vp.width;
+      baseHeight = vp.height;
+
+      const avail = pdfPane.clientWidth - 56;
+      scale = Math.min(1.6, Math.max(0.5, avail / baseWidth));
+
+      buildPageShells();
+
+      // Load this device's copy, then MERGE the folder copy over it per note.
+      // (A blind overwrite would discard edits made here while offline.)
+      restoreLocal();
+      const fileData = await readNotesFile();
+      if (fileData) {
+        mergeRemote(fileData);
+        try {
+          const fh = await dirHandle.getFileHandle(notesFileName());
+          lastRemoteStamp = (await fh.getFile()).lastModified;
+        } catch (e) {}
+      }
+      startPolling();
+
+      // sync editor BEFORE setCurrentPage so commitEditor can't wipe a
+      // restored note or leak text from a previously open document
+      noteInput.value = notes[1] || "";
+      updateWordCount();
+      renderNotesList();
+      markNotedPages();
+      setCurrentPage(1, false);
+
+      $("docName").innerHTML = "<b>" + esc(docTitle) + "</b> · " + numPages + " pages";
+      $("docControls").style.display = "inline-flex";
+      hero.style.display = "none";
+      updateZoomReadout();
+      updateFolderUi();
+      const n = Object.keys(notes).length;
+      if (n) showToast("Restored " + n + " saved note" + (n === 1 ? "" : "s") +
+        (fileData ? " from your sync folder" : ""));
+
+      // resume where you left off
+      let lp = 0;
+      try { lp = parseInt(localStorage.getItem(docKey + "::lp"), 10) || 0; } catch (e) {}
+      if (lp > 1 && lp <= numPages) {
+        setCurrentPage(lp, false);
+        await scrollToPageSettled(lp);
+        showToast("Resumed at page " + lp);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't open that file — is it a valid PDF?");
+    }
+  }
+
+  function buildPageShells() {
+    pdfScroll.innerHTML = "";
+    for (let i = 1; i <= numPages; i++) {
+      // use each page's real proportions once we've seen them, so placeholders
+      // don't shift the scroll position when the page actually renders
+      const known = pageSizes[i];
+      const w = Math.round((known ? known.w : baseWidth) * scale);
+      const h = Math.round((known ? known.h : baseHeight) * scale);
+      const shell = document.createElement("div");
+      shell.className = "page-shell";
+      shell.dataset.page = i;
+      shell.style.width = w + "px";
+      shell.style.height = h + "px";
+      shell.innerHTML = '<div class="page-loading">page ' + i + '</div><span class="page-num">' + i + " / " + numPages + "</span>";
+      pdfScroll.appendChild(shell);
+    }
+    observer = new IntersectionObserver(onIntersect, {
+      root: pdfPane, rootMargin: "600px 0px", threshold: 0
+    });
+    document.querySelectorAll(".page-shell").forEach(s => observer.observe(s));
+    markNotedPages();
+  }
+
+  function onIntersect(entries) {
+    for (const en of entries) {
+      const shell = en.target;
+      const n = parseInt(shell.dataset.page, 10);
+      if (en.isIntersecting && !shell.dataset.rendered) {
+        shell.dataset.rendered = "1";
+        renderPage(n, shell);
+      }
+    }
+  }
+
+  async function renderPage(n, shell) {
+    try {
+      const page = await pdfDoc.getPage(n);
+      const vp = page.getViewport({ scale });
+      pageSizes[n] = { w: vp.width / scale, h: vp.height / scale };
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.floor(vp.width * dpr);
+      canvas.height = Math.floor(vp.height * dpr);
+      const ctx = canvas.getContext("2d");
+      const task = page.render({
+        canvasContext: ctx, viewport: vp,
+        transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null
+      });
+      renderTasks[n] = task;
+      await task.promise;
+      shell.style.width = Math.round(vp.width) + "px";
+      shell.style.height = Math.round(vp.height) + "px";
+      const loading = shell.querySelector(".page-loading");
+      if (loading) loading.remove();
+      shell.insertBefore(canvas, shell.firstChild);
+
+      // selectable text layer over the canvas
+      try {
+        const tc = await page.getTextContent();
+        const tl = document.createElement("div");
+        tl.className = "textLayer";
+        tl.style.width = Math.round(vp.width) + "px";
+        tl.style.height = Math.round(vp.height) + "px";
+        tl.style.setProperty("--scale-factor", vp.scale);
+        shell.appendChild(tl);
+        const tlTask = pdfjsLib.renderTextLayer({
+          textContentSource: tc, textContent: tc,
+          container: tl, viewport: vp, textDivs: []
+        });
+        if (tlTask && tlTask.promise) await tlTask.promise;
+        if (currentQuery) highlightShell(shell);
+      } catch (e) { /* text layer is optional — scanned PDFs may lack text */ }
+    } catch (err) {
+      if (err && err.name === "RenderingCancelledException") return;
+      console.error("render page " + n, err);
+    }
+  }
+
+  // Zoom rebuilds every page box, so the old scroll offset is meaningless.
+  // Anchor to the page you were on AND how far down it you were, then re-anchor
+  // once that page has actually rendered (its true height is only known then).
+  async function rerenderAll() {
+    const keep = currentPage;
+    const oldShell = shellFor(keep);
+    let frac = 0;
+    if (oldShell && oldShell.offsetHeight) {
+      frac = (pdfPane.scrollTop - oldShell.offsetTop) / oldShell.offsetHeight;
+      frac = Math.min(1, Math.max(0, frac));
+    }
+    Object.values(renderTasks).forEach(t => { try { t.cancel(); } catch (e) {} });
+    renderTasks = {};
+    if (observer) observer.disconnect();
+
+    suppressScrollSpy = true;
+    pdfPane.classList.add("no-smooth");
+    buildPageShells();
+
+    const anchor = () => {
+      const s = shellFor(keep);
+      if (s) pdfPane.scrollTop = Math.max(0, s.offsetTop - 20 + frac * s.offsetHeight);
+    };
+    anchor();
+    const target = shellFor(keep);
+    if (target && !target.dataset.rendered) {
+      target.dataset.rendered = "1";
+      await renderPage(keep, target);   // settles this page's real height
+    }
+    anchor();
+    requestAnimationFrame(() => {
+      anchor();
+      setTimeout(() => {
+        pdfPane.classList.remove("no-smooth");
+        suppressScrollSpy = false;
+      }, 200);
+    });
+    updatePageUi();
+  }
+
+  // ---------- paging / scroll spy ----------
+  function shellFor(n) {
+    return pdfScroll.querySelector('.page-shell[data-page="' + n + '"]');
+  }
+  function setCurrentPage(n, scroll) {
+    n = Math.min(Math.max(1, n), numPages || 1);
+    if (scroll) {
+      if (mode === "epub") {
+        epubGoTo(n);
+      } else {
+        const shell = shellFor(n);
+        if (shell) {
+          suppressScrollSpy = true;
+          pdfPane.scrollTo({ top: shell.offsetTop - 20 });
+          setTimeout(() => { suppressScrollSpy = false; }, 600);
+        }
+      }
+    }
+    if (n === currentPage && $("curPageLabel").textContent !== "–") {
+      updatePageUi(); return;
+    }
+    commitEditor();
+    currentPage = n;
+    try { if (docKey) localStorage.setItem(docKey + "::lp", n); } catch (e) {}
+    noteInput.value = notes[n] || "";
+    updateWordCount();
+    updatePageUi();
+  }
+  function updatePageUi() {
+    $("pageWordLabel").textContent = pageWord();
+    $("curPageLabel").textContent = currentPage;
+    $("pageReadout").textContent = currentPage + " / " + numPages;
+    document.querySelectorAll(".note-card").forEach(c =>
+      c.classList.toggle("current", parseInt(c.dataset.page, 10) === currentPage));
+    // keep the note you're on visible in the list without yanking it around
+    const cur = notesList.querySelector(".note-card.current");
+    if (cur && cur.scrollIntoView) {
+      try { cur.scrollIntoView({ block: "nearest" }); } catch (e) {}
+    }
+  }
+
+  // Scroll to a page and stay there: a placeholder's height is a guess until
+  // the page actually renders, so re-anchor once its real height is known.
+  async function scrollToPageSettled(n) {
+    let s = shellFor(n);
+    if (!s) return;
+    suppressScrollSpy = true;
+    pdfPane.classList.add("no-smooth");
+    const put = () => {
+      const el = shellFor(n);
+      if (el) pdfPane.scrollTop = Math.max(0, el.offsetTop - 20);
+    };
+    put();
+    if (!s.dataset.rendered) { s.dataset.rendered = "1"; await renderPage(n, s); }
+    put();
+    requestAnimationFrame(() => {
+      put();
+      setTimeout(() => {
+        pdfPane.classList.remove("no-smooth");
+        suppressScrollSpy = false;
+      }, 250);
+    });
+  }
+
+  let spyTimer = null;
+  pdfPane.addEventListener("scroll", () => {
+    hideQuoteBtn();
+    if (suppressScrollSpy || mode !== "pdf" || !pdfDoc) return;
+    clearTimeout(spyTimer);
+    spyTimer = setTimeout(() => {
+      const probe = pdfPane.scrollTop + pdfPane.clientHeight * 0.35;
+      let best = 1;
+      document.querySelectorAll(".page-shell").forEach(s => {
+        if (s.offsetTop <= probe) best = parseInt(s.dataset.page, 10);
+      });
+      if (best !== currentPage) setCurrentPage(best, false);
+    }, 120);
+  });
+
+  // ---------- select-to-quote ----------
+  function hideQuoteBtn() {
+    $("quoteBtn").style.display = "none";
+    quotePending = null;
+  }
+  pdfPane.addEventListener("mouseup", () => setTimeout(maybeShowQuoteBtn, 10));
+  function maybeShowQuoteBtn() {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) { hideQuoteBtn(); return; }
+    const text = sel.toString().replace(/\s+/g, " ").trim();
+    if (!text || text.length < 2) { hideQuoteBtn(); return; }
+    let node = sel.anchorNode;
+    if (node && node.nodeType === 3) node = node.parentElement;
+    const shell = node && node.closest ? node.closest(".page-shell") : null;
+    if (!shell) { hideQuoteBtn(); return; }
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    const btn = $("quoteBtn");
+    quotePending = { text, page: parseInt(shell.dataset.page, 10) };
+    btn.style.display = "inline-flex";
+    btn.style.left = Math.min(window.innerWidth - 170, Math.max(8, rect.left + rect.width / 2 - 65)) + "px";
+    btn.style.top = Math.max(8, rect.top - 42) + "px";
+  }
+  document.addEventListener("mousedown", (e) => {
+    if (e.target && e.target.closest && e.target.closest("#quoteBtn")) return;
+    if (!e.target.closest || !e.target.closest(".textLayer")) hideQuoteBtn();
+  });
+  $("quoteBtn").addEventListener("click", () => {
+    if (!quotePending) return;
+    const { text, page } = quotePending;
+    setCurrentPage(page, false);
+    const v = noteInput.value;
+    noteInput.value = v + (v && !v.endsWith("\n") ? "\n" : "") + "“" + text + "”\n";
+    updateWordCount();
+    commitEditor();
+    try { window.getSelection().removeAllRanges(); } catch (e) {}
+    hideQuoteBtn();
+    showToast("Quote added to " + pageWord().toLowerCase() + " " + page + " note");
+  });
+
+  // ---------- search ----------
+  async function buildSearchIndex() {
+    if (searchIndexing) return;
+    searchIndexing = true;
+    const idx = [];
+    try {
+      for (let i = 1; i <= numPages; i++) {
+        const p = await pdfDoc.getPage(i);
+        const tc = await p.getTextContent();
+        idx[i] = tc.items.map(it => it.str).join(" ");
+        if (i % 60 === 0) showToast("Indexing text… page " + i + " / " + numPages);
+      }
+      searchText = idx;
+    } finally { searchIndexing = false; }
+  }
+  async function runSearch() {
+    const q = $("searchInput").value.trim();
+    if (!q || !hasDoc()) return;
+    if (mode === "epub") {
+      showToast("Searching the book…");
+      const res = await epubSearch(q);
+      renderSearchPanelEpub(q, res);
+      return;
+    }
+    if (!searchText) {
+      showToast("Indexing document text (first search only)…");
+      await buildSearchIndex();
+      if (!searchText) return;
+    }
+    const ql = q.toLowerCase();
+    const hits = [];
+    for (let i = 1; i <= numPages; i++) {
+      const t = (searchText[i] || "").toLowerCase();
+      let c = 0, idx = 0;
+      while ((idx = t.indexOf(ql, idx)) !== -1) { c++; idx += ql.length; }
+      if (c) hits.push([i, c]);
+    }
+    currentQuery = ql;
+    renderSearchPanel(q, hits);
+    document.querySelectorAll(".page-shell").forEach(highlightShell);
+  }
+  function highlightShell(shell) {
+    shell.querySelectorAll(".textLayer span").forEach(sp => {
+      sp.classList.toggle("search-hit",
+        !!currentQuery && sp.textContent.toLowerCase().indexOf(currentQuery) !== -1);
+    });
+  }
+  function clearHighlights() {
+    currentQuery = null;
+    document.querySelectorAll(".search-hit").forEach(s => s.classList.remove("search-hit"));
+  }
+  function renderSearchPanel(q, hits) {
+    const panel = $("searchPanel");
+    const total = hits.reduce((a, h) => a + h[1], 0);
+    panel.innerHTML =
+      '<div class="sp-head"><span>“' + esc(q) + '” — ' + total + " hit" + (total === 1 ? "" : "s") +
+      " on " + hits.length + " page" + (hits.length === 1 ? "" : "s") +
+      '</span><button id="spClose" title="Close">✕</button></div>';
+    const body = document.createElement("div");
+    body.className = "sp-body";
+    if (!hits.length) {
+      body.innerHTML = '<div class="sp-empty">No matches. (Exact phrases only; note that phrases split across lines may be missed in highlighting but are counted here.)</div>';
+    }
+    for (const [p, c] of hits) {
+      const row = document.createElement("button");
+      row.className = "sp-row";
+      row.innerHTML = "<span>Page " + p + "</span><span class='sp-count'>" + c + "</span>";
+      row.addEventListener("click", () => {
+        setCurrentPage(p, true);
+        setTimeout(() => { const sh = shellFor(p); if (sh) highlightShell(sh); }, 400);
+      });
+      body.appendChild(row);
+    }
+    panel.appendChild(body);
+    panel.classList.add("open");
+    $("spClose").addEventListener("click", () => {
+      panel.classList.remove("open");
+      clearHighlights();
+    });
+  }
+  $("searchGo").addEventListener("click", runSearch);
+  $("searchInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); runSearch(); }
+    if (e.key === "Escape") {
+      $("searchPanel").classList.remove("open");
+      clearHighlights();
+      e.target.blur();
+    }
+  });
+
+  // ---------- notes ----------
+  function commitEditor() {
+    if (!hasDoc()) return;
+    const val = noteInput.value;
+    const prev = notes[currentPage];
+    const next = val.trim() ? val : undefined;
+    if (prev === next) return;                 // nothing actually changed
+    if (next === undefined) delete notes[currentPage];
+    else notes[currentPage] = next;
+    noteTimes[currentPage] = new Date().toISOString();
+    persist(); renderNotesList(); markNotedPages();
+  }
+  function updateWordCount() {
+    const t = noteInput.value.trim();
+    const n = t ? t.split(/\s+/).length : 0;
+    $("wordCount").textContent = n + (n === 1 ? " word" : " words");
+  }
+  noteInput.addEventListener("input", () => {
+    updateWordCount();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(commitEditor, 500);
+  });
+  noteInput.addEventListener("blur", commitEditor);
+
+  $("clearNote").addEventListener("click", () => {
+    noteInput.value = "";
+    updateWordCount();
+    commitEditor();
+    noteInput.focus();
+  });
+
+  $("chips").addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip || !hasDoc()) return;
+    const tag = chip.dataset.t + ": ";
+    const v = noteInput.value;
+    noteInput.value = v + (v && !v.endsWith("\n") ? "\n" : "") + tag;
+    noteInput.focus();
+    noteInput.selectionStart = noteInput.selectionEnd = noteInput.value.length;
+    updateWordCount();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(commitEditor, 500);
+  });
+
+  // ---------- tags / thread index ----------
+  function renderTags() {
+    const counts = {};
+    for (const t of Object.values(notes)) {
+      for (const m of t.matchAll(/#([A-Za-z0-9_-]+)/g)) {
+        const k = m[1].toLowerCase();
+        counts[k] = (counts[k] || 0) + 1;
+      }
+    }
+    if (activeTag && !counts[activeTag]) activeTag = null;
+    const bar = $("tagBar");
+    const keys = Object.keys(counts).sort();
+    if (!keys.length) {
+      bar.style.display = "none";
+      bar.innerHTML = "";
+      $("notesListTitle").textContent = "All notes";
+      return;
+    }
+    bar.style.display = "flex";
+    bar.innerHTML = "";
+    for (const k of keys) {
+      const b = document.createElement("button");
+      b.className = "tag" + (k === activeTag ? " active" : "");
+      b.textContent = "#" + k + " · " + counts[k];
+      b.title = k === activeTag ? "Click to show all notes" : "Show only notes tagged #" + k;
+      b.addEventListener("click", () => {
+        activeTag = activeTag === k ? null : k;
+        renderNotesList();
+      });
+      bar.appendChild(b);
+    }
+    $("notesListTitle").textContent = activeTag ? "Thread: #" + activeTag : "All notes";
+  }
+
+  function renderNotesList() {
+    renderTags();
+    let pages = Object.keys(notes).map(Number).sort((a, b) => a - b);
+    if (activeTag) {
+      const re = new RegExp("#" + activeTag + "(?![A-Za-z0-9_-])", "i");
+      pages = pages.filter(p => re.test(notes[p]));
+    }
+    const allCount = Object.keys(notes).length;
+    $("noteCount").textContent = allCount
+      ? allCount + " page" + (allCount === 1 ? "" : "s") + " noted" : "";
+    if (!pages.length) {
+      notesList.innerHTML = '<div class="empty-notes">' +
+        (activeTag ? "No notes in this thread yet." : "Your notes will collect here as you read.") +
+        "</div>";
+      return;
+    }
+    notesList.innerHTML = "";
+    for (const p of pages) {
+      const card = document.createElement("div");
+      card.className = "note-card" + (p === currentPage ? " current" : "");
+      card.dataset.page = p;
+      const bodyHtml = esc(notes[p]).replace(/#([A-Za-z0-9_-]+)/g, '<span class="nt">#$1</span>');
+      card.innerHTML =
+        '<div class="nc-head"><span class="pg">' + pageWord() + " " + p + '</span>' +
+        '<button class="del" title="Delete note">✕</button></div>' +
+        "<p>" + bodyHtml + "</p>";
+      card.addEventListener("click", (e) => {
+        if (e.target.closest(".del")) {
+          delete notes[p];
+          noteTimes[p] = new Date().toISOString();   // tombstone, so the delete syncs
+          if (p === currentPage) { noteInput.value = ""; updateWordCount(); }
+          persist(); renderNotesList(); markNotedPages();
+          return;
+        }
+        setCurrentPage(p, true);
+      });
+      notesList.appendChild(card);
+    }
+  }
+  function markNotedPages() {
+    if (mode !== "pdf") return;
+    document.querySelectorAll(".page-shell").forEach(s =>
+      s.classList.toggle("has-note", !!notes[s.dataset.page]));
+  }
+
+  // ---------- nav / zoom ----------
+  // In EPUB mode ‹ › move a screenful (a single location is only ~1,600 chars)
+  function stepBack() {
+    if (mode === "epub" && rendition) { commitEditor(); rendition.prev(); return; }
+    setCurrentPage(currentPage - 1, true);
+  }
+  function stepFwd() {
+    if (mode === "epub" && rendition) { commitEditor(); rendition.next(); return; }
+    setCurrentPage(currentPage + 1, true);
+  }
+  $("prevPg").addEventListener("click", stepBack);
+  $("nextPg").addEventListener("click", stepFwd);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { $("libPanel").classList.remove("open"); }
+    if (!hasDoc() || e.target === noteInput || e.target.tagName === "INPUT" ||
+        e.target.tagName === "SELECT") return;
+    if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); stepBack(); }
+    if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); stepFwd(); }
+  });
+
+  function updateZoomReadout() {
+    $("zoomReadout").textContent =
+      Math.round((mode === "epub" ? epubFont : scale) * 100) + "%";
+  }
+  function zoom(delta) {
+    if (!hasDoc()) return;
+    if (mode === "epub") {
+      const nf = Math.min(2, Math.max(0.7, epubFont + (delta > 0 ? 0.1 : -0.1)));
+      if (Math.abs(nf - epubFont) < 0.01) return;
+      epubFont = nf;
+      try {
+        rendition.themes.fontSize(Math.round(epubFont * 100) + "%");
+        // resizing text reflows the book — put the reader back where it was
+        setTimeout(() => epubGoTo(currentPage), 120);
+      } catch (e) {}
+      updateZoomReadout();
+      return;
+    }
+    const next = Math.min(2.5, Math.max(0.4, scale + delta));
+    if (Math.abs(next - scale) < 0.01) return;
+    scale = next;
+    updateZoomReadout();
+    rerenderAll();
+  }
+  $("zoomIn").addEventListener("click", () => zoom(0.15));
+  $("zoomOut").addEventListener("click", () => zoom(-0.15));
+
+  // ---------- export / import ----------
+  const exportMenu = $("exportMenu");
+  $("exportBtn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    exportMenu.classList.toggle("open");
+  });
+  document.addEventListener("click", () => exportMenu.classList.remove("open"));
+
+  function collectExport() {
+    const pages = Object.keys(notes).map(Number).sort((a, b) => a - b);
+    const threads = {};
+    const tagged = new Set();
+    for (const p of pages) {
+      const tags = [...new Set([...notes[p].matchAll(/#([A-Za-z0-9_-]+)/g)].map(m => m[1].toLowerCase()))];
+      if (tags.length) tagged.add(p);
+      for (const t of tags) (threads[t] = threads[t] || []).push(p);
+    }
+    return { pages, threads, untagged: pages.filter(p => !tagged.has(p)) };
+  }
+  // lines captured with select-to-quote (they start with a curly quote) become blockquotes
+  function mdNote(text) {
+    return text.trim().split("\n").map(l =>
+      l.trim().charAt(0) === "“" ? "> " + l.trim() : l
+    ).join("\n");
+  }
+
+  $("expMd").addEventListener("click", () => {
+    commitEditor();
+    const { pages, threads, untagged } = collectExport();
+    let md = "# Writing style notes — " + baseName() + "\n\n";
+    const W = pageWord(), w = W.toLowerCase();
+    md += "*" + pages.length + " annotated " + w + (pages.length === 1 ? "" : "s") +
+          " · exported " + new Date().toLocaleString() + " · made with Marginalia*\n\n";
+    if (!pages.length) md += "_No notes yet._\n";
+    const tagKeys = Object.keys(threads).sort();
+    if (tagKeys.length) {
+      md += "## Threads\n\n";
+      for (const t of tagKeys) {
+        md += "### #" + t + " — " + threads[t].length + " " + w + (threads[t].length === 1 ? "" : "s") + "\n\n";
+        for (const p of threads[t]) md += "**" + W + " " + p + "**\n\n" + mdNote(notes[p]) + "\n\n";
+      }
+    }
+    if (untagged.length) {
+      if (tagKeys.length) md += "## Other notes\n\n";
+      for (const p of untagged) md += "### " + W + " " + p + "\n\n" + mdNote(notes[p]) + "\n\n";
+    }
+    download(baseName() + " — style notes.md", md, "text/markdown");
+    showToast("Markdown exported" + (tagKeys.length ? " (grouped by thread)" : ""));
+  });
+
+  $("expPdf").addEventListener("click", () => {
+    commitEditor();
+    const { pages, threads, untagged } = collectExport();
+    if (!pages.length) { showToast("No notes to export yet"); return; }
+    const noteHtml = (text) => {
+      const parts = [];
+      let quote = [];
+      const flush = () => {
+        if (quote.length) { parts.push("<blockquote>" + quote.join("<br>") + "</blockquote>"); quote = []; }
+      };
+      for (const raw of text.trim().split("\n")) {
+        const l = raw.trim();
+        if (!l) { flush(); continue; }
+        const safe = esc(l).replace(/#([A-Za-z0-9_-]+)/g, '<span class="t">#$1</span>');
+        if (l.charAt(0) === "“") quote.push(safe);
+        else { flush(); parts.push("<p>" + safe + "</p>"); }
+      }
+      flush();
+      return parts.join("");
+    };
+    let body = "";
+    const tagKeys = Object.keys(threads).sort();
+    if (tagKeys.length) {
+      body += "<h2>Threads</h2>";
+      for (const t of tagKeys) {
+        body += '<h3><span class="pill">#' + t + "</span> &nbsp;" + threads[t].length +
+                " page" + (threads[t].length === 1 ? "" : "s") + "</h3>";
+        for (const p of threads[t]) body += '<div class="note"><div class="pg">' + pageWord() + " " + p + "</div>" + noteHtml(notes[p]) + "</div>";
+      }
+    }
+    if (untagged.length) {
+      body += tagKeys.length ? "<h2>Other notes</h2>" : "<h2>Notes</h2>";
+      for (const p of untagged) body += '<div class="note"><div class="pg">' + pageWord() + " " + p + "</div>" + noteHtml(notes[p]) + "</div>";
+    }
+    const htmlDoc = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>" + esc(baseName()) +
+      " — style notes</title><style>" + [
+        "body{font-family:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;color:#221e18;max-width:680px;margin:40px auto;padding:0 24px;line-height:1.6;}",
+        "h1{font-size:28px;margin:0 0 4px;}",
+        ".meta{font-size:12px;color:#8d8578;font-style:italic;margin-bottom:28px;border-bottom:1px solid #ddd5c7;padding-bottom:16px;}",
+        "h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#7c3517;margin:34px 0 12px;}",
+        "h3{font-size:15px;margin:22px 0 6px;}",
+        ".pill{background:#f4e3da;color:#7c3517;border-radius:100px;padding:2px 10px;font-size:13px;}",
+        ".note{margin:0 0 18px;}",
+        ".pg{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8d8578;margin-bottom:4px;}",
+        ".note p{margin:0 0 6px;font-size:14.5px;}",
+        "blockquote{margin:6px 0 10px;padding:8px 14px;border-left:3px solid #a84f2e;background:#faf7f2;font-size:13.5px;font-style:italic;color:#5c554a;}",
+        ".t{color:#7c3517;font-weight:700;}",
+        "@media print{body{margin:12mm auto;}h2,h3{break-after:avoid;}.note{break-inside:avoid;}}"
+      ].join("") + "</style></head><body><h1>Writing style notes — " + esc(baseName()) +
+      "</h1><div class='meta'>" + pages.length + " annotated " + pageWord().toLowerCase() + (pages.length === 1 ? "" : "s") +
+      " · exported " + new Date().toLocaleDateString() + " · made with Marginalia</div>" + body +
+      "<script>window.onload=function(){setTimeout(function(){window.print()},300)};<\/script></body></html>";
+    const w = window.open("", "_blank");
+    if (!w) { showToast("Pop-up blocked — allow pop-ups for this site, then try again"); return; }
+    w.document.write(htmlDoc);
+    w.document.close();
+    showToast("Print dialog opening — choose “Save as PDF”");
+  });
+
+  $("expJson").addEventListener("click", () => {
+    commitEditor();
+    download(baseName() + " — annotations.json",
+      JSON.stringify(payload(), null, 2), "application/json");
+    showToast("Annotation file exported");
+  });
+
+  async function manualSync() {
+    if (folderState !== "connected") { showToast("No sync folder connected"); return; }
+    const b = $("syncBtn");
+    b.disabled = true;
+    b.style.opacity = ".5";
+    commitEditor();
+    if (!hasDoc()) {
+      await scanLibrary();            // start screen: refresh the book list instead
+      showToast("Book list refreshed");
+    } else {
+      await checkRemote(true);
+    }
+    b.disabled = false;
+    b.style.opacity = "";
+  }
+  $("syncBtn").addEventListener("click", manualSync);
+  $("refreshBtn").addEventListener("click", manualSync);
+
+  $("impJson").addEventListener("click", () => $("jsonInput").click());
+  $("jsonInput").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      if (!data || typeof data.notes !== "object") throw new Error("bad format");
+      let merged = 0;
+      for (const [k, v] of Object.entries(data.notes)) {
+        const p = parseInt(k, 10);
+        if (p >= 1 && typeof v === "string" && v.trim()) {
+          notes[p] = v; noteTimes[p] = new Date().toISOString(); merged++;
+        }
+      }
+      noteInput.value = notes[currentPage] || "";
+      updateWordCount(); persist(); renderNotesList(); markNotedPages();
+      showToast("Imported " + merged + " note" + (merged === 1 ? "" : "s"));
+    } catch (err) {
+      showToast("That doesn't look like a Marginalia annotation file");
+    }
+  });
+
+  // ---------- file pickers & drag/drop ----------
+  $("pickBtn").addEventListener("click", () => $("fileInput").click());
+  $("fileInput").addEventListener("change", (e) => {
+    const f = e.target.files[0];
+    e.target.value = "";
+    if (f) openFile(f, false);
+  });
+
+  let dragDepth = 0;
+  const overlay = $("dragOverlay");
+  window.addEventListener("dragenter", (e) => {
+    if (!e.dataTransfer || ![...e.dataTransfer.items].some(i => i.kind === "file")) return;
+    dragDepth++;
+    overlay.classList.add("on");
+    dropzone.classList.add("drag");
+  });
+  window.addEventListener("dragleave", () => {
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (!dragDepth) { overlay.classList.remove("on"); dropzone.classList.remove("drag"); }
+  });
+  window.addEventListener("dragover", (e) => e.preventDefault());
+  window.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dragDepth = 0;
+    overlay.classList.remove("on");
+    dropzone.classList.remove("drag");
+    const f = [...(e.dataTransfer.files || [])].find(f =>
+      f.type === "application/pdf" || f.type === "application/epub+zip" ||
+      /\.(pdf|epub)$/i.test(f.name));
+    if (f) openFile(f, false);
+    else if (e.dataTransfer.files.length) showToast("Please drop a PDF or EPUB file");
+  });
+
+  // ---------- pane resize ----------
+  const divider = $("divider");
+  divider.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    document.body.classList.add("resizing");
+    const ws = $("workspace");
+    const move = (ev) => {
+      const rect = ws.getBoundingClientRect();
+      const pct = Math.min(75, Math.max(30, ((ev.clientX - rect.left) / rect.width) * 100));
+      pdfPane.style.flex = "0 0 " + pct + "%";
+    };
+    const up = () => {
+      document.body.classList.remove("resizing");
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  });
+
+  // ---------- online/offline indicator ----------
+  function updateOnline() {
+    $("offlinePill").classList.toggle("on", !navigator.onLine);
+  }
+  window.addEventListener("online", () => { updateOnline(); showToast("Back online — your cloud folder will sync changes"); });
+  window.addEventListener("offline", updateOnline);
+  updateOnline();
+
+  // ---------- service worker (offline app shell) ----------
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    navigator.serviceWorker.register("sw.js").then((reg) => {
+      // tell the user (and refresh) when a new build lands, instead of
+      // silently serving them yesterday's app
+      reg.addEventListener("updatefound", () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener("statechange", () => {
+          if (nw.state === "installed" && navigator.serviceWorker.controller) {
+            showToast("New version downloaded — refreshing…");
+            setTimeout(() => location.reload(), 1400);
+          }
+        });
+      });
+      setInterval(() => { reg.update().catch(() => {}); }, 60000);
+    }).catch(() => {});
+  }
+
+  // save on unload
+  window.addEventListener("beforeunload", commitEditor);
+
+  // go
+  initFolder();
+})();
+</script>
 </body>
+</html>

@@ -277,6 +277,8 @@
      epub.js owns the scrolling in continuous mode, so the container needs a
      definite height; the pane itself must NOT scroll or sections never load. */
   .pdf-pane.epub-mode { overflow: hidden; }
+  /* smooth scrolling fights programmatic re-anchoring during zoom */
+  .pdf-pane.no-smooth { scroll-behavior: auto; }
   .epub-wrap {
     position: absolute; inset: 0;
     display: flex; flex-direction: column;
@@ -589,7 +591,7 @@
   <div class="brand">
     <span class="mark">m</span>
     <h1>Marginalia</h1>
-    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b9</span>
+    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b10</span>
   </div>
   <div class="doc-meta">
     <span class="doc-name" id="docName"></span>
@@ -629,6 +631,7 @@
           <button id="expPdf">Styled document <span class="hint">print / PDF</span></button>
           <button id="expJson">Annotation file <span class="hint">.json</span></button>
           <hr>
+          <button id="refreshBtn">Check folder for updates <span class="hint">now</span></button>
           <button id="impJson">Import annotations… <span class="hint">.json</span></button>
           <button id="copyPdf" style="display:none">Copy this book into sync folder</button>
         </span>
@@ -757,6 +760,11 @@
   let searchIndexing = false;
   let currentQuery = null;     // lowercased active search query
   let quotePending = null;     // { text, page }
+
+  let noteTimes = {};          // { page: ISO } — last change per note, incl. deletions
+  let pageSizes = {};          // { page: {w,h} } unscaled, learned as pages render
+  let lastRemoteStamp = null;  // mtime of the notes file we last read
+  let pollTimer = null;
 
   // epub state
   let mode = "pdf";            // pdf | epub
@@ -990,6 +998,8 @@
       const w = await fh.createWritable();
       await w.write(JSON.stringify(payload(), null, 2));
       await w.close();
+      // remember our own write so the poller doesn't treat it as a remote change
+      try { const f = await fh.getFile(); lastRemoteStamp = f.lastModified; } catch (e) {}
       return true;
     } catch (e) {
       console.warn("folder save failed", e);
@@ -1168,10 +1178,10 @@
   // ---------- persistence ----------
   function payload() {
     return {
-      app: "marginalia", version: 2, kind: mode,
+      app: "marginalia", version: 3, kind: mode,
       document: docTitle, pages: numPages, size: docSize,
       savedAt: new Date().toISOString(),
-      notes
+      notes, noteTimes
     };
   }
   function persist() {
@@ -1211,10 +1221,82 @@
       const raw = localStorage.getItem(docKey);
       if (!raw) return false;
       const data = JSON.parse(raw);
-      if (data && data.notes) { notes = normalizeNotes(data.notes); return true; }
+      if (data && data.notes) {
+        notes = normalizeNotes(data.notes);
+        noteTimes = (data.noteTimes && typeof data.noteTimes === "object") ? data.noteTimes : {};
+        return true;
+      }
     } catch (e) {}
     return false;
   }
+
+  // ---------- cross-computer merge ----------
+  // Per-note timestamps let two machines converge without a "last file wins"
+  // stomp. A page present in noteTimes but absent from notes is a deletion.
+  function mergeRemote(remote) {
+    if (!remote || typeof remote.notes !== "object") return 0;
+    const rNotes = normalizeNotes(remote.notes);
+    const rTimes = (remote.noteTimes && typeof remote.noteTimes === "object") ? remote.noteTimes : {};
+    const fallback = remote.savedAt || "1970-01-01T00:00:00.000Z";
+    const pages = new Set(
+      [].concat(Object.keys(notes), Object.keys(noteTimes),
+                Object.keys(rNotes), Object.keys(rTimes))
+        .map(Number).filter(n => n >= 1)
+    );
+    let changed = 0;
+    for (const p of pages) {
+      const lt = noteTimes[p] || "1970-01-01T00:00:00.000Z";
+      let rt = rTimes[p];
+      if (!rt) rt = (rNotes[p] !== undefined) ? fallback : null;  // older file format
+      if (rt === null || rt <= lt) continue;                       // ours is newer, keep it
+      if (rNotes[p] !== undefined) {
+        if (notes[p] !== rNotes[p]) { notes[p] = rNotes[p]; changed++; }
+      } else if (notes[p] !== undefined) {
+        delete notes[p]; changed++;
+      }
+      noteTimes[p] = rt;
+    }
+    return changed;
+  }
+
+  async function checkRemote(announce) {
+    if (folderState !== "connected" || !docKey || !hasDoc()) return;
+    try {
+      const fh = await dirHandle.getFileHandle(notesFileName());
+      const f = await fh.getFile();
+      if (lastRemoteStamp !== null && f.lastModified <= lastRemoteStamp) {
+        if (announce) showToast("Already up to date");
+        return;
+      }
+      const data = JSON.parse(await f.text());
+      lastRemoteStamp = f.lastModified;
+      const changed = mergeRemote(data);
+      if (changed) {
+        noteInput.value = notes[currentPage] || "";
+        updateWordCount();
+        renderNotesList();
+        markNotedPages();
+        try { localStorage.setItem(docKey, JSON.stringify(payload())); } catch (e) {}
+        await writeNotesFile();   // push the merged result so both sides agree
+        showToast("Pulled in " + changed + " note" + (changed === 1 ? "" : "s") + " from your other computer");
+      } else if (announce) {
+        showToast("Already up to date");
+      }
+    } catch (e) {
+      if (announce) showToast("Couldn't read the notes file from the folder");
+    }
+  }
+
+  function startPolling() {
+    clearInterval(pollTimer);
+    pollTimer = setInterval(() => checkRemote(false), 20000);
+  }
+  // the moment you come back to this window is exactly when you'd notice staleness
+  window.addEventListener("focus", () => checkRemote(false));
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) checkRemote(false);
+  });
+  window.addEventListener("online", () => checkRemote(false));
 
   // ---------- shared helpers ----------
   function hasDoc() { return !!(pdfDoc || book); }
@@ -1236,6 +1318,9 @@
     pdfPane.classList.remove("epub-mode");
     pdfDoc = null;
     notes = {};
+    noteTimes = {};
+    pageSizes = {};
+    lastRemoteStamp = null;
     currentPage = 1;
     activeTag = null;
     searchText = null;
@@ -1461,10 +1546,18 @@
       }
       numPages = book.locations.length() || 1;
 
-      // notes priority: sync-folder file > local browser storage
+      // Load this device's copy, then MERGE the folder copy over it per note.
+      // (A blind overwrite would discard edits made here while offline.)
       restoreLocal();
       const fileData = await readNotesFile();
-      if (fileData && typeof fileData.notes === "object") notes = normalizeNotes(fileData.notes);
+      if (fileData) {
+        mergeRemote(fileData);
+        try {
+          const fh = await dirHandle.getFileHandle(notesFileName());
+          lastRemoteStamp = (await fh.getFile()).lastModified;
+        } catch (e) {}
+      }
+      startPolling();
 
       noteInput.value = notes[1] || "";
       updateWordCount();
@@ -1598,10 +1691,18 @@
 
       buildPageShells();
 
-      // notes priority: sync-folder file > local browser storage
+      // Load this device's copy, then MERGE the folder copy over it per note.
+      // (A blind overwrite would discard edits made here while offline.)
       restoreLocal();
       const fileData = await readNotesFile();
-      if (fileData && typeof fileData.notes === "object") notes = normalizeNotes(fileData.notes);
+      if (fileData) {
+        mergeRemote(fileData);
+        try {
+          const fh = await dirHandle.getFileHandle(notesFileName());
+          lastRemoteStamp = (await fh.getFile()).lastModified;
+        } catch (e) {}
+      }
+      startPolling();
 
       // sync editor BEFORE setCurrentPage so commitEditor can't wipe a
       // restored note or leak text from a previously open document
@@ -1635,9 +1736,12 @@
 
   function buildPageShells() {
     pdfScroll.innerHTML = "";
-    const w = Math.round(baseWidth * scale);
-    const h = Math.round(baseHeight * scale);
     for (let i = 1; i <= numPages; i++) {
+      // use each page's real proportions once we've seen them, so placeholders
+      // don't shift the scroll position when the page actually renders
+      const known = pageSizes[i];
+      const w = Math.round((known ? known.w : baseWidth) * scale);
+      const h = Math.round((known ? known.h : baseHeight) * scale);
       const shell = document.createElement("div");
       shell.className = "page-shell";
       shell.dataset.page = i;
@@ -1668,6 +1772,7 @@
     try {
       const page = await pdfDoc.getPage(n);
       const vp = page.getViewport({ scale });
+      pageSizes[n] = { w: vp.width / scale, h: vp.height / scale };
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const canvas = document.createElement("canvas");
       canvas.width = Math.floor(vp.width * dpr);
@@ -1707,13 +1812,44 @@
     }
   }
 
-  function rerenderAll() {
+  // Zoom rebuilds every page box, so the old scroll offset is meaningless.
+  // Anchor to the page you were on AND how far down it you were, then re-anchor
+  // once that page has actually rendered (its true height is only known then).
+  async function rerenderAll() {
+    const keep = currentPage;
+    const oldShell = shellFor(keep);
+    let frac = 0;
+    if (oldShell && oldShell.offsetHeight) {
+      frac = (pdfPane.scrollTop - oldShell.offsetTop) / oldShell.offsetHeight;
+      frac = Math.min(1, Math.max(0, frac));
+    }
     Object.values(renderTasks).forEach(t => { try { t.cancel(); } catch (e) {} });
     renderTasks = {};
     if (observer) observer.disconnect();
-    const keep = currentPage;
+
+    suppressScrollSpy = true;
+    pdfPane.classList.add("no-smooth");
     buildPageShells();
-    setCurrentPage(keep, true);
+
+    const anchor = () => {
+      const s = shellFor(keep);
+      if (s) pdfPane.scrollTop = Math.max(0, s.offsetTop - 20 + frac * s.offsetHeight);
+    };
+    anchor();
+    const target = shellFor(keep);
+    if (target && !target.dataset.rendered) {
+      target.dataset.rendered = "1";
+      await renderPage(keep, target);   // settles this page's real height
+    }
+    anchor();
+    requestAnimationFrame(() => {
+      anchor();
+      setTimeout(() => {
+        pdfPane.classList.remove("no-smooth");
+        suppressScrollSpy = false;
+      }, 200);
+    });
+    updatePageUi();
   }
 
   // ---------- paging / scroll spy ----------
@@ -1899,11 +2035,14 @@
   // ---------- notes ----------
   function commitEditor() {
     if (!hasDoc()) return;
-    const txt = noteInput.value.trim();
-    const had = !!notes[currentPage];
-    if (txt) notes[currentPage] = noteInput.value;
-    else delete notes[currentPage];
-    if (txt || had) { persist(); renderNotesList(); markNotedPages(); }
+    const val = noteInput.value;
+    const prev = notes[currentPage];
+    const next = val.trim() ? val : undefined;
+    if (prev === next) return;                 // nothing actually changed
+    if (next === undefined) delete notes[currentPage];
+    else notes[currentPage] = next;
+    noteTimes[currentPage] = new Date().toISOString();
+    persist(); renderNotesList(); markNotedPages();
   }
   function updateWordCount() {
     const t = noteInput.value.trim();
@@ -2000,6 +2139,7 @@
       card.addEventListener("click", (e) => {
         if (e.target.closest(".del")) {
           delete notes[p];
+          noteTimes[p] = new Date().toISOString();   // tombstone, so the delete syncs
           if (p === currentPage) { noteInput.value = ""; updateWordCount(); }
           persist(); renderNotesList(); markNotedPages();
           return;
@@ -2045,7 +2185,11 @@
       const nf = Math.min(2, Math.max(0.7, epubFont + (delta > 0 ? 0.1 : -0.1)));
       if (Math.abs(nf - epubFont) < 0.01) return;
       epubFont = nf;
-      try { rendition.themes.fontSize(Math.round(epubFont * 100) + "%"); } catch (e) {}
+      try {
+        rendition.themes.fontSize(Math.round(epubFont * 100) + "%");
+        // resizing text reflows the book — put the reader back where it was
+        setTimeout(() => epubGoTo(currentPage), 120);
+      } catch (e) {}
       updateZoomReadout();
       return;
     }
@@ -2174,6 +2318,12 @@
     showToast("Annotation file exported");
   });
 
+  $("refreshBtn").addEventListener("click", () => {
+    if (folderState !== "connected") { showToast("No sync folder connected"); return; }
+    commitEditor();
+    checkRemote(true);
+  });
+
   $("impJson").addEventListener("click", () => $("jsonInput").click());
   $("jsonInput").addEventListener("change", async (e) => {
     const file = e.target.files[0];
@@ -2185,7 +2335,9 @@
       let merged = 0;
       for (const [k, v] of Object.entries(data.notes)) {
         const p = parseInt(k, 10);
-        if (p >= 1 && typeof v === "string" && v.trim()) { notes[p] = v; merged++; }
+        if (p >= 1 && typeof v === "string" && v.trim()) {
+          notes[p] = v; noteTimes[p] = new Date().toISOString(); merged++;
+        }
       }
       noteInput.value = notes[currentPage] || "";
       updateWordCount(); persist(); renderNotesList(); markNotedPages();

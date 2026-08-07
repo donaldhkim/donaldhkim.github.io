@@ -1,6 +1,6 @@
 /* Marginalia service worker — caches the app shell + pdf.js so the app
    loads with no network connection after the first visit. */
-const CACHE = "marginalia-v9";
+const CACHE = "marginalia-v10";
 const ASSETS = [
   "./",
   "./index.html",

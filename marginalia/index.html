@@ -582,6 +582,57 @@
   ::-webkit-scrollbar-thumb:hover { background: var(--ink-3); border: 3px solid transparent; background-clip: content-box; }
   ::-webkit-scrollbar-track { background: transparent; }
 
+  .mini-btn {
+    border: 1px solid var(--line);
+    background: var(--card); color: var(--ink-2);
+    font-size: 11px; padding: 4px 10px; border-radius: 100px;
+    white-space: nowrap;
+  }
+  .mini-btn:hover { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-soft); }
+
+  /* ---------- narrow screens ----------
+     Shed chrome in order of importance rather than letting it overflow. */
+  .controls { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .controls::-webkit-scrollbar { height: 0; }
+
+  @media (max-width: 1180px) {
+    .brand .tag { display: none; }
+    .doc-name { max-width: 150px; }
+  }
+  @media (max-width: 1040px) {
+    .brand h1 { display: none; }
+    .doc-name { display: none; }
+    .search-group input { width: 104px; }
+  }
+  @media (max-width: 900px) {
+    .topbar { gap: 8px; padding: 0 12px; }
+    .saved-dot, .offline-pill { display: none; }
+    .btn { padding: 8px 10px; gap: 0; }
+    .btn .lbl { display: none; }        /* icons only — titles still explain */
+    .toc-sel { max-width: 120px; font-size: 11px; }
+    .search-group input { width: 88px; }
+  }
+  @media (max-width: 820px) {
+    /* stack the two columns instead of squeezing both */
+    .workspace { flex-direction: column; }
+    .divider { display: none; }
+    .pdf-pane { flex: 1 1 52%; min-width: 0; }
+    .notes-pane { flex: 1 1 48%; min-width: 0; }
+    .pdf-pane[style] { flex: 1 1 52% !important; }   /* drop a dragged width */
+    .notes-head, .notes-list-head, .tag-bar { padding-left: 16px; padding-right: 16px; }
+    .notes-list { padding-left: 16px; padding-right: 16px; }
+    .editor-card { margin-left: 16px; margin-right: 16px; }
+    .editor-card textarea { height: 130px; }
+    .pdf-scroll { padding: 16px 16px 40px; }
+  }
+  @media (max-width: 700px) {
+    .ctl-group .readout { min-width: 44px; font-size: 11px; padding: 0 5px; }
+    .hero-inner { padding: 24px 16px; }
+    .hero-inner h2 { font-size: 27px; }
+    .chips { gap: 5px; }
+    .chip { font-size: 11px; padding: 4px 9px; }
+  }
+
   input[type="file"] { display: none; }
 </style>
 </head>
@@ -591,7 +642,7 @@
   <div class="brand">
     <span class="mark">m</span>
     <h1>Marginalia</h1>
-    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b13</span>
+    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b14</span>
   </div>
   <div class="doc-meta">
     <span class="doc-name" id="docName"></span>
@@ -624,9 +675,9 @@
         <button id="zoomIn" title="Zoom in">+</button>
       </span>
       <span class="menu-wrap">
-        <button class="btn" id="exportBtn">
+        <button class="btn" id="exportBtn" title="Export and sync options">
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 5l3-3 3 3M2.5 10v3a1 1 0 001 1h9a1 1 0 001-1v-3"/></svg>
-          Export
+          <span class="lbl">Export</span>
         </button>
         <span class="menu" id="exportMenu">
           <button id="expMd">Markdown notes <span class="hint">.md</span></button>
@@ -640,7 +691,7 @@
       </span>
       <button class="btn" id="libBtn" title="Switch to another book in your sync folder">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2.5h3v11h-3zM6.5 2.5h3v11h-3zM10.8 3l2.7.7-2.8 10.6-2.7-.7z"/></svg>
-        Library
+        <span class="lbl">Library</span>
       </button>
     </span>
   </div>
@@ -685,6 +736,8 @@
     </div>
     <div class="notes-list-head">
       <h3 id="notesListTitle">All notes</h3>
+      <button class="mini-btn" id="latestBtn" style="display:none"
+              title="Jump to the note you wrote most recently">↓ Latest note</button>
     </div>
     <div class="tag-bar" id="tagBar"></div>
     <div class="notes-list" id="notesList">
@@ -2183,6 +2236,26 @@
     $("notesListTitle").textContent = activeTag ? "Thread: #" + activeTag : "All notes";
   }
 
+  // the note you wrote last — by edit time, falling back to furthest page
+  function latestNotePage() {
+    const pages = Object.keys(notes).map(Number).filter(n => n >= 1);
+    if (!pages.length) return null;
+    let best = null, bestT = "";
+    for (const p of pages) {
+      const t = noteTimes[p] || "";
+      if (best === null || t > bestT || (t === bestT && p > best)) { best = p; bestT = t; }
+    }
+    return best;
+  }
+  $("latestBtn").addEventListener("click", () => {
+    const p = latestNotePage();
+    if (!p) { showToast("No notes yet"); return; }
+    if (activeTag) { activeTag = null; renderNotesList(); }
+    setCurrentPage(p, true);
+    const card = notesList.querySelector('.note-card[data-page="' + p + '"]');
+    if (card) { try { card.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {} }
+  });
+
   function renderNotesList() {
     renderTags();
     let pages = Object.keys(notes).map(Number).sort((a, b) => a - b);
@@ -2192,7 +2265,8 @@
     }
     const allCount = Object.keys(notes).length;
     $("noteCount").textContent = allCount
-      ? allCount + " page" + (allCount === 1 ? "" : "s") + " noted" : "";
+      ? allCount + " " + pageWord().toLowerCase() + (allCount === 1 ? "" : "s") + " noted" : "";
+    $("latestBtn").style.display = allCount > 1 ? "inline-block" : "none";
     if (!pages.length) {
       notesList.innerHTML = '<div class="empty-notes">' +
         (activeTag ? "No notes in this thread yet." : "Your notes will collect here as you read.") +

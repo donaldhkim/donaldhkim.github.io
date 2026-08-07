@@ -591,7 +591,7 @@
   <div class="brand">
     <span class="mark">m</span>
     <h1>Marginalia</h1>
-    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b10</span>
+    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Style notes · b11</span>
   </div>
   <div class="doc-meta">
     <span class="doc-name" id="docName"></span>
@@ -605,6 +605,8 @@
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5a1 1 0 011-1h3l1.5 2h6a1 1 0 011 1v6a1 1 0 01-1 1h-10.5a1 1 0 01-1-1v-8z"/></svg>
       <span class="lbl" id="folderLabel">Connect sync folder</span>
     </button>
+    <button class="btn icon" id="syncBtn" style="display:none"
+            title="Check the sync folder now for changes made on another computer">⟳</button>
     <span id="docControls" style="display:none; align-items:center; gap:8px;">
       <select class="toc-sel" id="tocSel" style="display:none" title="Jump to a chapter"></select>
       <span class="ctl-group search-group" style="display:inline-flex" title="Search the text">
@@ -886,6 +888,7 @@
           heroSub = $("heroSyncSub");
     if (!supportsFS) {
       btn.style.display = "none";
+      $("syncBtn").style.display = "none";
       heroBtn.style.display = "none";
       heroState.textContent = "";
       heroPlaceholder("Folder list needs Chrome or Edge — use “browse this computer” below");
@@ -894,6 +897,7 @@
     }
     btn.style.display = "inline-flex";
     btn.classList.remove("connected", "attention");
+    $("syncBtn").style.display = folderState === "connected" ? "inline-flex" : "none";
     if (folderState === "connected") {
       btn.classList.add("connected");
       lbl.textContent = "✓ " + (dirHandle && dirHandle.name ? dirHandle.name : "Folder connected");
@@ -2318,11 +2322,23 @@
     showToast("Annotation file exported");
   });
 
-  $("refreshBtn").addEventListener("click", () => {
+  async function manualSync() {
     if (folderState !== "connected") { showToast("No sync folder connected"); return; }
+    const b = $("syncBtn");
+    b.disabled = true;
+    b.style.opacity = ".5";
     commitEditor();
-    checkRemote(true);
-  });
+    if (!hasDoc()) {
+      await scanLibrary();            // start screen: refresh the book list instead
+      showToast("Book list refreshed");
+    } else {
+      await checkRemote(true);
+    }
+    b.disabled = false;
+    b.style.opacity = "";
+  }
+  $("syncBtn").addEventListener("click", manualSync);
+  $("refreshBtn").addEventListener("click", manualSync);
 
   $("impJson").addEventListener("click", () => $("jsonInput").click());
   $("jsonInput").addEventListener("change", async (e) => {

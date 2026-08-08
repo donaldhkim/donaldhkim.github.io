@@ -1,10 +1,11 @@
-/* Logbook service worker — offline app shell (scoped to /logbook/) */
-const CACHE = "logbook-v2";
+/* Logbook service worker — offline shell, scoped to /logbook/ */
+const CACHE = "logbook-v4";
 const ASSETS = ["./", "./index.html", "./icon.svg"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
 });
+
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys()
@@ -12,11 +13,32 @@ self.addEventListener("activate", (e) => {
       .then(() => self.clients.claim())
   );
 });
+
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
+
+  // The page is NETWORK-FIRST so a reload always picks up a new deploy.
+  // Cache-first here would leave a stale app unable to ever update itself.
+  const isHTML = req.mode === "navigate" ||
+    (req.headers.get("accept") || "").indexOf("text/html") !== -1;
+  if (isHTML) {
+    e.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put("./index.html", copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match("./index.html").then((r) => r || caches.match("./")))
+    );
+    return;
+  }
+
   e.respondWith(
-    caches.match(req, { ignoreSearch: req.mode === "navigate" }).then((hit) => {
+    caches.match(req).then((hit) => {
       if (hit) return hit;
       return fetch(req)
         .then((res) => {
@@ -26,10 +48,7 @@ self.addEventListener("fetch", (e) => {
           }
           return res;
         })
-        .catch(() => {
-          if (req.mode === "navigate") return caches.match("./index.html");
-          return Response.error();
-        });
+        .catch(() => Response.error());
     })
   );
 });

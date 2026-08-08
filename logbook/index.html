@@ -8,61 +8,40 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <style>
   :root {
-    --paper: #faf7f2;
-    --paper-2: #f3efe7;
-    --ink: #221e18;
-    --ink-2: #5c554a;
-    --ink-3: #8d8578;
-    --line: #ddd5c7;
-    --line-2: #cfc6b5;
-    --accent: #a84f2e;
-    --accent-soft: #f4e3da;
-    --accent-ink: #7c3517;
-    --ok: #3d7a45;
-    --ok-soft: #e4efe2;
-    --card: #fffdf9;
-    --hover: #ffffff;
+    --paper: #faf7f2; --paper-2: #f3efe7;
+    --ink: #221e18; --ink-2: #5c554a; --ink-3: #8d8578;
+    --line: #ddd5c7; --line-2: #cfc6b5;
+    --accent: #a84f2e; --accent-soft: #f4e3da; --accent-ink: #7c3517;
+    --ok: #3d7a45; --ok-soft: #e4efe2;
+    --card: #fffdf9; --hover: #ffffff;
     --shadow: 0 1px 2px rgba(52,42,28,.06), 0 4px 16px rgba(52,42,28,.07);
     --shadow-lg: 0 2px 6px rgba(52,42,28,.08), 0 12px 40px rgba(52,42,28,.14);
     --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
   body.dark {
-    --paper: #201c17;
-    --paper-2: #2a251e;
-    --ink: #ede5d7;
-    --ink-2: #b9ad9b;
-    --ink-3: #8a8071;
-    --line: #3b3529;
-    --line-2: #4c4536;
-    --accent: #c96a41;
-    --accent-soft: #41291d;
-    --accent-ink: #e59b76;
-    --ok: #8dc593;
-    --ok-soft: #243528;
-    --card: #292420;
-    --hover: #322c25;
+    --paper: #201c17; --paper-2: #2a251e;
+    --ink: #ede5d7; --ink-2: #b9ad9b; --ink-3: #8a8071;
+    --line: #3b3529; --line-2: #4c4536;
+    --accent: #c96a41; --accent-soft: #41291d; --accent-ink: #e59b76;
+    --ok: #8dc593; --ok-soft: #243528;
+    --card: #292420; --hover: #322c25;
     --shadow: 0 1px 2px rgba(0,0,0,.35), 0 4px 16px rgba(0,0,0,.3);
     --shadow-lg: 0 2px 6px rgba(0,0,0,.45), 0 12px 40px rgba(0,0,0,.5);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { height: 100%; }
   body {
-    font-family: var(--sans);
-    background: var(--paper);
-    color: var(--ink);
-    min-height: 100%;
-    -webkit-font-smoothing: antialiased;
+    font-family: var(--sans); background: var(--paper); color: var(--ink);
+    min-height: 100%; -webkit-font-smoothing: antialiased;
     transition: background .25s, color .25s;
   }
   button { font-family: inherit; cursor: pointer; }
   input, textarea, select { font-family: inherit; color: var(--ink); }
 
   .topbar {
-    height: 58px;
-    display: flex; align-items: center; gap: 12px;
-    padding: 0 20px;
-    background: var(--paper);
+    height: 58px; display: flex; align-items: center; gap: 10px;
+    padding: 0 20px; background: var(--paper);
     border-bottom: 1px solid var(--line);
     position: sticky; top: 0; z-index: 20;
   }
@@ -86,15 +65,14 @@
     padding: 3px 10px; border-radius: 100px; display: none;
   }
   .offline-pill.on { display: inline-block; }
+  .controls { display: flex; align-items: center; gap: 8px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .controls::-webkit-scrollbar { height: 0; }
 
   .btn {
-    border: 1px solid var(--line);
-    background: var(--card); color: var(--ink);
-    font-size: 13px; font-weight: 500;
-    padding: 8px 14px; border-radius: 9px;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    font-size: 13px; font-weight: 500; padding: 8px 14px; border-radius: 9px;
     display: inline-flex; align-items: center; gap: 7px;
-    transition: border-color .15s, background .15s, transform .05s;
-    white-space: nowrap;
+    transition: border-color .15s, background .15s, transform .05s; white-space: nowrap;
   }
   .btn:hover { border-color: var(--line-2); background: var(--hover); }
   .btn:active { transform: translateY(1px); }
@@ -110,8 +88,7 @@
   .btn .lbl { max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
   .proj-sel {
     border: 1px solid var(--line); background: var(--card);
-    font-size: 13px; font-weight: 500;
-    padding: 8px 10px; border-radius: 9px;
+    font-size: 13px; font-weight: 500; padding: 8px 10px; border-radius: 9px;
     max-width: 180px; outline: none; cursor: pointer;
   }
 
@@ -120,14 +97,13 @@
     position: absolute; top: calc(100% + 6px); right: 0;
     background: var(--card); border: 1px solid var(--line);
     border-radius: 12px; box-shadow: var(--shadow-lg);
-    padding: 6px; min-width: 230px; display: none; z-index: 50;
+    padding: 6px; min-width: 240px; display: none; z-index: 50;
   }
   .menu.open { display: block; }
   .menu button {
     display: flex; width: 100%; align-items: center; gap: 10px;
     border: none; background: transparent; text-align: left;
-    font-size: 13px; color: var(--ink);
-    padding: 9px 10px; border-radius: 8px;
+    font-size: 13px; color: var(--ink); padding: 9px 10px; border-radius: 8px;
   }
   .menu button:hover { background: var(--paper-2); }
   .menu .hint { font-size: 11px; color: var(--ink-3); margin-left: auto; }
@@ -135,46 +111,34 @@
 
   .wrap { max-width: 1160px; margin: 0 auto; padding: 26px 22px 80px; }
 
-  /* ---------- setup ---------- */
   .setup {
     max-width: 480px; margin: 40px auto;
     background: var(--card); border: 1px solid var(--line);
-    border-radius: 16px; box-shadow: var(--shadow);
-    padding: 30px;
+    border-radius: 16px; box-shadow: var(--shadow); padding: 30px;
   }
   .setup h2 { font-family: var(--serif); font-size: 26px; font-weight: 600; margin-bottom: 6px; }
   .setup .sub { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-bottom: 22px; }
   .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; margin-bottom: 6px; }
   .field input {
-    width: 100%; border: 1px solid var(--line);
-    background: var(--paper); border-radius: 9px;
-    padding: 10px 12px; font-size: 14px; outline: none;
+    width: 100%; border: 1px solid var(--line); background: var(--paper);
+    border-radius: 9px; padding: 10px 12px; font-size: 14px; outline: none;
   }
   .field input:focus { border-color: var(--accent); }
   .field .opt { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--ink-3); }
-  .setup-actions { display: flex; gap: 10px; justify-content: space-between; align-items: center; margin-top: 20px; }
+  .setup-actions { display: flex; gap: 10px; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; }
 
-  /* ---------- dashboard ---------- */
   .eyebrow { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); font-weight: 600; }
   .dash-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
   .dash-head h2 { font-family: var(--serif); font-size: 28px; font-weight: 600; }
   .dash-head .range { font-size: 12.5px; color: var(--ink-3); }
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 14px; }
-  .stat {
-    background: var(--card); border: 1px solid var(--line);
-    border-radius: 14px; box-shadow: var(--shadow);
-    padding: 14px 16px;
-  }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 14px 16px; }
   .stat .k { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
   .stat .v { font-family: var(--serif); font-size: 26px; font-weight: 600; margin-top: 3px; }
   .stat .s { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
 
-  .bar-row {
-    background: var(--card); border: 1px solid var(--line);
-    border-radius: 14px; box-shadow: var(--shadow);
-    padding: 12px 16px; margin-bottom: 10px;
-  }
+  .bar-row { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 12px 16px; margin-bottom: 10px; }
   .bar-row .bar-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); margin-bottom: 7px; gap: 10px; }
   .bar-row .bar-head b { color: var(--ink); }
   .bar { height: 8px; background: var(--paper-2); border-radius: 100px; overflow: hidden; }
@@ -183,22 +147,15 @@
   .bar.mini { height: 6px; margin: 6px 0 4px; }
 
   .cols { display: block; }
-  @media (min-width: 1000px) {
-    .cols { display: grid; grid-template-columns: 5fr 6fr; gap: 24px; align-items: start; }
-  }
+  @media (min-width: 1000px) { .cols { display: grid; grid-template-columns: 5fr 6fr; gap: 24px; align-items: start; } }
 
-  .panel {
-    background: var(--card); border: 1px solid var(--line);
-    border-radius: 14px; box-shadow: var(--shadow);
-    padding: 16px 18px; margin-bottom: 14px;
-  }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 16px 18px; margin-bottom: 14px; }
   .panel h3 { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; margin-bottom: 12px; }
 
-  /* goals */
   .goal2 { padding: 10px 0; border-bottom: 1px solid var(--line); }
   .goal2:last-of-type { border-bottom: none; }
-  .goal2 .g-top { display: flex; align-items: baseline; gap: 10px; }
-  .goal2 .g-title { flex: 1; font-size: 14px; }
+  .goal2 .g-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .goal2 .g-title { flex: 1; font-size: 14px; min-width: 100px; }
   .goal2.done .g-title { color: var(--ink-3); text-decoration: line-through; }
   .goal2 .g-pct { font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; font-weight: 600; }
   .goal2 .g-pct.done { color: var(--ok); }
@@ -207,141 +164,89 @@
   .goal2 .g-del { border: none; background: none; color: var(--ink-3); font-size: 12px; padding: 2px 6px; border-radius: 6px; opacity: .5; }
   .goal2 .g-del:hover { color: #a33; background: #f7e5e0; opacity: 1; }
   body.dark .goal2 .g-del:hover { color: #e08a7a; background: #472a24; }
-  .goal2 .g-type {
-    font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
-    color: var(--accent-ink); background: var(--accent-soft);
-    padding: 1px 8px; border-radius: 100px;
-  }
+  .goal2 .g-type { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-ink); background: var(--accent-soft); padding: 1px 8px; border-radius: 100px; }
   .goal-add { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-  .goal-add input[type="text"] {
-    flex: 2 1 160px; border: 1px solid var(--line); background: var(--paper);
-    border-radius: 9px; padding: 9px 12px; font-size: 13px; outline: none;
-  }
-  .goal-add input[type="number"] {
-    flex: 0 1 90px; border: 1px solid var(--line); background: var(--paper);
-    border-radius: 9px; padding: 9px 10px; font-size: 13px; outline: none;
-  }
-  .goal-add select {
-    flex: 0 1 130px; border: 1px solid var(--line); background: var(--paper);
-    border-radius: 9px; padding: 9px 8px; font-size: 13px; outline: none;
-  }
+  .goal-add input[type="text"] { flex: 2 1 160px; border: 1px solid var(--line); background: var(--paper); border-radius: 9px; padding: 9px 12px; font-size: 13px; outline: none; }
+  .goal-add input[type="number"] { flex: 0 1 90px; border: 1px solid var(--line); background: var(--paper); border-radius: 9px; padding: 9px 10px; font-size: 13px; outline: none; }
+  .goal-add select { flex: 0 1 130px; border: 1px solid var(--line); background: var(--paper); border-radius: 9px; padding: 9px 8px; font-size: 13px; outline: none; }
   .goal-add input:focus, .goal-add select:focus { border-color: var(--accent); }
   .goals-empty { font-size: 13px; color: var(--ink-3); font-style: italic; font-family: var(--serif); }
 
-  /* quire */
   .quire-row { display: flex; align-items: center; gap: 5px; margin-bottom: 6px; }
-  .q-sig {
-    width: 42px; flex-shrink: 0;
-    font-family: var(--serif); font-size: 11px; color: var(--ink-3);
-    text-align: right; padding-right: 6px;
-    font-variant-numeric: normal;
-  }
+  .q-sig { width: 42px; flex-shrink: 0; font-family: var(--serif); font-size: 11px; color: var(--ink-3); text-align: right; padding-right: 6px; }
   .leaf {
-    width: 25px; height: 33px;
-    border: 1px solid var(--line);
-    border-radius: 2px 5px 5px 2px;
-    background: var(--card);
-    cursor: pointer; position: relative;
-    transition: border-color .15s, transform .1s;
+    width: 25px; height: 33px; border: 1px solid var(--line);
+    border-radius: 2px 5px 5px 2px; background: var(--card);
+    cursor: pointer; position: relative; transition: border-color .15s, transform .1s;
   }
   .leaf:hover { border-color: var(--accent); transform: translateY(-1px); }
   .leaf.future { opacity: .22; pointer-events: none; }
-  .leaf.logged {
-    background-image: repeating-linear-gradient(
-      to bottom, transparent 0 6px, var(--line-2) 6px 7px);
-    background-position: 0 5px;
-  }
+  .leaf.logged { background-image: repeating-linear-gradient(to bottom, transparent 0 6px, var(--line-2) 6px 7px); background-position: 0 5px; }
   .leaf.hit { border-color: var(--ok); }
-  .leaf.hit::after {
-    content: "";
-    position: absolute; left: 4px; right: 4px; bottom: 4px; height: 3px;
-    background: var(--ok); border-radius: 2px;
-  }
+  .leaf.hit::after { content: ""; position: absolute; left: 4px; right: 4px; bottom: 4px; height: 3px; background: var(--ok); border-radius: 2px; }
   .leaf.today { border-color: var(--accent); border-width: 2px; }
   .leaf.sel { outline: 2px solid var(--accent); outline-offset: 1px; }
   .quire-legend { font-size: 11px; color: var(--ink-3); margin-top: 10px; line-height: 1.6; }
 
-  /* ---------- editor ---------- */
   .ed-head { display: flex; align-items: baseline; gap: 12px; margin: 4px 0 10px; flex-wrap: wrap; }
   .ed-head h2 { font-family: var(--serif); font-size: 24px; font-weight: 600; }
   .ed-head .date { font-size: 13px; color: var(--ink-3); }
-  .ed-head .back {
-    border: 1px solid var(--accent); background: var(--accent-soft);
-    color: var(--accent-ink); font-size: 12px;
-    padding: 4px 12px; border-radius: 100px; display: none;
-  }
+  .ed-head .back { border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent-ink); font-size: 12px; padding: 4px 12px; border-radius: 100px; display: none; }
   .ed-head .back.show { display: inline-block; }
-  .editor {
-    background: var(--card); border: 1px solid var(--line);
-    border-radius: 14px; box-shadow: var(--shadow);
-    overflow: hidden; margin-bottom: 22px;
-  }
-  .editor .lab {
-    font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
-    color: var(--accent-ink); font-weight: 600;
-    padding: 14px 18px 0;
-  }
+  .editor { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 22px; }
+  .editor .lab { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink); font-weight: 600; padding: 14px 18px 0; }
   .editor textarea {
     width: 100%; border: none; outline: none; resize: vertical; background: transparent;
-    font-family: var(--serif); font-size: 15px; line-height: 1.6;
-    padding: 8px 18px 14px; min-height: 80px;
+    font-family: var(--serif); font-size: 15px; line-height: 1.6; padding: 8px 18px 14px; min-height: 80px;
   }
   .editor textarea::placeholder { color: var(--ink-3); font-style: italic; }
-  .editor .split { border-top: 1px solid var(--line); }
-  .count-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 18px; border-top: 1px solid var(--line);
-    background: var(--paper-2);
-  }
+  .count-row { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-top: 1px solid var(--line); background: var(--paper-2); flex-wrap: wrap; }
   .count-row label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
-  .count-row input {
-    width: 110px; border: 1px solid var(--line); background: var(--card);
-    border-radius: 9px; padding: 8px 10px; font-size: 14px; outline: none;
-    font-variant-numeric: tabular-nums;
-  }
+  .count-row input { width: 110px; border: 1px solid var(--line); background: var(--card); border-radius: 9px; padding: 8px 10px; font-size: 14px; outline: none; font-variant-numeric: tabular-nums; }
   .count-row input:focus { border-color: var(--accent); }
   .count-row .hint { font-size: 11px; color: var(--ink-3); }
 
-  /* ---------- timeline ---------- */
-  .tl-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+  .tl-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; gap: 10px; }
   .tl-head h3 { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
   .tl-head button { border: none; background: none; font-size: 12px; color: var(--accent-ink); padding: 2px 6px; border-radius: 6px; }
   .tl-head button:hover { background: var(--accent-soft); }
-  .day-card {
-    background: var(--card); border: 1px solid var(--line);
-    border-radius: 12px; padding: 13px 16px; margin-bottom: 10px;
-    cursor: pointer; transition: border-color .15s, box-shadow .15s;
-  }
+  .day-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 13px 16px; margin-bottom: 10px; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
   .day-card:hover { border-color: var(--line-2); box-shadow: var(--shadow); }
   .day-card.sel { border-color: var(--accent); }
   .day-card .dc-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
-  .day-card .dn {
-    font-size: 11px; font-weight: 600; color: var(--accent-ink);
-    background: var(--accent-soft); padding: 2px 9px; border-radius: 100px;
-  }
+  .day-card .dn { font-size: 11px; font-weight: 600; color: var(--accent-ink); background: var(--accent-soft); padding: 2px 9px; border-radius: 100px; }
   .day-card .dd { font-size: 12px; color: var(--ink-3); }
   .day-card .cnt { font-size: 11px; color: var(--ok); font-weight: 600; margin-left: auto; }
-  .day-card p {
-    font-family: var(--serif); font-size: 13.5px; line-height: 1.55; color: var(--ink-2);
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-    white-space: pre-line;
-  }
+  .day-card p { font-family: var(--serif); font-size: 13.5px; line-height: 1.55; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; }
   .day-card p.refl { font-style: italic; color: var(--ink-3); margin-top: 4px; }
   .day-card.ghost { background: transparent; border-style: dashed; }
   .day-card.ghost p { font-style: italic; color: var(--ink-3); }
   .gap-note { text-align: center; font-size: 12px; color: var(--ink-3); font-style: italic; margin: 8px 0 12px; }
 
   .toast {
-    position: fixed; bottom: 26px; left: 50%;
-    transform: translate(-50%, 20px);
-    background: var(--ink); color: var(--paper);
-    font-size: 13px; padding: 10px 20px; border-radius: 100px;
-    box-shadow: var(--shadow-lg);
-    opacity: 0; pointer-events: none;
-    transition: opacity .25s, transform .25s;
+    position: fixed; bottom: 26px; left: 50%; transform: translate(-50%, 20px);
+    background: var(--ink); color: var(--paper); font-size: 13px;
+    padding: 10px 20px; border-radius: 100px; box-shadow: var(--shadow-lg);
+    opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
     z-index: 200; max-width: 80vw; text-align: center;
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 1040px) { .brand .tag { display: none; } }
+  @media (max-width: 900px) {
+    .topbar { gap: 8px; padding: 0 12px; }
+    .brand h1 { display: none; }
+    .saved-dot, .offline-pill { display: none; }
+    .btn { padding: 8px 10px; gap: 0; }
+    .btn .lbl { display: none; }
+    .proj-sel { max-width: 130px; font-size: 12px; }
+    .wrap { padding: 18px 14px 60px; }
+  }
+  @media (max-width: 700px) {
+    .dash-head h2 { font-size: 23px; }
+    .q-sig { width: 30px; font-size: 10px; }
+    .leaf { width: 22px; height: 29px; }
+  }
 
   input[type="file"] { display: none; }
   ::-webkit-scrollbar { width: 12px; }
@@ -354,28 +259,32 @@
   <div class="brand">
     <span class="mark">m</span>
     <h1>Logbook</h1>
-    <span class="tag">Progress</span>
+    <span class="tag" id="verTag" title="Build version — tells you which copy is live">Progress · L4</span>
   </div>
   <div class="top-mid">
     <select class="proj-sel" id="projSel" title="Switch project"></select>
     <span class="saved-dot" id="savedDot"></span>
     <span class="offline-pill" id="offlinePill">Offline — changes save locally</span>
   </div>
-  <div class="controls" style="display:flex; align-items:center; gap:8px;">
+  <div class="controls">
     <button class="btn icon" id="themeBtn" title="Toggle light / dark mode">☾</button>
     <button class="btn" id="folderBtn" style="display:none">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5a1 1 0 011-1h3l1.5 2h6a1 1 0 011 1v6a1 1 0 01-1 1h-10.5a1 1 0 01-1-1v-8z"/></svg>
       <span class="lbl" id="folderLabel">Connect sync folder</span>
     </button>
+    <button class="btn icon" id="syncBtn" style="display:none"
+            title="Check the sync folder now for changes made on another computer">⟳</button>
     <span class="menu-wrap">
-      <button class="btn" id="exportBtn">
+      <button class="btn" id="exportBtn" title="Export, backup and settings">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10V2M5 5l3-3 3 3M2.5 10v3a1 1 0 001 1h9a1 1 0 001-1v-3"/></svg>
-        Menu
+        <span class="lbl">Menu</span>
       </button>
       <span class="menu" id="exportMenu">
         <button id="expMd">Export this project <span class="hint">.md</span></button>
         <button id="expJson">Backup all projects <span class="hint">.json</span></button>
         <button id="impJson">Import backup… <span class="hint">.json</span></button>
+        <hr>
+        <button id="refreshBtn">Check folder for updates <span class="hint">now</span></button>
         <hr>
         <button id="newProjBtn">New project…</button>
         <button id="settingsBtn">Project settings…</button>
@@ -386,7 +295,6 @@
 
 <div class="wrap">
 
-  <!-- setup / settings -->
   <div class="setup" id="setupCard" style="display:none">
     <h2 id="setupTitle">New project</h2>
     <div class="sub">Give it a name and a start date. Days number themselves from the start; the quire fills as you log.</div>
@@ -415,7 +323,6 @@
     </div>
   </div>
 
-  <!-- dashboard -->
   <div id="dash" style="display:none">
     <div class="eyebrow">Dashboard</div>
     <div class="dash-head">
@@ -457,7 +364,7 @@
         <div class="panel">
           <h3>The gathering</h3>
           <div id="quire"></div>
-          <div class="quire-legend" id="quireLegend">
+          <div class="quire-legend">
             Each row is a week's gathering, each cell a day's leaf. Ruled lines = logged;
             a green rule = daily target met. Click any leaf to open that day.
           </div>
@@ -500,14 +407,17 @@
 (function () {
   "use strict";
 
-  // ---------- state ----------
   const LS_KEY = "logbook::data";
   const FILE_NAME = "logbook.json";
-  let state = { projects: [], activeId: null };
+  const EPOCH = "1970-01-01T00:00:00.000Z";
+
+  // projects[] each: {id,name,start,end,unit,metaT,goals[],goalTimes{},entries{},entryTimes{}}
+  let state = { projects: [], projectTimes: {}, activeId: null };
   let selectedDate = null;
   let showAllDays = false;
-  let setupMode = "create"; // create | edit
-  let saveTimer = null, folderSaveTimer = null;
+  let setupMode = "create";
+  let saveTimer = null, folderSaveTimer = null, pollTimer = null;
+  let lastRemoteStamp = null;
 
   const supportsFS = "showDirectoryPicker" in window;
   let dirHandle = null;
@@ -516,6 +426,7 @@
   const $ = (id) => document.getElementById(id);
   const toast = $("toast");
   const active = () => state.projects.find(p => p.id === state.activeId) || null;
+  const now = () => new Date().toISOString();
 
   // ---------- helpers ----------
   function showToast(msg) {
@@ -532,20 +443,14 @@
     clearTimeout(flashSaved._t);
     flashSaved._t = setTimeout(() => d.classList.remove("flash"), 1200);
   }
-  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-  function iso(d) {
-    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-  }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function iso(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
   function fromISO(s) { const p = s.split("-").map(Number); return new Date(p[0], p[1] - 1, p[2]); }
   function todayISO() { return iso(new Date()); }
   function daysBetween(a, b) { return Math.round((fromISO(b) - fromISO(a)) / 86400000); }
   function addDays(s, n) { const d = fromISO(s); d.setDate(d.getDate() + n); return iso(d); }
-  function fmtLong(s) {
-    return fromISO(s).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-  }
-  function fmtShort(s) {
-    return fromISO(s).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-  }
+  function fmtLong(s) { return fromISO(s).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" }); }
+  function fmtShort(s) { return fromISO(s).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }); }
   function dayNum(p, s) { return daysBetween(p.start, s) + 1; }
   function entryOf(p, s) { return p.entries[s] || null; }
   function hasEntry(p, s) {
@@ -558,9 +463,7 @@
   function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
   function rom(n) {
     const t = [[100,"c"],[90,"xc"],[50,"l"],[40,"xl"],[10,"x"],[9,"ix"],[5,"v"],[4,"iv"],[1,"i"]];
-    let r = "";
-    for (const [v, s] of t) while (n >= v) { r += s; n -= v; }
-    return r;
+    let r = ""; for (const [v, s] of t) while (n >= v) { r += s; n -= v; } return r;
   }
   function perdayTarget(p) {
     const g = p.goals.find(g => g.type === "perday" && +g.target > 0);
@@ -569,10 +472,8 @@
   function download(filename, text, mime) {
     const blob = new Blob([text], { type: mime || "text/plain" });
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
+    a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.appendChild(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
   }
 
@@ -593,7 +494,7 @@
     try { localStorage.setItem("marginalia-theme", t); } catch (e) {}
   });
 
-  // ---------- IndexedDB (same DB + key as Marginalia → shared folder) ----------
+  // ---------- IndexedDB (shares the folder handle with Marginalia) ----------
   function idbOpen() {
     return new Promise((res, rej) => {
       const r = indexedDB.open("marginalia-db", 1);
@@ -606,25 +507,24 @@
     const db = await idbOpen();
     return new Promise((res, rej) => {
       const t = db.transaction("kv").objectStore("kv").get(k);
-      t.onsuccess = () => res(t.result);
-      t.onerror = () => rej(t.error);
+      t.onsuccess = () => res(t.result); t.onerror = () => rej(t.error);
     });
   }
   async function idbSet(k, v) {
     const db = await idbOpen();
     return new Promise((res, rej) => {
       const t = db.transaction("kv", "readwrite").objectStore("kv").put(v, k);
-      t.onsuccess = () => res();
-      t.onerror = () => rej(t.error);
+      t.onsuccess = () => res(); t.onerror = () => rej(t.error);
     });
   }
 
   // ---------- folder sync ----------
   function updateFolderUi() {
     const btn = $("folderBtn"), lbl = $("folderLabel");
-    if (!supportsFS) { btn.style.display = "none"; return; }
+    if (!supportsFS) { btn.style.display = "none"; $("syncBtn").style.display = "none"; return; }
     btn.style.display = "inline-flex";
     btn.classList.remove("connected", "attention");
+    $("syncBtn").style.display = folderState === "connected" ? "inline-flex" : "none";
     if (folderState === "connected") {
       btn.classList.add("connected");
       lbl.textContent = "✓ " + (dirHandle && dirHandle.name ? dirHandle.name : "Connected");
@@ -641,18 +541,18 @@
   async function connectFolder() {
     try {
       const h = await window.showDirectoryPicker({ mode: "readwrite" });
-      dirHandle = h;
-      folderState = "connected";
+      dirHandle = h; folderState = "connected";
       await idbSet("dirHandle", h).catch(() => {});
       updateFolderUi();
       showToast("Connected “" + h.name + "”");
-      const fileData = await readDataFile();
-      if (fileData) { adoptData(fileData); renderAll(); showToast("Loaded logbook from your sync folder"); }
-      else scheduleFolderSave();
+      lastRemoteStamp = null;
+      await checkRemote(false);
+      await writeDataFile();
+      startPolling();
+      renderAll();
     } catch (e) {
       if (e && e.name === "AbortError") return;
-      console.error(e);
-      showToast("Couldn't access that folder");
+      console.error(e); showToast("Couldn't access that folder");
     }
   }
   async function reconnectFolder() {
@@ -662,8 +562,10 @@
         folderState = "connected";
         updateFolderUi();
         showToast("Folder reconnected");
-        const fileData = await readDataFile();
-        if (fileData) { adoptData(fileData); renderAll(); }
+        lastRemoteStamp = null;
+        await checkRemote(false);
+        startPolling();
+        renderAll();
       }
     } catch (e) { console.error(e); }
   }
@@ -679,23 +581,16 @@
     } catch (e) { folderState = "none"; }
     updateFolderUi();
     if (folderState === "connected") {
-      const fileData = await readDataFile();
-      if (fileData) { adoptData(fileData); renderAll(); }
+      await checkRemote(false);
+      startPolling();
     }
+    maybePreload();
+    renderAll();
   }
   $("folderBtn").addEventListener("click", () => {
-    if (folderState === "prompt") reconnectFolder();
-    else connectFolder();
+    if (folderState === "prompt") reconnectFolder(); else connectFolder();
   });
-  async function readDataFile() {
-    if (folderState !== "connected") return null;
-    try {
-      const fh = await dirHandle.getFileHandle(FILE_NAME);
-      const f = await fh.getFile();
-      const data = JSON.parse(await f.text());
-      return (data && data.app === "marginalia-logbook") ? data : null;
-    } catch (e) { return null; }
-  }
+
   async function writeDataFile() {
     if (folderState !== "connected") return false;
     try {
@@ -703,77 +598,217 @@
       const w = await fh.createWritable();
       await w.write(JSON.stringify(payload(), null, 2));
       await w.close();
+      try { lastRemoteStamp = (await fh.getFile()).lastModified; } catch (e) {}
       return true;
     } catch (e) { console.warn("folder save failed", e); return false; }
   }
 
-  // ---------- persistence / migration ----------
-  function payload() {
+  // ---------- merge ----------
+  function blankProject(p) {
     return {
-      app: "marginalia-logbook", version: 2,
-      projects: state.projects, activeId: state.activeId,
-      savedAt: new Date().toISOString()
+      id: p.id, name: p.name || "Project", start: p.start, end: p.end || null,
+      unit: p.unit || "words", metaT: p.metaT || EPOCH,
+      goals: Array.isArray(p.goals) ? p.goals.slice() : [],
+      goalTimes: p.goalTimes || {},
+      entries: (p.entries && typeof p.entries === "object") ? Object.assign({}, p.entries) : {},
+      entryTimes: p.entryTimes || {}
     };
   }
-  function migrateGoal(g) {
-    if (g.type) return g;
-    return { id: g.id || "g" + Math.random().toString(36).slice(2), title: g.title,
-             type: "manual", progress: g.progress || 0, done: !!g.done };
+  // Timestamps per entry/goal/project let two computers converge instead of
+  // one file simply flattening the other.
+  function mergeRemote(remote) {
+    if (!remote || !Array.isArray(remote.projects)) return 0;
+    const fallback = remote.savedAt || EPOCH;
+    const rTimes = remote.projectTimes || {};
+    let changed = 0;
+
+    for (const rpRaw of remote.projects) {
+      if (!rpRaw || !rpRaw.id || !rpRaw.start) continue;
+      const rp = blankProject(rpRaw);
+      const lp = state.projects.find(x => x.id === rp.id);
+      const rExist = rTimes[rp.id] || fallback;
+      if (!lp) {
+        const lDel = state.projectTimes[rp.id];
+        if (lDel && lDel > rExist) continue;      // we deleted it more recently
+        state.projects.push(rp);
+        state.projectTimes[rp.id] = rExist;
+        changed++;
+        continue;
+      }
+      // project metadata
+      if ((rp.metaT || EPOCH) > (lp.metaT || EPOCH)) {
+        lp.name = rp.name; lp.start = rp.start; lp.end = rp.end; lp.unit = rp.unit;
+        lp.metaT = rp.metaT; changed++;
+      }
+      // entries
+      const dates = new Set([].concat(
+        Object.keys(lp.entries), Object.keys(lp.entryTimes),
+        Object.keys(rp.entries), Object.keys(rp.entryTimes)));
+      for (const d of dates) {
+        const lt = lp.entryTimes[d] || EPOCH;
+        let rt = rp.entryTimes[d];
+        if (!rt) rt = (rp.entries[d] !== undefined) ? fallback : null;
+        if (rt === null || rt <= lt) continue;
+        if (rp.entries[d] !== undefined) {
+          const a = JSON.stringify(lp.entries[d] || null), b = JSON.stringify(rp.entries[d]);
+          if (a !== b) { lp.entries[d] = rp.entries[d]; changed++; }
+        } else if (lp.entries[d] !== undefined) {
+          delete lp.entries[d]; changed++;
+        }
+        lp.entryTimes[d] = rt;
+      }
+      // goals
+      const gids = new Set([].concat(
+        lp.goals.map(g => g.id), Object.keys(lp.goalTimes),
+        rp.goals.map(g => g.id), Object.keys(rp.goalTimes)));
+      for (const gid of gids) {
+        const lt = lp.goalTimes[gid] || EPOCH;
+        const rg = rp.goals.find(g => g.id === gid);
+        let rt = rp.goalTimes[gid];
+        if (!rt) rt = rg ? fallback : null;
+        if (rt === null || rt <= lt) continue;
+        const li = lp.goals.findIndex(g => g.id === gid);
+        if (rg) {
+          if (li === -1) { lp.goals.push(rg); changed++; }
+          else if (JSON.stringify(lp.goals[li]) !== JSON.stringify(rg)) { lp.goals[li] = rg; changed++; }
+        } else if (li !== -1) { lp.goals.splice(li, 1); changed++; }
+        lp.goalTimes[gid] = rt;
+      }
+    }
+
+    // projects deleted on the other computer
+    for (let i = state.projects.length - 1; i >= 0; i--) {
+      const lp = state.projects[i];
+      const stillThere = remote.projects.some(p => p && p.id === lp.id);
+      const rDel = rTimes[lp.id];
+      if (!stillThere && rDel && rDel > (state.projectTimes[lp.id] || EPOCH)) {
+        state.projects.splice(i, 1);
+        state.projectTimes[lp.id] = rDel;
+        changed++;
+      }
+    }
+    if (!active() && state.projects.length) state.activeId = state.projects[0].id;
+    return changed;
   }
-  function adoptData(data) {
-    if (!data) return;
-    if (Array.isArray(data.projects)) {
-      state.projects = data.projects.map(p => ({
-        id: p.id, name: p.name || "Project", start: p.start, end: p.end || null,
-        unit: p.unit || "words",
-        goals: (p.goals || []).map(migrateGoal),
-        entries: (p.entries && typeof p.entries === "object") ? p.entries : {}
-      })).filter(p => p.start);
-      state.activeId = data.activeId && state.projects.some(p => p.id === data.activeId)
-        ? data.activeId : (state.projects[0] ? state.projects[0].id : null);
-    } else if (data.project && data.project.start) {
-      // v1 single-project format
-      state.projects = [{
-        id: "p1", name: data.project.name || "My project",
-        start: data.project.start, end: data.project.end || null, unit: "words",
-        goals: (data.goals || []).map(migrateGoal),
-        entries: (data.entries && typeof data.entries === "object") ? data.entries : {}
-      }];
-      state.activeId = "p1";
+
+  async function checkRemote(announce) {
+    if (folderState !== "connected") return;
+    try {
+      const fh = await dirHandle.getFileHandle(FILE_NAME);
+      const f = await fh.getFile();
+      $("savedDot").title = "Folder file last written " + new Date(f.lastModified).toLocaleString();
+      if (lastRemoteStamp !== null && f.lastModified <= lastRemoteStamp) {
+        if (announce) showToast("Already up to date");
+        return;
+      }
+      const data = JSON.parse(await f.text());
+      if (!data || data.app !== "marginalia-logbook") return;
+      lastRemoteStamp = f.lastModified;
+      const changed = mergeRemote(upgrade(data));
+      if (changed) {
+        try { localStorage.setItem(LS_KEY, JSON.stringify(payload())); } catch (e) {}
+        await writeDataFile();
+        renderAll();
+        showToast("Pulled in " + changed + " change" + (changed === 1 ? "" : "s") + " from your other computer");
+      } else if (announce) showToast("Already up to date");
+    } catch (e) {
+      if (announce) showToast("No logbook file in the folder yet");
     }
   }
+  function startPolling() {
+    clearInterval(pollTimer);
+    pollTimer = setInterval(() => checkRemote(false), 20000);
+  }
+  window.addEventListener("focus", () => checkRemote(false));
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) checkRemote(false); });
+  window.addEventListener("online", () => { updateOnline(); checkRemote(false); });
+
+  async function manualSync() {
+    if (folderState !== "connected") { showToast("No sync folder connected"); return; }
+    const b = $("syncBtn");
+    b.disabled = true; b.style.opacity = ".5";
+    commitEditor();
+    await checkRemote(true);
+    b.disabled = false; b.style.opacity = "";
+  }
+  $("syncBtn").addEventListener("click", manualSync);
+  $("refreshBtn").addEventListener("click", manualSync);
+
+  // ---------- persistence ----------
+  function payload() {
+    return {
+      app: "marginalia-logbook", version: 3,
+      projects: state.projects, projectTimes: state.projectTimes,
+      savedAt: now()
+    };
+  }
+  // bring v1 (single project) and v2 (no timestamps) files up to the current shape
+  function upgrade(data) {
+    if (!data) return { projects: [] };
+    const stamp = data.savedAt || now();
+    let projects = [];
+    if (Array.isArray(data.projects)) projects = data.projects;
+    else if (data.project && data.project.start) {
+      projects = [{ id: "p1", name: data.project.name, start: data.project.start,
+                    end: data.project.end || null, unit: "words",
+                    goals: data.goals || [], entries: data.entries || {} }];
+    }
+    const projectTimes = data.projectTimes || {};
+    const out = projects.filter(p => p && p.start).map(p => {
+      const q = blankProject(p);
+      if (!p.metaT) q.metaT = stamp;
+      if (!p.entryTimes) { q.entryTimes = {}; for (const d of Object.keys(q.entries)) q.entryTimes[d] = stamp; }
+      q.goals = q.goals.map(g => g.type ? g : Object.assign({}, g, { type: "manual" }));
+      if (!p.goalTimes) { q.goalTimes = {}; for (const g of q.goals) q.goalTimes[g.id] = stamp; }
+      if (!projectTimes[q.id]) projectTimes[q.id] = stamp;
+      return q;
+    });
+    return { projects: out, projectTimes, savedAt: stamp, app: data.app };
+  }
+  function adoptLocal(data) {
+    const up = upgrade(data);
+    state.projects = up.projects;
+    state.projectTimes = up.projectTimes;
+    state.activeId = data && data.activeId && up.projects.some(p => p.id === data.activeId)
+      ? data.activeId : (up.projects[0] ? up.projects[0].id : null);
+  }
   function persist() {
-    try { localStorage.setItem(LS_KEY, JSON.stringify(payload())); } catch (e) {}
+    try { localStorage.setItem(LS_KEY, JSON.stringify(
+      Object.assign(payload(), { activeId: state.activeId }))); } catch (e) {}
     if (folderState === "connected") scheduleFolderSave();
     else flashSaved(false);
   }
   function scheduleFolderSave() {
     clearTimeout(folderSaveTimer);
-    folderSaveTimer = setTimeout(async () => {
-      const ok = await writeDataFile();
-      flashSaved(ok);
-    }, 800);
+    folderSaveTimer = setTimeout(async () => { flashSaved(await writeDataFile()); }, 800);
   }
   function restoreLocal() {
     try {
       const raw = localStorage.getItem(LS_KEY);
-      if (raw) adoptData(JSON.parse(raw));
+      if (raw) adoptLocal(JSON.parse(raw));
     } catch (e) {}
   }
-  function preload() {
-    state.projects = [
-      { id: "pw", name: "Writing", start: todayISO(), end: null, unit: "words",
-        goals: [
-          { id: "g1", title: "Write 400 words a day", type: "perday", target: 400 },
-          { id: "g2", title: "14-day on-ramp", type: "daycount", target: 14 },
-          { id: "g3", title: "Wales chapter", type: "cumulative", target: 5340 },
-          { id: "g4", title: "Full manuscript", type: "cumulative", target: 133500 }
-        ], entries: {} },
-      { id: "pk", name: "Kidd study", start: "2026-07-19", end: null, unit: "pages",
-        goals: [], entries: {} }
-    ];
+  // only seed sample projects on a genuinely empty install — otherwise a second
+  // computer would invent duplicates before the folder file arrives
+  function maybePreload() {
+    if (state.projects.length) return;
+    const t = now();
+    const p = {
+      id: "pw", name: "Writing", start: todayISO(), end: null, unit: "words", metaT: t,
+      goals: [
+        { id: "g1", title: "Write 400 words a day", type: "perday", target: 400 },
+        { id: "g2", title: "14-day on-ramp", type: "daycount", target: 14 },
+        { id: "g3", title: "Wales chapter", type: "cumulative", target: 5340 },
+        { id: "g4", title: "Full manuscript", type: "cumulative", target: 133500 }
+      ],
+      goalTimes: { g1: t, g2: t, g3: t, g4: t },
+      entries: {}, entryTimes: {}
+    };
+    state.projects = [p];
+    state.projectTimes = { pw: t };
     state.activeId = "pw";
-    try { localStorage.setItem(LS_KEY, JSON.stringify(payload())); } catch (e) {}
+    persist();
+    setTimeout(() => showToast("Created a starter project — adjust it in Menu → Project settings"), 600);
   }
 
   // ---------- project switcher ----------
@@ -790,14 +825,14 @@
     n.value = "__new"; n.textContent = "＋ New project…";
     sel.appendChild(n);
   }
-  $("projSel").addEventListener("change", (e) => {
+  $("projSel").addEventListener("change", async (e) => {
     if (e.target.value === "__new") { openSetup("create"); renderProjSel(); return; }
+    clearTimeout(saveTimer);
     commitEditor();
+    if (folderState === "connected") { clearTimeout(folderSaveTimer); await writeDataFile(); }
     state.activeId = e.target.value;
-    selectedDate = null;
-    showAllDays = false;
-    persist();
-    renderAll();
+    selectedDate = null; showAllDays = false;
+    persist(); renderAll();
   });
   $("newProjBtn").addEventListener("click", () => openSetup("create"));
   $("settingsBtn").addEventListener("click", () => { if (active()) openSetup("edit"); });
@@ -818,8 +853,7 @@
     $("setUnit").value = mode === "edit" && p ? (p.unit || "words") : "words";
   }
   $("setupCancel").addEventListener("click", () => {
-    $("setupCard").style.display = "none";
-    $("dash").style.display = "block";
+    $("setupCard").style.display = "none"; $("dash").style.display = "block";
   });
   $("setupSave").addEventListener("click", () => {
     const name = $("setName").value.trim() || "My project";
@@ -828,17 +862,19 @@
     const unit = $("setUnit").value.trim() || "words";
     if (!start) { showToast("Pick a start date"); return; }
     if (end && daysBetween(start, end) < 0) { showToast("End date is before the start date"); return; }
+    const t = now();
     if (setupMode === "edit" && active()) {
-      Object.assign(active(), { name, start, end, unit });
+      Object.assign(active(), { name, start, end, unit, metaT: t });
     } else {
-      const p = { id: "p" + Date.now(), name, start, end, unit, goals: [], entries: {} };
-      state.projects.push(p);
-      state.activeId = p.id;
+      const id = "p" + Date.now();
+      state.projects.push({ id, name, start, end, unit, metaT: t,
+                            goals: [], goalTimes: {}, entries: {}, entryTimes: {} });
+      state.projectTimes[id] = t;
+      state.activeId = id;
     }
     selectedDate = null;
     persist();
-    $("setupCard").style.display = "none";
-    $("dash").style.display = "block";
+    $("setupCard").style.display = "none"; $("dash").style.display = "block";
     renderAll();
   });
   $("delProj").addEventListener("click", () => {
@@ -846,6 +882,7 @@
     if (!p) return;
     if (!confirm('Delete project "' + p.name + '" and all its entries? This cannot be undone.')) return;
     state.projects = state.projects.filter(x => x.id !== p.id);
+    state.projectTimes[p.id] = now();          // tombstone so the delete syncs
     state.activeId = state.projects[0] ? state.projects[0].id : null;
     selectedDate = null;
     persist();
@@ -859,7 +896,7 @@
     return d;
   }
 
-  // ---------- goal computation ----------
+  // ---------- goals ----------
   function goalPct(g, p) {
     const dates = loggedDates(p);
     if (g.type === "manual") return g.done ? 100 : (g.progress || 0);
@@ -867,9 +904,7 @@
       const sum = dates.reduce((a, d) => a + countOf(p, d), 0);
       return g.target ? Math.min(100, Math.round((sum / g.target) * 100)) : 0;
     }
-    if (g.type === "daycount") {
-      return g.target ? Math.min(100, Math.round((dates.length / g.target) * 100)) : 0;
-    }
+    if (g.type === "daycount") return g.target ? Math.min(100, Math.round((dates.length / g.target) * 100)) : 0;
     if (g.type === "perday") {
       const hit = dates.filter(d => countOf(p, d) >= +g.target).length;
       return dates.length ? Math.round((hit / dates.length) * 100) : 0;
@@ -892,109 +927,36 @@
   function typeLabel(t) {
     return { perday: "per day", cumulative: "cumulative", daycount: "days", manual: "manual" }[t] || t;
   }
-
-  // ---------- dashboard ----------
-  function computeStreak(p) {
-    let s = 0, best = 0, run = 0;
-    const t = todayISO();
-    let d = hasEntry(p, t) ? t : addDays(t, -1);
-    while (daysBetween(p.start, d) >= 0 && hasEntry(p, d)) { s++; d = addDays(d, -1); }
-    const total = daysBetween(p.start, t);
-    for (let i = 0; i <= total; i++) {
-      if (hasEntry(p, addDays(p.start, i))) { run++; best = Math.max(best, run); }
-      else run = 0;
-    }
-    return { current: s, best };
-  }
-  function renderDash() {
-    const p = active();
-    const t = todayISO();
-    $("projName").textContent = p.name;
-    $("projRange").textContent = fmtShort(p.start) + (p.end ? " → " + fmtShort(p.end) : " → open-ended");
-
-    const started = daysBetween(p.start, t) >= 0;
-    const dn = started ? dayNum(p, t) : 0;
-    const totalDays = p.end ? daysBetween(p.start, p.end) + 1 : null;
-
-    $("statDay").textContent = started ? dn : "–";
-    $("statDaySub").textContent = started
-      ? (totalDays ? "of " + totalDays + " days" : "since " + fmtShort(p.start))
-      : "starts in " + (-daysBetween(p.start, t)) + " day(s)";
-
-    const { current, best } = computeStreak(p);
-    $("statStreak").textContent = current;
-    $("statStreakSub").textContent = "days · best " + best;
-
-    const elapsed = started ? dn : 0;
-    const logged = loggedDates(p).length;
-    const cons = elapsed ? Math.round((logged / elapsed) * 100) : 0;
-    $("statCons").textContent = elapsed ? cons + "%" : "–";
-    $("statConsSub").textContent = logged + " of " + elapsed + " days logged";
-
-    // output stat — averaged per WRITING day, not per elapsed day
-    const dates = loggedDates(p);
-    const sum = dates.reduce((a, d) => a + countOf(p, d), 0);
-    const wdays = dates.filter(d => countOf(p, d) > 0).length;
-    $("statWordsLab").textContent = cap(p.unit);
-    $("statWords").textContent = nfmt(sum);
-    $("statWordsSub").textContent = wdays
-      ? "avg " + nfmt(Math.round(sum / wdays)) + " per writing day"
-      : "no " + p.unit + " logged yet";
-
-    const goals = p.goals;
-    const doneCount = goals.filter(g => goalPct(g, p) >= 100).length;
-    const avg = goals.length
-      ? Math.round(goals.reduce((a, g) => a + goalPct(g, p), 0) / goals.length)
-      : 0;
-    $("statGoals").textContent = goals.length ? avg + "%" : "–";
-    $("statGoalsSub").textContent = goals.length ? doneCount + " of " + goals.length + " complete" : "no goals yet";
-
-    if (totalDays) {
-      $("timeBarRow").style.display = "block";
-      const pct = Math.min(100, Math.max(0, Math.round((elapsed / totalDays) * 100)));
-      $("barTime").style.width = pct + "%";
-      $("barTimeLbl").textContent = "day " + elapsed + " of " + totalDays + " · " + pct + "%";
-    } else {
-      $("timeBarRow").style.display = "none";
-    }
-  }
-
-  // ---------- goals ----------
   function renderGoals() {
-    const p = active();
-    const list = $("goalsList");
-    if (!p.goals.length) {
-      list.innerHTML = '<div class="goals-empty">No goals yet — add the first one below.</div>';
-      return;
-    }
+    const p = active(); const list = $("goalsList");
+    if (!p.goals.length) { list.innerHTML = '<div class="goals-empty">No goals yet — add the first one below.</div>'; return; }
     list.innerHTML = "";
     for (const g of p.goals) {
       const pct = goalPct(g, p);
       const row = document.createElement("div");
       row.className = "goal2" + (pct >= 100 ? " done" : "");
-      let detail = "";
-      if (g.type === "manual") {
-        detail = '<input type="range" min="0" max="100" step="5" value="' + (g.progress || 0) + '">' +
-                 '<span>drag to update</span>';
-      } else {
-        detail = "<span>" + esc(goalDetail(g, p)) + "</span>";
-      }
+      const detail = g.type === "manual"
+        ? '<input type="range" min="0" max="100" step="5" value="' + (g.progress || 0) + '"><span>drag to update</span>'
+        : "<span>" + esc(goalDetail(g, p)) + "</span>";
       row.innerHTML =
-        '<div class="g-top">' +
-          '<span class="g-title">' + esc(g.title) + "</span>" +
-          '<span class="g-type">' + typeLabel(g.type) + "</span>" +
-          '<span class="g-pct' + (pct >= 100 ? " done" : "") + '">' + pct + "%</span>" +
-          '<button class="g-del" title="Delete goal">✕</button>' +
-        "</div>" +
+        '<div class="g-top"><span class="g-title">' + esc(g.title) + "</span>" +
+        '<span class="g-type">' + typeLabel(g.type) + "</span>" +
+        '<span class="g-pct' + (pct >= 100 ? " done" : "") + '">' + pct + "%</span>" +
+        '<button class="g-del" title="Delete goal">✕</button></div>' +
         '<div class="bar mini' + (pct >= 100 ? " ok" : "") + '"><i style="width:' + pct + '%"></i></div>' +
         '<div class="g-detail">' + detail + "</div>";
       const range = row.querySelector('input[type="range"]');
       if (range) {
         range.addEventListener("input", (e) => { g.progress = parseInt(e.target.value, 10) || 0; });
-        range.addEventListener("change", () => { g.done = g.progress >= 100; persist(); renderGoals(); renderDash(); });
+        range.addEventListener("change", () => {
+          g.done = g.progress >= 100;
+          p.goalTimes[g.id] = now();
+          persist(); renderGoals(); renderDash();
+        });
       }
       row.querySelector(".g-del").addEventListener("click", () => {
         p.goals = p.goals.filter(x => x !== g);
+        p.goalTimes[g.id] = now();               // tombstone
         persist(); renderGoals(); renderDash(); renderQuire();
       });
       list.appendChild(row);
@@ -1013,66 +975,107 @@
     const target = parseInt($("goalTarget").value, 10) || 0;
     if (!title) { showToast("Give the goal a title"); return; }
     if (type !== "manual" && target < 1) { showToast("Set a target number"); return; }
-    p.goals.push({ id: "g" + Date.now(), title, type,
-                   target: type === "manual" ? undefined : target,
-                   progress: 0, done: false });
+    const id = "g" + Date.now();
+    p.goals.push({ id, title, type, target: type === "manual" ? undefined : target, progress: 0, done: false });
+    p.goalTimes[id] = now();
     $("goalInput").value = ""; $("goalTarget").value = "";
     persist(); renderGoals(); renderDash(); renderQuire();
   }
 
+  // ---------- dashboard ----------
+  function computeStreak(p) {
+    let s = 0, best = 0, run = 0;
+    const t = todayISO();
+    let d = hasEntry(p, t) ? t : addDays(t, -1);
+    while (daysBetween(p.start, d) >= 0 && hasEntry(p, d)) { s++; d = addDays(d, -1); }
+    const total = daysBetween(p.start, t);
+    for (let i = 0; i <= total; i++) {
+      if (hasEntry(p, addDays(p.start, i))) { run++; best = Math.max(best, run); } else run = 0;
+    }
+    return { current: s, best };
+  }
+  function renderDash() {
+    const p = active(); const t = todayISO();
+    $("projName").textContent = p.name;
+    $("projRange").textContent = fmtShort(p.start) + (p.end ? " → " + fmtShort(p.end) : " → open-ended");
+    const started = daysBetween(p.start, t) >= 0;
+    const dn = started ? dayNum(p, t) : 0;
+    const totalDays = p.end ? daysBetween(p.start, p.end) + 1 : null;
+
+    $("statDay").textContent = started ? dn : "–";
+    $("statDaySub").textContent = started
+      ? (totalDays ? "of " + totalDays + " days" : "since " + fmtShort(p.start))
+      : "starts in " + (-daysBetween(p.start, t)) + " day(s)";
+
+    const { current, best } = computeStreak(p);
+    $("statStreak").textContent = current;
+    $("statStreakSub").textContent = "days · best " + best;
+
+    const elapsed = started ? dn : 0;
+    const logged = loggedDates(p).length;
+    $("statCons").textContent = elapsed ? Math.round((logged / elapsed) * 100) + "%" : "–";
+    $("statConsSub").textContent = logged + " of " + elapsed + " days logged";
+
+    const dates = loggedDates(p);
+    const sum = dates.reduce((a, d) => a + countOf(p, d), 0);
+    const wdays = dates.filter(d => countOf(p, d) > 0).length;
+    $("statWordsLab").textContent = cap(p.unit);
+    $("statWords").textContent = nfmt(sum);
+    $("statWordsSub").textContent = wdays
+      ? "avg " + nfmt(Math.round(sum / wdays)) + " per writing day"
+      : "no " + p.unit + " logged yet";
+
+    const goals = p.goals;
+    const doneCount = goals.filter(g => goalPct(g, p) >= 100).length;
+    const avg = goals.length ? Math.round(goals.reduce((a, g) => a + goalPct(g, p), 0) / goals.length) : 0;
+    $("statGoals").textContent = goals.length ? avg + "%" : "–";
+    $("statGoalsSub").textContent = goals.length ? doneCount + " of " + goals.length + " complete" : "no goals yet";
+
+    if (totalDays) {
+      $("timeBarRow").style.display = "block";
+      const pct = Math.min(100, Math.max(0, Math.round((elapsed / totalDays) * 100)));
+      $("barTime").style.width = pct + "%";
+      $("barTimeLbl").textContent = "day " + elapsed + " of " + totalDays + " · " + pct + "%";
+    } else $("timeBarRow").style.display = "none";
+  }
+
   // ---------- quire ----------
   function renderQuire() {
-    const p = active();
-    const wrap = $("quire");
-    wrap.innerHTML = "";
+    const p = active(); const wrap = $("quire"); wrap.innerHTML = "";
     const t = todayISO();
-    if (daysBetween(p.start, t) < 0) {
-      wrap.innerHTML = '<span class="goals-empty">The project hasn\'t started yet.</span>';
-      return;
-    }
+    if (daysBetween(p.start, t) < 0) { wrap.innerHTML = '<span class="goals-empty">The project hasn\'t started yet.</span>'; return; }
     const target = perdayTarget(p);
     const totalDays = daysBetween(p.start, t) + 1;
     const totalWeeks = Math.ceil(totalDays / 7);
     const maxWeeks = 26;
     const fromWeek = Math.max(0, totalWeeks - maxWeeks);
     for (let w = fromWeek; w < totalWeeks; w++) {
-      const row = document.createElement("div");
-      row.className = "quire-row";
-      const sig = document.createElement("span");
-      sig.className = "q-sig";
-      sig.textContent = rom(w + 1) + ".";
-      row.appendChild(sig);
+      const row = document.createElement("div"); row.className = "quire-row";
+      const sig = document.createElement("span"); sig.className = "q-sig";
+      sig.textContent = rom(w + 1) + "."; row.appendChild(sig);
       for (let i = 0; i < 7; i++) {
         const d = addDays(p.start, w * 7 + i);
         const leaf = document.createElement("span");
         const future = daysBetween(d, t) < 0;
         const logged = !future && hasEntry(p, d);
         const hit = logged && target && countOf(p, d) >= target;
-        leaf.className = "leaf" +
-          (future ? " future" : "") +
-          (logged ? " logged" : "") +
-          (hit ? " hit" : "") +
-          (d === t ? " today" : "") +
-          (d === selectedDate ? " sel" : "");
+        leaf.className = "leaf" + (future ? " future" : "") + (logged ? " logged" : "") +
+          (hit ? " hit" : "") + (d === t ? " today" : "") + (d === selectedDate ? " sel" : "");
         leaf.title = fmtShort(d) + " · Day " + dayNum(p, d) +
           (future ? "" : logged
             ? (" — logged" + (countOf(p, d) ? ", " + nfmt(countOf(p, d)) + " " + p.unit : "") + (hit ? " ✓ target" : ""))
             : " — no entry");
-        if (!future) {
-          leaf.addEventListener("click", () => {
-            commitEditor();
-            selectedDate = d;
-            loadEditor(); renderQuire(); renderTimeline();
-            $("didInput").focus();
-          });
-        }
+        if (!future) leaf.addEventListener("click", () => {
+          commitEditor(); selectedDate = d;
+          loadEditor(); renderQuire(); renderTimeline();
+          $("didInput").focus();
+        });
         row.appendChild(leaf);
       }
       wrap.appendChild(row);
     }
     if (fromWeek > 0) {
-      const gn = document.createElement("div");
-      gn.className = "gap-note";
+      const gn = document.createElement("div"); gn.className = "gap-note";
       gn.textContent = "showing the most recent " + maxWeeks + " gatherings of " + totalWeeks;
       wrap.insertBefore(gn, wrap.firstChild);
     }
@@ -1100,66 +1103,52 @@
     const did = $("didInput").value;
     const reflect = $("refInput").value;
     const count = parseInt($("countInput").value, 10) || 0;
-    const had = !!p.entries[selectedDate];
-    if (did.trim() || reflect.trim() || count > 0) {
-      p.entries[selectedDate] = { did, reflect, count };
-    } else {
-      delete p.entries[selectedDate];
-    }
-    if (had || did.trim() || reflect.trim() || count > 0) {
-      persist(); renderDash(); renderGoals(); renderQuire(); renderTimeline();
-    }
+    const next = (did.trim() || reflect.trim() || count > 0) ? { did, reflect, count } : undefined;
+    const prev = p.entries[selectedDate];
+    if (JSON.stringify(prev || null) === JSON.stringify(next || null)) return;
+    if (next === undefined) delete p.entries[selectedDate];
+    else p.entries[selectedDate] = next;
+    p.entryTimes[selectedDate] = now();
+    persist(); renderDash(); renderGoals(); renderQuire(); renderTimeline();
   }
   ["didInput", "refInput", "countInput"].forEach(id => {
-    $(id).addEventListener("input", () => {
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(commitEditor, 600);
-    });
+    $(id).addEventListener("input", () => { clearTimeout(saveTimer); saveTimer = setTimeout(commitEditor, 600); });
     $(id).addEventListener("blur", commitEditor);
   });
   $("backToday").addEventListener("click", () => {
-    commitEditor();
-    selectedDate = todayISO();
+    commitEditor(); selectedDate = todayISO();
     loadEditor(); renderQuire(); renderTimeline();
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
   // ---------- timeline ----------
   function renderTimeline() {
-    const p = active();
-    const tl = $("timeline");
-    tl.innerHTML = "";
+    const p = active(); const tl = $("timeline"); tl.innerHTML = "";
     const t = todayISO();
     if (daysBetween(p.start, t) < 0) return;
     const total = daysBetween(p.start, t) + 1;
     const cap60 = 60;
     const shown = showAllDays ? total : Math.min(total, cap60);
     $("showAllBtn").style.display = total > cap60 && !showAllDays ? "inline-block" : "none";
-
     let pendingGhosts = [];
     const flush = () => {
       if (pendingGhosts.length > 2) {
-        const gn = document.createElement("div");
-        gn.className = "gap-note";
+        const gn = document.createElement("div"); gn.className = "gap-note";
         gn.textContent = pendingGhosts.length + " days without entries";
         tl.appendChild(gn);
-      } else {
-        for (const gd of pendingGhosts) tl.appendChild(dayCard(gd));
-      }
+      } else for (const gd of pendingGhosts) tl.appendChild(dayCard(gd));
       pendingGhosts = [];
     };
     for (let i = 0; i < shown; i++) {
       const d = addDays(t, -i);
       if (daysBetween(p.start, d) < 0) break;
       if (!hasEntry(p, d) && d !== selectedDate && d !== t) { pendingGhosts.push(d); continue; }
-      flush();
-      tl.appendChild(dayCard(d));
+      flush(); tl.appendChild(dayCard(d));
     }
     flush();
   }
   function dayCard(d) {
-    const p = active();
-    const e = entryOf(p, d) || {};
+    const p = active(); const e = entryOf(p, d) || {};
     const logged = hasEntry(p, d);
     const card = document.createElement("div");
     card.className = "day-card" + (logged ? "" : " ghost") + (d === selectedDate ? " sel" : "");
@@ -1169,13 +1158,10 @@
     if (logged) {
       if (e.did && e.did.trim()) html += "<p>" + esc(e.did.trim()) + "</p>";
       if (e.reflect && e.reflect.trim()) html += '<p class="refl">' + esc(e.reflect.trim()) + "</p>";
-    } else {
-      html += "<p>No entry — click to write one.</p>";
-    }
+    } else html += "<p>No entry — click to write one.</p>";
     card.innerHTML = html;
     card.addEventListener("click", () => {
-      commitEditor();
-      selectedDate = d;
+      commitEditor(); selectedDate = d;
       loadEditor(); renderQuire(); renderTimeline();
       $("didInput").focus();
     });
@@ -1189,8 +1175,7 @@
   document.addEventListener("click", () => exportMenu.classList.remove("open"));
 
   $("expMd").addEventListener("click", () => {
-    const p = active();
-    if (!p) return;
+    const p = active(); if (!p) return;
     commitEditor();
     let md = "# Progress log — " + p.name + "\n\n";
     md += "*Started " + fmtLong(p.start) + (p.end ? " · target " + fmtLong(p.end) : "") +
@@ -1217,32 +1202,25 @@
     download(p.name.replace(/[\\/:*?"<>|]/g, "") + " — progress log.md", md, "text/markdown");
     showToast("Journal exported");
   });
-
   $("expJson").addEventListener("click", () => {
     commitEditor();
     download("logbook backup.json", JSON.stringify(payload(), null, 2), "application/json");
     showToast("Backup exported (all projects)");
   });
-
   $("impJson").addEventListener("click", () => $("jsonInput").click());
   $("jsonInput").addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    e.target.value = "";
+    const file = e.target.files[0]; e.target.value = "";
     if (!file) return;
     try {
       const data = JSON.parse(await file.text());
       if (!data || data.app !== "marginalia-logbook") throw new Error("bad format");
-      adoptData(data);
-      persist();
-      selectedDate = null;
-      renderAll();
-      showToast("Backup imported");
-    } catch (err) {
-      showToast("That doesn't look like a Logbook backup file");
-    }
+      const n = mergeRemote(upgrade(data));   // merge, never clobber
+      persist(); renderAll();
+      showToast(n ? "Imported " + n + " change" + (n === 1 ? "" : "s") : "Backup already matched what's here");
+    } catch (err) { showToast("That doesn't look like a Logbook backup file"); }
   });
 
-  // ---------- render all ----------
+  // ---------- render ----------
   function renderAll() {
     renderProjSel();
     if (!active()) { openSetup("create"); return; }
@@ -1253,27 +1231,31 @@
     renderDash(); renderGoals(); renderQuire(); loadEditor(); renderTimeline();
   }
 
-  // ---------- online/offline ----------
   function updateOnline() { $("offlinePill").classList.toggle("on", !navigator.onLine); }
-  window.addEventListener("online", () => { updateOnline(); showToast("Back online — your cloud folder will sync changes"); });
   window.addEventListener("offline", updateOnline);
   updateOnline();
 
-  // ---------- service worker ----------
   if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+    navigator.serviceWorker.register("sw.js").then((reg) => {
+      reg.addEventListener("updatefound", () => {
+        const nw = reg.installing; if (!nw) return;
+        nw.addEventListener("statechange", () => {
+          if (nw.state === "installed" && navigator.serviceWorker.controller) {
+            showToast("New version downloaded — refreshing…");
+            setTimeout(() => location.reload(), 1400);
+          }
+        });
+      });
+      setInterval(() => { reg.update().catch(() => {}); }, 60000);
+    }).catch(() => {});
   }
 
   window.addEventListener("beforeunload", commitEditor);
 
   // ---------- go ----------
   restoreLocal();
-  if (!state.projects.length) {
-    preload();
-    setTimeout(() => showToast("Preloaded “Writing” and “Kidd study” — adjust dates & goals in Menu → Project settings"), 600);
-  }
   renderAll();
-  initFolder();
+  initFolder();      // merges the folder copy, then preloads only if truly empty
 })();
 </script>
 </body>
